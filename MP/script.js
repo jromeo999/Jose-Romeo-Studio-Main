@@ -12,17 +12,47 @@ const firebaseConfig = {
     appId: "1:428350148342:web:55792ce066b50f7594e6d7",
     measurementId: "G-8HJRB5YR2K"
 };
+// ... under firebaseConfig ...
 
+// FACEBOOK STYLE DEFAULT AVATAR (SVG Base64)
+const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRTRFNEU3Ii8+PHBhdGggZD0iTTI0IDIwLjk5M1YyNEgwdi0yLjk5NkExNC45NzcgMTQuOTc3IDAgMDExMi4wMDQgMTVjNC45MDQgMCA5LjI2IDIuMzU0IDExLjk5NiA1Ljk5M3pNMTYuMDAyIDguOTk5YTQgNCAwIDExLTggMCA0IDQgMCAwMTggMHoiIGZpbGw9IiNBMUExQUEiLz48L3N2Zz4=";
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // GLOBAL STATE
-let currentUser = null; // { code, name, account, role: 'vendor'|'buyer', img }
+let currentUser = null; 
 let cart = {}; 
 let validVendors = [];
 let validBuyers = [];
 let products = [];
 let orders = [];
+let historyMode = 'sales';
+
+// --- CUSTOM TOAST SYSTEM ---
+window.showToast = function(msg, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = type === 'success' ? `<span>✅</span> ${msg}` : `<span>⚠️</span> ${msg}`;
+    container.appendChild(toast);
+    
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// --- LIGHTBOX SYSTEM ---
+window.openLightbox = function(src) {
+    if(!src) return;
+    const box = document.getElementById('lightbox');
+    document.getElementById('lightbox-img').src = src;
+    box.classList.add('open');
+}
+window.closeLightbox = function() {
+    document.getElementById('lightbox').classList.remove('open');
+}
 
 // --- LISTENERS ---
 onSnapshot(collection(db, "vendors"), (snapshot) => {
@@ -35,6 +65,7 @@ onSnapshot(collection(db, "buyers"), (snapshot) => {
 
 onSnapshot(collection(db, "products"), (snapshot) => {
     products = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    // We only full-render on data updates, not user interaction
     renderBuyerCards(document.getElementById('buyerTodayGrid'), false);
     renderBuyerCards(document.getElementById('buyerPreOrderGrid'), true);
     
@@ -47,15 +78,30 @@ onSnapshot(collection(db, "products"), (snapshot) => {
 onSnapshot(collection(db, "orders"), (snapshot) => {
     orders = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
     if(currentUser && currentUser.role === 'vendor') renderVendorOrders();
-    if(currentUser) renderHistory(); // Updates for both if open
+    if(document.getElementById('slidePanel').classList.contains('open')) renderHistory();
 });
 
 // --- DATE HELPER ---
 function getShiftDate(isPreOrder = false) {
     const now = new Date();
-    if (now.getHours() < 6) now.setDate(now.getDate() - 1); // Shift starts 6am
+    if (now.getHours() < 6) now.setDate(now.getDate() - 1); 
     if (isPreOrder) now.setDate(now.getDate() + 1);
     return now.toLocaleDateString(); 
+}
+
+let pendingConfirmAction = null;
+window.showConfirm = function(msg, action) {
+    document.getElementById('confirmMsg').innerText = msg;
+    pendingConfirmAction = action;
+    openModal('confirmModal');
+}
+window.executeConfirm = function() {
+    if (pendingConfirmAction) pendingConfirmAction();
+    closeConfirmModal();
+}
+window.closeConfirmModal = function() {
+    closeModalById('confirmModal');
+    pendingConfirmAction = null;
 }
 
 // --- AUTHENTICATION ---
@@ -63,121 +109,489 @@ window.handleLogin = function() {
     const code = document.getElementById('codeJson').value.trim();
     if(code === "RESET") { location.reload(); return; }
 
-    // Check Vendors
-    let user = validVendors.find(v => v.code === code);
-    if(user) {
-        loginUser(user);
+    // --- NEW: ADMIN CHECK ---
+    if(code === "SOS-ADMIN") { 
+        // Hardcoded admin login for simplicity
+        currentUser = { role: 'admin', name: 'Super Admin', account: 'System' };
+        loginAdmin();
         return;
     }
 
-    // Check Buyers
-    user = validBuyers.find(b => b.code === code);
+    let user = validVendors.find(v => v.code === code) || validBuyers.find(b => b.code === code);
+    
     if(user) {
+        // --- NEW: CHECK IF VENDOR IS MUTED ---
+        if(user.isMuted) {
+            showToast("Account Suspended by Admin", "error");
+            return;
+        }
         loginUser(user);
+    } else {
+        showToast("Invalid Access Code", "error");
+    }
+}
+function loginAdmin() {
+    document.getElementById('codeJson').value = '';
+    document.getElementById('loginSection').classList.add('hidden');
+    document.getElementById('userControls').classList.remove('hidden');
+    document.getElementById('displayUserName').innerText = "Administrator";
+    document.getElementById('displayUserAcc').innerText = "Super User";
+    
+    // Show Admin View
+    document.getElementById('buyerView').classList.add('hidden');
+    document.getElementById('vendorView').classList.add('hidden');
+    document.getElementById('adminView').classList.remove('hidden');
+    
+    renderAdminPanel();
+}
+
+window.renderAdminPanel = function() {
+    const container = document.getElementById('adminVendorList');
+    container.innerHTML = '';
+    
+    if(validVendors.length === 0) {
+        container.innerHTML = '<div style="color:#999">No vendors registered.</div>';
         return;
     }
 
-    alert("Invalid Access Code");
+    validVendors.forEach(v => {
+        const isMuted = v.isMuted || false;
+        
+        const card = document.createElement('div');
+        card.className = 'vendor-card';
+        card.style.padding = '20px';
+        
+        // --- CHANGE HERE: Use DEFAULT_AVATAR instead of placeholder ---
+        const img = v.img || DEFAULT_AVATAR; 
+        
+        card.innerHTML = `
+            <div style="display:flex; gap:15px; align-items:center; margin-bottom:15px;">
+                <img src="${img}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:1px solid #eee;">
+                <div>
+                    <div style="font-weight:700; font-size:1rem;">${v.name}</div>
+                    <div style="font-size:0.8rem; color:#777;">Code: ${v.code}</div>
+                </div>
+                ${isMuted ? '<span style="margin-left:auto; background:#fee2e2; color:#991b1b; padding:4px 8px; border-radius:6px; font-size:0.7rem; font-weight:bold;">SUSPENDED</span>' : ''}
+            </div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button onclick="toggleVendorMute('${v.id}', ${isMuted})" class="btn" style="background:${isMuted ? '#dcfce7' : '#f3f4f6'}; color:${isMuted ? '#166534' : 'black'}; border:1px solid #ddd;">
+                    ${isMuted ? '✅ Unmute' : '🚫 Mute'}
+                </button>
+                <button onclick="deleteVendor('${v.id}', '${v.name}')" class="btn" style="background:#fee2e2; color:#991b1b; border:1px solid #fecaca;">
+                    🗑️ Delete
+                </button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+window.toggleVendorMute = async function(id, currentStatus) {
+    try {
+        await updateDoc(doc(db, "vendors", id), { isMuted: !currentStatus });
+        showToast(currentStatus ? "Vendor Activated" : "Vendor Muted");
+        // The onSnapshot listener will auto-update the UI
+        if(currentUser.role === 'admin') setTimeout(renderAdminPanel, 200); 
+    } catch(e) {
+        showToast("Error updating status", "error");
+    }
+}
+
+window.deleteVendor = function(id, name) {
+    // Uses your existing confirmation modal
+    showConfirm(`Delete shop "${name}"? This cannot be undone.`, async () => {
+        try {
+            await deleteDoc(doc(db, "vendors", id));
+            showToast("Vendor Deleted");
+            if(currentUser.role === 'admin') setTimeout(renderAdminPanel, 200);
+        } catch(e) {
+            showToast("Error deleting", "error");
+        }
+    });
 }
 
 function loginUser(user) {
     currentUser = user;
     document.getElementById('codeJson').value = '';
     
-    // Update Sidebar
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('userControls').classList.remove('hidden');
-    
     document.getElementById('displayUserName').innerText = user.name;
     document.getElementById('displayUserAcc').innerText = user.account;
-    document.getElementById('displayUserCode').innerText = user.code;
     
-    // Set Profile Pic
-    const defaultSvg = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNzE3MTdBIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIwIDIxdi0yYTQgNCAwIDAgMC00LTRoThYTQgMCAwIDAtNCA0djIiPjwvcGF0aD48Y2lyY2xlIGN4PSIxMiIgY3k9IjciIHI9IjQiPjwvY2lyY2xlPjwvc3ZnPg==";
-    document.getElementById('sidebarProfileImg').src = user.img || defaultSvg;
-
-    // Route View
-    if(user.role === 'vendor') {
-        document.getElementById('vendorSpecificButtons').style.display = 'block';
-        toggleView('vendor');
+    // Only show profile img if exists
+    const profileImg = document.getElementById('sidebarProfileImg');
+    if(user.img) {
+        profileImg.src = user.img;
+        profileImg.style.display = 'block';
     } else {
-        document.getElementById('vendorSpecificButtons').style.display = 'none';
-        toggleView('buyer');
+        // Optional: you can hide it or keep a tiny placeholder. 
+        // Showing a generic icon or nothing. Let's keep a generic icon for Sidebar as it looks weird empty.
+        profileImg.src = DEFAULT_AVATAR;
+    }
+
+    if(user.role === 'vendor') {
+        document.getElementById('vendorSpecificButtons').classList.remove('hidden');
+        document.getElementById('vendorView').classList.remove('hidden');
+        document.getElementById('buyerView').classList.add('hidden');
+        renderAdminProducts();
+        renderVendorOrders();
+        renderBuyerCards(document.getElementById('vendorMarketPreview'), false, true, currentUser.code);
+    } else {
+        document.getElementById('vendorSpecificButtons').classList.add('hidden');
+        document.getElementById('vendorView').classList.add('hidden');
+        document.getElementById('buyerView').classList.remove('hidden');
     }
 }
 
 window.logout = function() {
     currentUser = null;
-    document.getElementById('codeJson').value = '';
-    toggleView('buyer'); // Reset to default view
     document.getElementById('loginSection').classList.remove('hidden');
     document.getElementById('userControls').classList.add('hidden');
+    
+    // Hide specialized views
+    document.getElementById('vendorView').classList.add('hidden');
+    document.getElementById('adminView').classList.add('hidden'); // <--- ADDED THIS LINE
+    
+    // Show default public view (Buyer View)
+    document.getElementById('buyerView').classList.remove('hidden');
+    
+    closeSlidePanel();
 }
 
-// --- PROFILE PICTURE ---
 window.uploadProfilePic = function(input) {
     if(input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = async function(e) {
             const base64 = e.target.result;
+            if(base64.length > 1000000) { showToast("Image too large", "error"); return; }
             document.getElementById('sidebarProfileImg').src = base64;
-            
-            // Update Firestore
             const collectionName = currentUser.role === 'vendor' ? 'vendors' : 'buyers';
             await updateDoc(doc(db, collectionName, currentUser.id), { img: base64 });
-            currentUser.img = base64; // local update
+            currentUser.img = base64;
+            showToast("Profile Updated");
         };
         reader.readAsDataURL(input.files[0]);
     }
 }
 
-// --- REGISTRATION ---
+// --- MODAL & REGISTRATION ---
 window.openRegisterModal = function(role) {
     document.getElementById('regRole').value = role;
-    document.getElementById('regTitle').innerText = role === 'vendor' ? "Join as Vendor" : "Register Buyer";
-    document.getElementById('registerModal').classList.remove('hidden');
+    document.getElementById('regTitle').innerText = role === 'vendor' ? "Merchant Registration" : "Customer Registration";
+    openModal('registerModal');
 }
-window.closeRegisterModal = function() { document.getElementById('registerModal').classList.add('hidden'); }
+window.closeRegisterModal = function() { closeModalById('registerModal'); }
 
 window.submitRegistration = async function() {
     const role = document.getElementById('regRole').value;
-    const name = document.getElementById('regName').value.trim();
+    const nameInput = document.getElementById('regName').value.trim();
     const account = document.getElementById('regAccount').value.trim();
     
-    if(!name || !account) return alert("Please fill all fields");
+    if(!nameInput || !account) return showToast("Fill all fields", "error");
+
+    const existingUsers = role === 'vendor' ? validVendors : validBuyers;
+    const nameExists = existingUsers.some(user => user.name.toLowerCase() === nameInput.toLowerCase());
+
+    if (nameExists) return showToast("Name taken! Use another.", "error");
 
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     const collectionName = role === 'vendor' ? 'vendors' : 'buyers';
     
     try {
         await addDoc(collection(db, collectionName), { 
-            code, name, account, 
-            img: null // default
+            code, name: nameInput, account, img: null 
         });
-        alert(`Registered! Your Access Code is: ${code}`);
         closeRegisterModal();
-        
-        // Auto Login
         document.getElementById('codeJson').value = code;
-        handleLogin();
-        
-    } catch(e) { console.error(e); alert("Error registering"); }
+        showToast(`Registered! Code: ${code}`);
+    } catch(e) { 
+        showToast("Error connecting", "error"); 
+    }
 }
 
-// --- VIEW NAVIGATION ---
-window.toggleView = function(view) {
-    ['buyerView', 'vendorView', 'historyView'].forEach(id => document.getElementById(id).classList.add('hidden'));
+function openModal(id) {
+    const modal = document.getElementById(id);
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => modal.classList.add('open'));
+}
 
-    if (view === 'vendor') {
-        document.getElementById('vendorView').classList.remove('hidden');
-        renderAdminProducts();
-        renderVendorOrders();
-        renderBuyerCards(document.getElementById('vendorMarketPreview'), false, true, currentUser.code);
-    } else if (view === 'history') {
-        document.getElementById('historyView').classList.remove('hidden');
-        renderHistory();
+window.closeModalById = function(id) {
+    const modal = document.getElementById(id);
+    modal.classList.remove('open');
+    setTimeout(() => modal.classList.add('hidden'), 200);
+}
+
+window.closeModal = function() { window.closeModalById('productModal'); }
+
+document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape') {
+        document.querySelectorAll('.modal.open').forEach(m => window.closeModalById(m.id));
+        closeSlidePanel();
+        closeLightbox();
+    }
+});
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+        if(e.target === modal) window.closeModalById(modal.id);
+    });
+});
+
+// --- VENDOR INVENTORY ---
+window.renderAdminProducts = function() {
+    const list = document.getElementById('adminProductList');
+    list.innerHTML = '';
+    const myProducts = products.filter(p => p.vendor === currentUser.code);
+    
+    if(myProducts.length === 0) return list.innerHTML = '<div style="color:#999; text-align:center; padding:20px;">No items. Click +Add.</div>';
+
+    myProducts.forEach(p => {
+        const div = document.createElement('div');
+        div.className = `inventory-item ${!p.active ? 'inactive-row' : ''}`;
+        
+        // HIDE IMAGE IF NONE
+        const imgHTML = (p.media && p.media.length > 50) 
+            ? `<img src="${p.media}" class="item-img" onclick="event.stopPropagation(); openLightbox('${p.media}')">`
+            : ''; 
+
+        // Display "Unl." if stock is null
+        const stockDisplay = (p.stock === null || p.stock === undefined) ? '∞' : p.stock;
+
+        div.onclick = (e) => { 
+             if(!['BUTTON','INPUT'].includes(e.target.tagName)) openEditModal(p.id); 
+        };
+
+        div.innerHTML = `
+            <input type="checkbox" class="item-checkbox" 
+                   ${p.active ? 'checked' : ''} 
+                   onclick="event.stopPropagation(); toggleProductActive('${p.id}', ${p.active})">
+            
+            ${imgHTML}
+            
+            <div class="item-info">
+                <span class="item-name">${p.name}</span>
+                <span class="item-price">₱${p.price} • Stock: ${stockDisplay}</span>
+                ${p.note ? `<span style="font-size:0.7rem; color:#f59e0b;">${p.note}</span>` : ''}
+            </div>
+
+            <div class="item-actions">
+                <button class="btn-delete" onclick="event.stopPropagation(); deleteProduct('${p.id}')">🗑️</button>
+                <button class="btn-toggle-pre ${p.isPreOrder ? 'active' : ''}" 
+                        onclick="event.stopPropagation(); togglePreOrder('${p.id}', ${p.isPreOrder})">
+                    ${p.isPreOrder ? 'Pre-Order' : 'Standard'}
+                </button>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+window.toggleProductActive = async function(id, current) {
+    await updateDoc(doc(db, "products", id), { active: !current });
+}
+
+window.togglePreOrder = async function(id, current) {
+    await updateDoc(doc(db, "products", id), { isPreOrder: !current });
+}
+
+window.deleteProduct = async function(id) {
+    if(showConfirm("Delete this item permanently?")) {
+        await deleteDoc(doc(db, "products", id));
+        showToast("Item deleted");
+    }
+}
+
+window.soldOut = async function() {
+    showConfirm("Mark ALL items as Sold Out?", () => {
+        products.filter(p => p.vendor === currentUser.code).forEach(async (p) => {
+            if(p.active) await updateDoc(doc(db, "products", p.id), { active: false });
+        });
+        showToast("All items marked Sold Out");
+    }); 
+}
+
+// --- ADD / EDIT PRODUCT ---
+window.openAddModal = function() {
+    document.getElementById('mId').value = '';
+    document.getElementById('mName').value = '';
+    document.getElementById('mPrice').value = '';
+    document.getElementById('mStock').value = ''; // Reset Stock (Blank = Unlimited)
+    document.getElementById('mNote').value = ''; 
+    document.getElementById('mPreview').classList.remove('show');
+    document.getElementById('uploadPlaceholder').style.display = 'block';
+    document.getElementById('modalTitle').innerText = 'Add Item';
+    document.getElementById('mFile').value = ''; 
+    openModal('productModal');
+}
+
+window.openEditModal = function(id) {
+    const p = products.find(x => x.id === id);
+    if(!p) return;
+    document.getElementById('mId').value = p.id;
+    document.getElementById('mName').value = p.name;
+    document.getElementById('mPrice').value = p.price;
+    // If null/undefined, set to empty string for "Unlimited"
+    document.getElementById('mStock').value = (p.stock === null || p.stock === undefined) ? '' : p.stock;
+    document.getElementById('mVariants').value = (p.variants || []).join(', ');
+    document.getElementById('mNote').value = p.note || ''; 
+    
+    // Check if media is valid image
+    const hasImg = (p.media && p.media.length > 50);
+    document.getElementById('mPreview').src = hasImg ? p.media : '';
+    if(hasImg) {
+        document.getElementById('mPreview').classList.add('show');
+        document.getElementById('uploadPlaceholder').style.display = 'none';
     } else {
-        document.getElementById('buyerView').classList.remove('hidden');
+        document.getElementById('mPreview').classList.remove('show');
+        document.getElementById('uploadPlaceholder').style.display = 'block';
+    }
+    
+    document.getElementById('modalTitle').innerText = 'Edit Item';
+    document.getElementById('mFile').value = '';
+    openModal('productModal');
+}
+
+window.openHelpModal = function() {
+    const content = document.getElementById('helpContent');
+    const title = document.getElementById('helpTitle');
+
+    if (!currentUser) return;
+
+    if (currentUser.role === 'admin') {
+        // --- SUPER ADMIN GUIDE ---
+        title.innerText = "👑 Super Admin Guide";
+        content.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <div style="background:#f0f9ff; padding:10px; border-radius:8px; border:1px solid #bae6fd;">
+                    <strong style="color:#0369a1;">1. Vendor Management</strong>
+                    <p style="margin:5px 0 0; font-size:0.85rem;">
+                        You have a global view of all registered shops. You can see their images, names, and access codes.
+                    </p>
+                </div>
+                
+                <div>
+                    <strong style="color:#b91c1c;">2. Muting (Suspension)</strong>
+                    <p style="margin:5px 0 0; font-size:0.85rem;">
+                        Clicking <span style="background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px; font-size:0.75rem; border:1px solid #ddd;">🚫 Mute</span> 
+                        immediately <b>hides</b> the shop from the Buyer's marketplace.
+                        <br><br>
+                        <i>Use this for:</i> Policy violations, unpaid fees, or temporary suspensions. The data is preserved, and you can Unmute them anytime.
+                    </p>
+                </div>
+
+                <div>
+                    <strong style="color:#b91c1c;">3. Deletion</strong>
+                    <p style="margin:5px 0 0; font-size:0.85rem;">
+                        Clicking <span style="background:#fee2e2; color:#991b1b; padding:2px 6px; border-radius:4px; font-size:0.75rem; border:1px solid #fecaca;">🗑️ Delete</span> 
+                        permanently removes the user. <span style="text-decoration:underline;">This cannot be undone.</span>
+                    </p>
+                </div>
+            </div>
+        `;
+     } else if (currentUser.role === 'vendor') {
+        // --- VENDOR GUIDE ---
+        title.innerText = "🏪 Merchant Guide";
+        content.innerHTML = `
+            <ul style="padding-left:15px; margin:0; display:flex; flex-direction:column; gap:10px;">
+                <li><b>Adding Items:</b> Click <i>+ Add Item</i>. Leave stock blank for "Unlimited".</li>
+                <li><b>Variants:</b> To add options (e.g., <i>Spicy, Regular</i>), type them in the Variants box separated by commas.</li>
+                <li><b>Pre-Order vs Standard:</b> Toggle the button on the item card. Pre-orders appear in the "Tomorrow" list.</li>
+                <li><b>Orders:</b> Mark orders as "Paid" when you receive cash. </li>
+                <li><b>End Shift:</b> Clears your local view (data is saved in History).</li>
+            </ul>
+        `;
+    }  else {
+        // --- BUYER GUIDE ---
+        title.innerText = "🛒 Buyer Guide";
+        content.innerHTML = `
+            <ul style="padding-left:15px; margin:0; display:flex; flex-direction:column; gap:10px;">
+                <li><b>Ordering:</b> Click (+) to add items to your cart.</li>
+                <li><b>Payments:</b> Select "Cash" or "Payday" before submitting.</li>
+                <li><b>Today vs Pre-Order:</b> "Today" items are available now. "Pre-Order" items are for the next shift.</li>
+                <li><b>History:</b> Check the slide-out menu to see your past purchases.</li>
+            </ul>
+        `;
+    }
+
+    openModal('helpModal');
+}
+
+window.previewImage = function(input) {
+    if(input.files && input.files[0]) {
+        const r = new FileReader();
+        r.onload = (e) => {
+            const img = document.getElementById('mPreview');
+            img.src = e.target.result;
+            img.classList.add('show');
+            document.getElementById('uploadPlaceholder').style.display = 'none';
+        };
+        r.readAsDataURL(input.files[0]);
+    }
+}
+
+window.commitProduct = function() {
+    const id = document.getElementById('mId').value;
+    const name = document.getElementById('mName').value.trim();
+    const price = document.getElementById('mPrice').value;
+    const stockVal = document.getElementById('mStock').value; 
+    const note = document.getElementById('mNote').value.trim();
+    
+    // --- NEW: Parse Variants ---
+    const variantsStr = document.getElementById('mVariants').value;
+    // Split by comma, trim whitespace, remove empty strings
+    const variants = variantsStr ? variantsStr.split(',').map(s => s.trim()).filter(s => s) : [];
+
+    const fileInput = document.getElementById('mFile');
+    
+    if(!name || !price) return showToast("Name & Price required", "error");
+    const stock = stockVal === '' ? null : parseInt(stockVal);
+
+    const save = async (img) => {
+        try {
+            const data = { 
+                vendor: currentUser.code, vendorName: currentUser.name, 
+                name, 
+                price: parseInt(price),
+                stock: stock, 
+                note: note, 
+                variants: variants, // <--- SAVE VARIANTS
+                media: img || null, 
+                isPreOrder: false, 
+                active: true 
+            };
+            
+            if(id) { 
+                delete data.vendor; delete data.vendorName; delete data.active; delete data.isPreOrder;
+                const updateData = { 
+                    name, 
+                    price: parseInt(price),
+                    stock: stock,
+                    note: note,
+                    variants: variants // <--- UPDATE VARIANTS
+                };
+                if(img) updateData.media = img;
+                await updateDoc(doc(db,"products",id), updateData);
+                showToast("Item Updated");
+            } else { 
+                await addDoc(collection(db,"products"), data); 
+                showToast("Item Added");
+            }
+            window.closeModal();
+        } catch(err) {
+            console.error(err);
+            showToast("Error saving", "error");
+        }
+    };
+
+    if(fileInput.files && fileInput.files[0]) { 
+        const r = new FileReader(); 
+        r.onload = (e) => save(e.target.result); 
+        r.onerror = () => showToast("Error reading file", "error");
+        r.readAsDataURL(fileInput.files[0]); 
+    } else if (id) {
+        save(null); 
+    } else {
+        save(null); 
     }
 }
 
@@ -185,153 +599,329 @@ window.toggleView = function(view) {
 function renderBuyerCards(container, showPreOrders, isCompact = false, excludeVendor = null) {
     if(!container) return;
     container.innerHTML = '';
-
     const vendors = {};
+    
     products.forEach(p => {
-        if(p.active === false) return; 
-        if(p.isPreOrder !== showPreOrders) return;
-        if(excludeVendor && p.vendor === excludeVendor) return;
+    if(!p.active) return;
+    if(p.isPreOrder !== showPreOrders) return;
+    if(excludeVendor && p.vendor === excludeVendor) return; 
 
-        if(!vendors[p.vendor]) {
-            const vObj = validVendors.find(v => v.code === p.vendor);
-            vendors[p.vendor] = { name: p.vendorName, account: vObj ? vObj.account : '', items: [], code: p.vendor };
-        }
-        vendors[p.vendor].items.push(p);
+    if(!vendors[p.vendor]) {
+        const vObj = validVendors.find(v => v.code === p.vendor);
+        
+        // --- MODIFIED CHECK ---
+        // If vendor doesn't exist OR IS MUTED, skip their products
+        if(!vObj || vObj.isMuted) return; 
+
+        vendors[p.vendor] = { 
+            name: vObj.name, 
+            account: vObj.account, 
+            img: vObj.img,
+            items: [], 
+            code: p.vendor 
+        };
+    }
+        if(vendors[p.vendor]) vendors[p.vendor].items.push(p);
     });
 
     const vendorKeys = Object.keys(vendors);
-    if(excludeVendor && vendorKeys.length === 0) {
-        container.innerHTML = '<div style="color:#999; text-align:center; padding:20px; font-size:0.9rem;">No active shops</div>';
+    if(vendorKeys.length === 0) {
+        container.innerHTML = '<div style="color:#999; font-size:0.8rem; padding:10px;">No active shops.</div>';
         return;
     }
 
     vendorKeys.forEach(code => {
-        createCard(vendors[code], vendors[code].items, container, isCompact);
+        const v = vendors[code];
+        const card = document.createElement('div');
+        card.className = 'vendor-card collapsed'; 
+        if(isCompact) card.style.border = "1px solid #e4e4e7";
+
+        let itemsHtml = v.items.map(i => {
+    const itemImgHTML = (i.media && i.media.length > 50) 
+        ? `<img src="${i.media}" class="product-img" onclick="openLightbox('${i.media}')">`
+        : '';
+    
+    const isUnlimited = (i.stock === null || i.stock === undefined);
+    const variants = i.variants || [];
+    
+    // --- LOGIC: Calculate Total Stock Used for this Parent Item ---
+    // We sum up all variants of this item currently in cart to check against limit
+    let totalInCartForThisItem = 0;
+    Object.keys(cart).forEach(key => {
+        if(key.startsWith(i.id)) totalInCartForThisItem += cart[key];
+    });
+
+    // --- HTML GENERATOR ---
+    let controlsHTML = '';
+
+    if (variants.length > 0) {
+        // RENDER VARIANT ROWS
+        controlsHTML = `<div class="variant-list">`;
+        variants.forEach(variant => {
+            const compositeKey = `${i.id}::${variant}`;
+            const qty = cart[compositeKey] || 0;
+            const isOOS = !isUnlimited && (totalInCartForThisItem >= i.stock);
+            
+            // Allow clicking plus if we haven't hit limit OR if we are just adding to existing count (logic handled in changeQty)
+            // Actually, simplified: Disable + if total >= stock
+            
+            controlsHTML += `
+                <div class="variant-row">
+                    <span class="variant-name">${variant}</span>
+                    <div class="qty-controls small-controls">
+                        <button class="qty-btn" onclick="changeQty('${i.id}', -1, ${i.price}, '${v.code}', '${variant}')">-</button>
+                        <span class="qty-val" id="qty-${compositeKey}">${qty}</span>
+                        <button class="qty-btn" id="btn-plus-${compositeKey}" 
+                            ${(isOOS && qty === 0) ? 'disabled style="opacity:0.3"' : ''} 
+                            onclick="changeQty('${i.id}', 1, ${i.price}, '${v.code}', '${variant}')">+</button>
+                    </div>
+                </div>
+            `;
+        });
+        controlsHTML += `</div>`;
+    } else {
+        // STANDARD RENDER (No Variants)
+        const qty = cart[i.id] || 0;
+        const isOOS = !isUnlimited && (totalInCartForThisItem >= i.stock);
+        controlsHTML = `
+            <div class="qty-controls">
+                <button class="qty-btn" onclick="changeQty('${i.id}',-1,${i.price},'${v.code}')">-</button>
+                <span class="qty-val" id="qty-${i.id}">${qty}</span>
+                <button class="qty-btn" id="btn-plus-${i.id}" ${isOOS ? 'disabled style="opacity:0.3"' : ''} onclick="changeQty('${i.id}',1,${i.price},'${v.code}')">+</button>
+            </div>
+        `;
+    }
+
+    const stockDisplay = !isUnlimited ? `<div class="stock-badge">Stock: ${i.stock}</div>` : '';
+
+    return `
+    <div class="product-item ${variants.length > 0 ? 'has-variants' : ''}">
+        ${itemImgHTML}
+        <div class="product-details">
+            <span class="product-name">${i.name}</span>
+            <span class="product-price">₱${i.price}</span>
+            ${i.note ? `<div class="item-note">${i.note}</div>` : ''}
+            ${stockDisplay}
+        </div>
+        ${controlsHTML}
+    </div>
+`}).join('');
+
+        // VENDOR IMAGE HIDING LOGIC
+        const vendorImgHTML = (v.img && v.img.length > 50) 
+            ? `<img src="${v.img}" class="vendor-header-img">`
+            : '';
+
+        card.innerHTML = `
+            <div class="card-header" onclick="toggleCard(this)">
+                <div class="vendor-header-wrapper">
+                    ${vendorImgHTML}
+                    <div>
+                        <div class="shop-name">${v.name}</div>
+                        <span class="shop-meta">${v.account}</span>
+                    </div>
+                </div>
+                <span class="chevron">▼</span>
+            </div>
+            <div class="card-content">${itemsHtml}</div>
+            <div class="card-footer">
+                <div class="total-display"><span>Total:</span><span id="total-${v.code}">₱0</span></div>
+                <div class="payment-options">
+                    <button class="pay-btn" onclick="togglePayment(this)">Cash</button>
+                    <button class="pay-btn" onclick="togglePayment(this)">Payday</button>
+                </div>
+                <button class="submit-btn" onclick="submitOrder('${v.code}', this, ${showPreOrders})">Submit Order</button>
+            </div>
+        `;
+        container.appendChild(card);
     });
 }
 
-function createCard(vData, items, container, isCompact) {
-    const card = document.createElement('div');
-    card.className = isCompact ? 'vendor-card compact' : 'vendor-card';
-    const chevronHtml = isCompact ? '<span class="chevron">▼</span>' : '';
-    const clickAttr = isCompact ? `onclick="this.parentElement.classList.toggle('expanded')"` : '';
-
-    let html = items.map(i => `
-        <div class="product-item">
-            <img src="${i.media}" class="product-img" onclick="event.stopPropagation(); openLightbox('${i.media}')">
-            <div class="product-details">
-                <span class="product-name">${i.name}</span>
-                <span class="product-price">₱${i.price}</span>
-            </div>
-            <div class="qty-controls" onclick="event.stopPropagation()">
-                <button class="qty-btn" onclick="changeQty('${i.id}',-1,${i.price},'${vData.code}')">-</button>
-                <span class="qty-val" id="qty-${i.id}">${cart[i.id]||0}</span>
-                <button class="qty-btn" onclick="changeQty('${i.id}',1,${i.price},'${vData.code}')">+</button>
-            </div>
-        </div>
-    `).join('');
-
-    // Buyer Inputs Removed. Uses currentUser data.
-    const footerHtml = isCompact ? '' : `
-        <div class="card-footer">
-            <div class="total-display"><span>Total:</span><span class="total-amount" id="total-${vData.code}">₱0</span></div>
-            <div class="payment-options">
-                <button class="pay-btn" onclick="togglePayment(this)">Cash</button>
-                <button class="pay-btn" onclick="togglePayment(this)">Payday</button>
-            </div>
-            <button class="submit-btn" onclick="submitOrder('${vData.code}', this, ${items[0].isPreOrder})">Submit Order</button>
-        </div>
-    `;
-
-    card.innerHTML = `
-        <div class="card-header" ${clickAttr}>
-            <div class="shop-name">${vData.name}</div>
-            <span class="shop-meta">${vData.account}</span>
-            ${chevronHtml}
-        </div>
-        <div class="card-content">${html}</div>
-        ${footerHtml}
-    `;
-    container.appendChild(card);
+window.toggleCard = function(header) {
+    header.parentElement.classList.toggle('collapsed');
 }
 
-// --- ORDER SUBMISSION ---
-window.changeQty = function(id,chg,p,vc) { 
-    if(!cart[id])cart[id]=0; cart[id]+=chg; if(cart[id]<0)cart[id]=0; 
-    document.querySelectorAll(`#qty-${id}`).forEach(el => el.innerText=cart[id]);
-    const vItems=products.filter(x=>x.vendor===vc); let tot=0; 
-    vItems.forEach(i=>tot+=(i.price*(cart[i.id]||0))); 
-    document.querySelectorAll(`#total-${vc}`).forEach(el => el.innerText=`₱${tot.toLocaleString()}`);
+window.changeQty = function(id, chg, price, vendorCode, variant = null) {
+    // Construct Key: if variant exists, use "id::variant", else just "id"
+    const cartKey = variant ? `${id}::${variant}` : id;
+
+    if (!cart[cartKey]) cart[cartKey] = 0;
+
+    // --- SHARED STOCK CHECK ---
+    // We must find the Base Product to check the Total Stock
+    const product = products.find(x => x.id === id);
+    
+    if (product && chg > 0) {
+        const isUnlimited = (product.stock === null || product.stock === undefined);
+        if (!isUnlimited) {
+            // Count total items in cart that belong to this product ID
+            let currentTotalUsage = 0;
+            Object.keys(cart).forEach(k => {
+                if (k.startsWith(id)) currentTotalUsage += cart[k];
+            });
+
+            if (currentTotalUsage >= product.stock) {
+                showToast("Max stock reached", "error");
+                return;
+            }
+        }
+    }
+
+    cart[cartKey] += chg;
+    if (cart[cartKey] < 0) cart[cartKey] = 0;
+
+    // Update DOM
+    // Note: We use querySelectorAll because IDs must be escaped if they contain "::" but 
+    // simply using getElementById usually fails with colons unless escaped. 
+    // Simplest way is to match the ID string directly.
+    const qtySpan = document.getElementById(`qty-${cartKey}`);
+    if(qtySpan) qtySpan.innerText = cart[cartKey];
+
+    // Update Vendor Total
+    const vItems = products.filter(x => x.vendor === vendorCode);
+    let tot = 0;
+    
+    // Calculate total based on ALL cart keys that belong to this vendor's products
+    Object.keys(cart).forEach(key => {
+        const pId = key.split('::')[0]; // Extract ID part
+        const prod = vItems.find(p => p.id === pId);
+        if(prod) {
+            tot += (prod.price * cart[key]);
+        }
+    });
+    
+    document.querySelectorAll(`#total-${vendorCode}`).forEach(el => el.innerText = `₱${tot.toLocaleString()}`);
 }
 
 window.togglePayment = function(btn) {
-    const isSelected = btn.classList.contains('selected');
-    btn.parentElement.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('selected'));
-    if (!isSelected) btn.classList.add('selected');
+    if(btn.classList.contains('selected')) {
+        btn.classList.remove('selected');
+    } else {
+        btn.parentElement.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+    }
 }
 
 window.submitOrder = async function(vCode, btn, isPreOrder) {
-    if(!currentUser) return alert("Please Login or Register to order.");
+    if(!currentUser) return showToast("Please Login first", "error");
 
     const vItems = products.filter(p => p.vendor === vCode);
     const purchased = [];
     let total = 0;
-
-    vItems.forEach(p => {
-        const qty = cart[p.id] || 0;
-        if(qty > 0) {
-            purchased.push({ name: p.name, qty: qty, price: p.price, total: p.price * qty });
-            total += (p.price * qty);
-        }
+    
+    // New Logic: Iterate keys in Cart that match this vendor
+    const relevantKeys = Object.keys(cart).filter(k => {
+        const pId = k.split('::')[0];
+        return vItems.some(v => v.id === pId) && cart[k] > 0;
     });
 
-    if(purchased.length === 0) return alert("Cart is empty!");
+    if(relevantKeys.length === 0) return showToast("Cart is empty", "error");
 
-    const footer = btn.parentElement;
-    const method = footer.querySelector('.pay-btn.selected') ? footer.querySelector('.pay-btn.selected').innerText : "Cash";
+    // STOCK VALIDATION LOOP
+    // We group by Product ID to ensure shared stock isn't exceeded
+    const usageMap = {}; // { pid: totalQty }
     
+    for(let key of relevantKeys) {
+        const pId = key.split('::')[0];
+        if(!usageMap[pId]) usageMap[pId] = 0;
+        usageMap[pId] += cart[key];
+    }
+
+    for(let pId in usageMap) {
+        const product = products.find(p => p.id === pId);
+        const isUnlimited = (product.stock === null || product.stock === undefined);
+        if(!isUnlimited && usageMap[pId] > product.stock) {
+            return showToast(`Not enough stock for ${product.name}`, "error");
+        }
+    }
+
+    // BUILD PURCHASE ARRAY
+    for(let key of relevantKeys) {
+        const [pId, variant] = key.split('::');
+        const product = products.find(p => p.id === pId);
+        const qty = cart[key];
+        
+        // Format Name: "Adobo" or "Adobo (Spicy)"
+        const finalName = variant ? `${product.name} (${variant})` : product.name;
+        
+        purchased.push({ 
+            name: finalName, 
+            qty: qty, 
+            price: product.price, 
+            id: pId, // We track parent ID for stock subtraction
+            originalStock: product.stock 
+        });
+        
+        total += (product.price * qty);
+    }
+
+    const selectedBtn = btn.parentElement.querySelector('.pay-btn.selected');
+    if(!selectedBtn) return showToast("Select Payment Option", "error");
+    const method = selectedBtn.innerText;
+
     try {
         await addDoc(collection(db, "orders"), {
             vendorCode: vCode,
-            buyerCode: currentUser.code, // Link to buyer
+            buyerCode: currentUser.code,
             buyer: { name: currentUser.name, account: currentUser.account },
-            items: purchased,
+            items: purchased.map(x => ({ name: x.name, qty: x.qty, price: x.price })),
             total: total,
             method: method,
-            status: "Unpaid", // Default status
+            status: "Unpaid",
             date: getShiftDate(isPreOrder),
             timestamp: new Date().toLocaleString(),
             type: isPreOrder ? "Pre-Order" : "Standard"
         });
+
+        // SUBTRACT STOCK (Aggregated per parent product)
+        // We use 'usageMap' calculated earlier
+        for(let pId in usageMap) {
+            const product = products.find(p => p.id === pId);
+            if (product.stock !== null && product.stock !== undefined) {
+                const newStock = product.stock - usageMap[pId];
+                const updates = { stock: newStock };
+                if(newStock <= 0) {
+                    updates.active = false;
+                    updates.stock = 0;
+                }
+                await updateDoc(doc(db, "products", pId), updates);
+            }
+        }
+
+        // RESET CART
+        relevantKeys.forEach(k => delete cart[k]);
         
-        vItems.forEach(p => {
-            cart[p.id] = 0;
-            document.querySelectorAll(`#qty-${p.id}`).forEach(e => e.innerText = "0");
-        });
-        document.querySelectorAll(`#total-${vCode}`).forEach(e => e.innerText = "₱0");
-        alert("Order Sent!");
-    } catch(e) { console.error(e); alert("Failed."); }
+        // Reset DOM totals
+        document.querySelectorAll(`#total-${vCode}`).forEach(el => el.innerText = `₱0`);
+        // We trigger a re-render or just let the user see the reset via UI
+        renderBuyerCards(document.getElementById('buyerTodayGrid'), false);
+        renderBuyerCards(document.getElementById('buyerPreOrderGrid'), true);
+        
+        showToast("Order Sent!");
+    } catch(e) { console.error(e); showToast("Failed to send", "error"); }
 }
 
-// --- HISTORY & PURCHASES ---
-let historyMode = 'sales'; // 'sales' or 'purchases'
 
-window.openHistoryView = function() { 
-    // Reset mode based on role
+// ... Rest of the file (history, etc) ...
+window.openSlidePanel = function() {
+    document.getElementById('slideOverlay').classList.add('open');
+    document.getElementById('slidePanel').classList.add('open');
+    
     if(currentUser.role === 'vendor') {
-        historyMode = 'sales';
         document.getElementById('vendorHistoryToggle').classList.remove('hidden');
+        historyMode = 'sales'; 
         updateHistoryToggleUI();
     } else {
-        historyMode = 'purchases';
         document.getElementById('vendorHistoryToggle').classList.add('hidden');
+        historyMode = 'purchases';
     }
-    
-    toggleView('history'); 
-    populateDateFilters(); 
+    populateDateFilters();
 }
 
-window.closeHistoryView = function() { toggleView(currentUser.role === 'vendor' ? 'vendor' : 'buyer'); }
+window.closeSlidePanel = function() {
+    document.getElementById('slideOverlay').classList.remove('open');
+    document.getElementById('slidePanel').classList.remove('open');
+}
 
 window.switchHistoryMode = function(mode) {
     historyMode = mode;
@@ -340,147 +930,127 @@ window.switchHistoryMode = function(mode) {
 }
 
 function updateHistoryToggleUI() {
+    const btnSales = document.getElementById('btnShowSales');
+    const btnPurch = document.getElementById('btnShowPurchases');
     if(historyMode === 'sales') {
-        document.getElementById('btnShowSales').classList.add('active');
-        document.getElementById('btnShowPurchases').classList.remove('active');
+        btnSales.style.background = 'white'; btnSales.style.color = 'black'; btnSales.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+        btnPurch.style.background = 'transparent'; btnPurch.style.color = '#71717A'; btnPurch.style.boxShadow = "none";
     } else {
-        document.getElementById('btnShowSales').classList.remove('active');
-        document.getElementById('btnShowPurchases').classList.add('active');
+        btnPurch.style.background = 'white'; btnPurch.style.color = 'black'; btnPurch.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+        btnSales.style.background = 'transparent'; btnSales.style.color = '#71717A'; btnSales.style.boxShadow = "none";
     }
 }
 
 function populateDateFilters() {
     const mSelect = document.getElementById('filterMonth');
     const ySelect = document.getElementById('filterYear');
-    if(ySelect.options.length > 0) return; 
-
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    months.forEach((m, i) => mSelect.add(new Option(m, i)));
     
-    const today = new Date();
-    for(let y = today.getFullYear(); y >= today.getFullYear() - 2; y--) {
-        ySelect.add(new Option(y, y));
+    if(mSelect.options.length === 0) {
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        months.forEach((m, i) => mSelect.add(new Option(m, i)));
+        const today = new Date();
+        for(let y = today.getFullYear(); y >= today.getFullYear() - 2; y--) {
+            ySelect.add(new Option(y, y));
+        }
+        mSelect.value = today.getMonth();
+        ySelect.value = today.getFullYear();
     }
-    mSelect.value = today.getMonth();
-    ySelect.value = today.getFullYear();
     renderHistory();
 }
 
 window.renderHistory = function() {
-    if(!currentUser) return;
-    
-    const thead = document.getElementById('historyTableHead');
     const tbody = document.getElementById('historyTableBody');
+    const thead = document.getElementById('historyTableHead');
+    
+    // Clear current content
     tbody.innerHTML = '';
-
+    
     const m = parseInt(document.getElementById('filterMonth').value);
     const y = parseInt(document.getElementById('filterYear').value);
     
-    // 1. FILTER ORDERS BY DATE
     let relevantOrders = orders.filter(o => {
         const d = new Date(o.date);
         return d.getMonth() === m && d.getFullYear() === y;
     });
 
-    // 2. DETERMINE MODE (Vendor Sales vs Vendor/Buyer Purchases)
-    
-    // MODE: SALES (Vendors Only)
+    // --- ANIMATION: RESET TOTAL BADGE ---
+    const totalBadge = document.getElementById('historyTotalBadge');
+    totalBadge.classList.remove('total-pop'); // Remove class to reset
+    void totalBadge.offsetWidth; // Trigger reflow (Magic trick to restart CSS animation)
+    totalBadge.classList.add('total-pop'); // Add class back
+
     if(historyMode === 'sales' && currentUser.role === 'vendor') {
-        document.getElementById('historyTitle').innerText = "Sales Performance";
-        thead.innerHTML = `<tr><th>Date</th><th class="text-center">Orders</th><th class="text-center">Items</th><th class="text-right">Revenue</th></tr>`;
-        
+        thead.innerHTML = `<tr><th>Date/Buyer</th><th class="text-right">Amt</th></tr>`;
         relevantOrders = relevantOrders.filter(o => o.vendorCode === currentUser.code);
-        
-        const history = {};
-        let grandTotal = 0;
-        
+        let grand = 0;
         relevantOrders.forEach(o => {
-            if(!history[o.date]) history[o.date] = { count: 0, items: 0, total: 0 };
-            history[o.date].count++;
-            history[o.date].total += o.total;
-            history[o.date].items += o.items.reduce((s,i)=>s+i.qty,0);
-            grandTotal += o.total;
-        });
-
-        document.getElementById('historyTotalBadge').innerText = `Total: ₱${grandTotal.toLocaleString()}`;
-
-        if(Object.keys(history).length === 0) {
-             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#aaa;">No sales records.</td></tr>'; return;
-        }
-
-        Object.keys(history).sort((a,b)=>new Date(b)-new Date(a)).forEach(date => {
-            const data = history[date];
-            const dObj = new Date(date);
-            tbody.innerHTML += `
-                <tr>
-                    <td>${dObj.getMonth()+1}/${dObj.getDate()}</td>
-                    <td class="text-center"><span class="clickable-count">${data.count}</span></td>
-                    <td class="text-center">${data.items}</td>
-                    <td class="text-right" style="color:var(--success); font-weight:bold;">₱${data.total.toLocaleString()}</td>
-                </tr>`;
-        });
-
-    } 
-    // MODE: PURCHASES (Buyers OR Vendors buying things)
-    else {
-        document.getElementById('historyTitle').innerText = "My Purchases";
-        thead.innerHTML = `<tr><th>Date</th><th>Item Details</th><th class="text-center">Status</th><th class="text-right">Total</th></tr>`;
-        
-        relevantOrders = relevantOrders.filter(o => o.buyerCode === currentUser.code);
-        relevantOrders.sort((a,b) => b.timestamp.localeCompare(a.timestamp));
-        
-        let grandTotal = 0;
-        relevantOrders.forEach(o => grandTotal += o.total);
-        document.getElementById('historyTotalBadge').innerText = `Total: ₱${grandTotal.toLocaleString()}`;
-
-        if(relevantOrders.length === 0) {
-             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#aaa;">No purchases found.</td></tr>'; return;
-        }
-
-        relevantOrders.forEach(o => {
-            const dObj = new Date(o.date);
-            const statusClass = o.status === 'Paid' ? 'status-paid' : 'status-unpaid';
-            const itemsSummary = o.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+            const isPaid = o.status === 'Paid';
+            const itemsStr = o.items.map(i=>`${i.qty} ${i.name}`).join(', ');
             
-            tbody.innerHTML += `
-                <tr>
-                    <td>${dObj.getMonth()+1}/${dObj.getDate()}</td>
-                    <td><div style="font-weight:600;">${o.vendorCode}</div><div style="font-size:0.8rem; color:#666;">${itemsSummary}</div></td>
-                    <td class="text-center"><span class="status-pill ${statusClass}">${o.status}</span></td>
-                    <td class="text-right" style="font-weight:bold;">₱${o.total}</td>
-                </tr>`;
+            // ADDED CLASS: history-row
+            tbody.innerHTML += `<tr class="history-row">
+                <td>
+                    <div style="font-weight:600">${o.buyer.name}</div>
+                    <div style="font-size:0.75rem; color:#777;">${itemsStr}</div>
+                    <span class="status-badge ${isPaid ? 'bg-paid' : 'bg-unpaid'}">${o.status}</span>
+                </td>
+                <td class="text-right amount-cell">+₱${o.total}</td>
+            </tr>`;
+            grand += o.total;
         });
+        totalBadge.innerText = `₱${grand.toLocaleString()}`;
+
+    } else {
+        thead.innerHTML = `<tr><th>Shop/Items</th><th class="text-right">Total</th></tr>`;
+        relevantOrders = relevantOrders.filter(o => o.buyerCode === currentUser.code);
+        let grand = 0;
+        relevantOrders.forEach(o => {
+            const isPaid = o.status === 'Paid';
+            if(!isPaid) grand += o.total; 
+            
+            const itemsStr = o.items.map(i=>`${i.qty} ${i.name}`).join(', ');
+            const statusText = isPaid ? '' : '<div style="color:#ef4444; font-size:0.7rem; font-weight:700;">TO BE PAID</div>';
+            
+            // ADDED CLASS: history-row
+            tbody.innerHTML += `<tr class="history-row">
+                <td>
+                    <span style="font-weight:700;">${o.vendorCode}</span>
+                    <div style="font-size:0.85rem; color:#555;">${itemsStr}</div>
+                    ${statusText}
+                </td>
+                <td class="text-right amount-cell">₱${o.total}</td>
+            </tr>`;
+        });
+        totalBadge.innerText = `₱${grand.toLocaleString()}`;
     }
 }
 
-// --- VENDOR ORDER ACTIONS (Toggle Paid) ---
 function renderVendorOrders() {
     const list = document.getElementById('orderList');
     list.innerHTML = '';
     const currentShiftDate = getShiftDate(false);
     
-    const myOrders = orders.filter(o => o.vendorCode === currentUser.code && o.date === currentShiftDate);
-    if(myOrders.length === 0) return list.innerHTML = '<div class="empty-state" style="text-align:center;padding:20px;color:#aaa;">No orders for today</div>';
-
-    myOrders.sort((a,b) => b.timestamp.localeCompare(a.timestamp));
+    const myOrders = orders
+        .filter(o => o.vendorCode === currentUser.code && o.date === currentShiftDate)
+        .sort((a,b) => b.timestamp.localeCompare(a.timestamp));
+        
+    if(myOrders.length === 0) return list.innerHTML = '<div style="text-align:center; color:#ccc;">No orders today</div>';
 
     myOrders.forEach(o => {
         const div = document.createElement('div');
-        div.style.borderBottom = "1px solid #f0f0f0"; div.style.padding = "12px";
-        
+        div.style.background = "white"; div.style.padding = "12px"; div.style.borderRadius = "10px"; div.style.border = "1px solid #eee";
         const isPaid = o.status === 'Paid';
-        const statusColor = isPaid ? 'var(--success)' : 'var(--danger)';
-        const btnText = isPaid ? 'Mark Unpaid' : 'Mark Paid';
-
         div.innerHTML = `
-            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                <div style="font-weight:700;">${o.buyer.name}</div>
-                <div style="font-weight:700;color:var(--success);">₱${o.total}</div>
+            <div style="display:flex; justify-content:space-between; font-weight:700;">
+                <span>${o.buyer.name}</span>
+                <span>₱${o.total}</span>
             </div>
-            <div style="font-size:0.85rem;color:#555;">${o.items.map(i=>`${i.qty}x ${i.name}`).join(', ')}</div>
-            <div style="font-size:0.75rem;color:#999;margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
-                <span style="color:${statusColor}; font-weight:700;">${o.status}</span>
-                <button onclick="toggleOrderStatus('${o.id}', '${o.status}')" style="font-size:0.7rem; padding:4px 8px; border:1px solid #eee; background:white; border-radius:4px; cursor:pointer;">${btnText}</button>
+            <div style="font-size:0.85rem; color:#555; margin:5px 0;">${o.items.map(i=>`${i.qty}x ${i.name}`).join(', ')}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                <span style="font-size:0.75rem; background:#f4f4f5; padding:2px 6px; border-radius:4px;">${o.method}</span>
+                <button onclick="toggleOrderStatus('${o.id}', '${o.status}')" class="btn ${isPaid?'btn-secondary':'btn-primary'}" style="padding:4px 10px; font-size:0.75rem;">
+                    ${isPaid ? 'Mark Unpaid' : 'Mark Paid'}
+                </button>
             </div>
         `;
         list.appendChild(div);
@@ -491,66 +1061,29 @@ window.toggleOrderStatus = async function(oid, currentStatus) {
     const newStatus = currentStatus === 'Paid' ? 'Unpaid' : 'Paid';
     await updateDoc(doc(db, "orders", oid), { status: newStatus });
 }
-
-// --- STANDARD FUNCTIONS ---
-window.finishDay = function() { if(confirm("End Shift?")) window.logout(); }
-window.soldOut = async function() {
-    if(!confirm("Mark ALL as sold out?")) return;
-    products.filter(p => p.vendor === currentUser.code).forEach(async (p) => {
-        await updateDoc(doc(db, "products", p.id), { active: false });
+// --- BULK TOGGLE SYSTEM ---
+window.toggleAllCards = function(containerId, shouldCollapse) {
+    const container = document.getElementById(containerId);
+    if(!container) return;
+    
+    const cards = container.querySelectorAll('.vendor-card');
+    
+    cards.forEach(card => {
+        if(shouldCollapse) {
+            card.classList.add('collapsed');
+        } else {
+            card.classList.remove('collapsed');
+        }
     });
-}
-window.commitProduct = function() {
-    const id = document.getElementById('mId').value;
-    const name = document.getElementById('mName').value.trim();
-    const price = document.getElementById('mPrice').value;
-    const fileInput = document.getElementById('mFile');
-    if(!name || !price) return alert("Required fields missing");
 
-    const save = async (img) => {
-        const data = { vendor: currentUser.code, vendorName: currentUser.name, name, price: parseInt(price), media: img||'https://via.placeholder.com/50', isPreOrder: false, active: true };
-        if(id) { delete data.vendor; delete data.vendorName; await updateDoc(doc(db,"products",id), {name, price: parseInt(price), ...(img && {media:img})}); }
-        else { await addDoc(collection(db,"products"), data); }
-        window.closeModal();
-    };
-    if(fileInput.files[0]) { const r = new FileReader(); r.onload=e=>save(e.target.result); r.readAsDataURL(fileInput.files[0]); }
-    else save(null);
-}
-window.openAddModal = function() { document.getElementById('mId').value='';document.getElementById('mName').value='';document.getElementById('mPrice').value='';document.getElementById('productModal').classList.remove('hidden'); }
-window.closeModal = function() { document.getElementById('productModal').classList.add('hidden'); }
-window.openLightbox = function(src) { document.getElementById('lightbox-img').src=src; document.getElementById('lightbox').classList.remove('hidden'); }
-window.closeLightbox = function() { document.getElementById('lightbox').classList.add('hidden'); }
-// Admin product list (Inventory)
-window.renderAdminProducts = function() {
-    const list = document.getElementById('adminProductList'); list.innerHTML='';
-    products.filter(p=>p.vendor===currentUser.code).forEach(p=>{
-        const div=document.createElement('div'); div.className='admin-item-row'; div.style.padding="10px"; div.style.borderBottom="1px solid #eee";
-        div.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><span>${p.name}</span><button onclick="deleteDoc(doc(db,'products','${p.id}'))" style="color:red;border:none;background:none;cursor:pointer">Del</button></div>`;
-        list.appendChild(div);
-    });
+    // Optional: Show a small toast to confirm action
+    // showToast(shouldCollapse ? "All Collapsed" : "All Expanded", "success");
 }
 
-setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }, 1000);
-// --- GLOBAL MODAL BEHAVIOR ---
+window.finishDay = function() {
+    if(showConfirm("Finish shift and logout?")) logout();
+}
 
-// 1. Close Modals on "Esc" Key Press
-document.addEventListener('keydown', function(event) {
-    if (event.key === "Escape") {
-        // Find all active modals and hide them
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.classList.add('hidden');
-        });
-        
-        // Also close lightbox if open
-        document.getElementById('lightbox').classList.add('hidden');
-    }
-});
-
-// 2. Close Modal when clicking outside the card (Backdrop check)
-window.addEventListener('click', function(event) {
-    // If the clicked element has the class 'modal', it means we clicked the backdrop
-    // (because the inner .modal-card stops propagation, or simply sits on top)
-    if (event.target.classList.contains('modal')) {
-        event.target.classList.add('hidden');
-    }
-});
+setInterval(() => { 
+    document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); 
+}, 1000);

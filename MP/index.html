@@ -1,233 +1,260 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SOS MARKETPLACE</title>
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-    <div class="layout-wrapper">
-        <!-- SIDEBAR / HEADER -->
-        <header class="sidebar">
-            <div class="sidebar-top">
-                <div class="brand">
-                    <h1>SOS Market</h1>
-                    <div class="datetime" id="clock">--:--</div>
-                </div>
-
-                <!-- LOGIN / AUTH SECTION -->
-                <div class="auth-container">
-                    <div class="auth-bar" id="loginSection">
-                        <div class="input-wrapper">
-                            <input type="text" id="codeJson" placeholder="Access Code" autocomplete="off">
-                            <button onclick="handleLogin()" class="icon-btn">➜</button>
-                        </div>
-                        <div style="margin-top: 10px; display:flex; gap:10px;">
-                            <button class="ghost-icon-btn small" onclick="openRegisterModal('buyer')">Register</button>
-                            <button class="ghost-icon-btn small" onclick="openRegisterModal('vendor')">Join as Vendor </button>
-                        </div>
-                    </div>
-
-                    <!-- USER PROFILE (LOGGED IN) -->
-                    <div class="auth-bar hidden vertical-stack" id="userControls">
-                        <div class="profile-section">
-                            <div class="profile-img-wrapper" onclick="document.getElementById('profileUpload').click()">
-                                <img id="sidebarProfileImg" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNzE3MTdBIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTIwIDIxdi0yYTQgNCAwIDAgMC00LTRoThYTQgMCAwIDAtNCA0djIiPjwvcGF0aD48Y2lyY2xlIGN4PSIxMiIgY3k9IjciIHI9IjQiPjwvY2lyY2xlPjwvc3ZnPg==">
-                                <div class="edit-overlay">📷</div>
-                                <input type="file" id="profileUpload" hidden accept="image/*" onchange="uploadProfilePic(this)">
-                            </div>
-                            <div class="profile-info">
-                                <div class="user-name" id="displayUserName">Guest</div>
-                                <div class="user-acc" id="displayUserAcc">Account</div>
-                                <div class="code-pill" id="displayUserCode">CODE</div>
-                            </div>
-                        </div>
-                        
-                        <div class="action-menu">
-                            <button class="menu-btn" onclick="openHistoryView()">
-                                <span>📜 History & Purchases</span>
-                            </button>
-                            <!-- Vendor Only Buttons injected via JS -->
-                            <div id="vendorSpecificButtons" style="display:none; width:100%;">
-                                <button class="menu-btn danger-text" onclick="soldOut()">
-                                    <span>🚫 Sold Out (All)</span>
-                                </button>
-                            </div>
-                            <button class="menu-btn" onclick="logout()">
-                                <span>🚪 Log Out</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- MAIN CONTENT AREA -->
-        <main class="main-content">
-            
-            <!-- VIEW: BUYER SPLIT VIEW (DEFAULT) -->
-            <div id="buyerView" class="fade-in">
-                <!-- If not logged in, show Overlay or just let them see but not buy (logic in JS) -->
-                <div class="split-view-container">
-                    
-                    <!-- LEFT: TODAY -->
-                    <div class="split-panel today-panel">
-                        <div class="panel-header">
-                            <h3>Today's Menu</h3>
-                            <span class="live-tag">Live</span>
-                        </div>
-                        <div class="card-grid" id="buyerTodayGrid"></div>
-                    </div>
-
-                    <!-- SEPARATOR -->
-                    <div class="split-separator"></div>
-
-                    <!-- RIGHT: PRE-ORDER -->
-                    <div class="split-panel preorder-panel">
-                        <div class="panel-header">
-                            <h3>Pre-Order</h3>
-                            <span class="future-tag">Tomorrow</span>
-                        </div>
-                        <div class="card-grid" id="buyerPreOrderGrid"></div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- VIEW: VENDOR DASHBOARD -->
-            <div id="vendorView" class="hidden fade-in">
-                <div class="dashboard-3-col">
-                    <!-- COL 1: INVENTORY -->
-                    <div class="panel">
-                        <div class="section-header">
-                            <h3>Inventory</h3>
-                            <button class="add-btn" onclick="openAddModal()">+ Add</button>
-                        </div>
-                        <div class="vendor-card flat full-height">
-                            <div id="adminProductList" class="scrollable-y"></div>
-                        </div>
-                         <button class="secondary save-config-btn" onclick="location.reload()">Refresh App</button>
-                    </div>
-
-                    <!-- COL 2: LIVE ORDERS -->
-                    <div class="panel">
-                        <div class="section-header">
-                            <h3>Incoming Orders</h3>
-                            <button class="finish-btn" onclick="finishDay()">End Shift</button>
-                        </div>
-                        <div class="vendor-card flat full-height">
-                            <div class="card-content scrollable-y" id="orderList">
-                                <div class="empty-state">No orders yet</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- COL 3: MARKET PREVIEW -->
-                    <div class="panel mobile-hide">
-                        <div class="section-header">
-                            <h3>Shops Preview</h3> 
-                        </div>
-                        <div class="vendor-card flat preview-container">
-                            <div id="vendorMarketPreview" class="mini-grid compact-mode"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VIEW: HISTORY (Shared Structure, Different Data) -->
-            <!-- VIEW: HISTORY -->
-<div id="historyView" class="hidden fade-in">
-    <div class="section-header">
-        <div class="history-header-text">
-            <h3 id="historyTitle">History</h3>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <title>SOS MARKETPLACE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+ </head>
+ <body>
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+  <!-- LIGHTBOX (New) -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+   <span class="lightbox-close">&times;</span>
+   <img id="lightbox-img" src="">
+  </div>
+  <div class="layout-wrapper">
+   <!-- SIDEBAR -->
+   <header class="sidebar">
+    <div class="sidebar-content">
+     <div class="brand">
+      <h1>SOS Market</h1>
+      <div class="datetime" id="clock">--:--</div>
+     </div>
+     <!-- Login -->
+     <div id="loginSection" style="margin-top: 30px;">
+      <div class="input-wrapper">
+       <input type="text" id="codeJson" placeholder="Access Code" autocomplete="off">
+       <button onclick="handleLogin()" class="icon-btn">➜</button>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:10px;">
+       <button class="menu-btn" onclick="openRegisterModal('buyer')" style="justify-content:center; background:#27272a; border-radius:6px;">Register</button>
+       <button class="menu-btn" onclick="openRegisterModal('vendor')" style="justify-content:center; background:#27272a; border-radius:6px;">Join as Vendor</button>
+      </div>
+     </div>
+     <!-- User Controls -->
+     <div id="userControls" class="hidden" style="margin-top: 30px;">
+      <div class="profile-section">
+       <!-- In index.html, inside .sidebar-content -->
+       <div class="profile-img-wrapper" onclick="document.getElementById('profileUpload').click()">
+        <!-- Updated SRC below -->
+        <img id="sidebarProfileImg" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRTRFNEU3Ii8+PHBhdGggZD0iTTI0IDIwLjk5M1YyNEgwdi0yLjk5NkExNC45NzcgMTQuOTc3IDAgMDExMi4wMDQgMTVjNC45MDQgMCA5LjI2IDIuMzU0IDExLjk5NiA1Ljk5M3pNMTYuMDAyIDguOTk5YTQgNCAwIDExLTggMCA0IDQgMCAwMTggMHoiIGZpbGw9IiNBMUExQUEiLz48L3N2Zz4=">
+        <div class="edit-overlay">📷</div>
+        <input type="file" id="profileUpload" hidden accept="image/*" onchange="uploadProfilePic(this)">
+       </div>
+       <div class="profile-info">
+        <div class="user-name" id="displayUserName">Guest</div>
+        <div class="user-acc" id="displayUserAcc">Account</div>
+       </div>
+      </div>
+      <button class="menu-btn" onclick="openSlidePanel()">
+       <span>📜 History & Purchases</span>
+      </button>
+      <div id="vendorSpecificButtons" class="hidden">
+       <button class="menu-btn danger-text" onclick="soldOut()">
+        <span>🚫 Sold Out (All)</span>
+       </button>
+      </div>
+      <!-- NEW HELP BUTTON -->
+      <button class="menu-btn" onclick="openHelpModal()" style="color: #60A5FA;">
+       <span>💡 How to Use</span>
+      </button>
+      <button class="menu-btn" onclick="logout()" style="margin-top:20px;">
+       <span>🚪 Log Out</span>
+      </button>
+     </div>
+    </div>
+    <!-- NEW STICKY FOOTER -->
+    <div class="sidebar-footer">
+     <p>© 2025 Jose Romeo. All Rights Reserved.</p>
+     <div class="dev-credit">
+      <!-- Trigger Text -->
+      <span class="trigger-text">
+       <span style="color: #e74c3c;">❤</span> Support Dev </span>
+      <!-- Tooltip with QR Button -->
+      <div class="tooltip-content">
+       <p style="margin: 0 0 8px 0; opacity: 0.8;">Scan to Donate</p>
+       <!-- Replace 'my-qr.jpg' with your actual file name -->
+       <button class="qr-btn" onclick="openLightbox('assets/qr.png')"> 📷 View QR Code </button>
+      </div>
+     </div>
+    </div>
+   </header>
+   <!-- MAIN CONTENT -->
+   <main class="main-content">
+    <!-- BUYER VIEW -->
+    <div id="buyerView">
+     <!-- Split Container for separation -->
+     <div class="menu-split-container">
+      <!-- LEFT: TODAY -->
+      <div class="menu-column menu-left">
+       <h3 class="section-title">
+        <div style="display:flex; align-items:center; gap:12px;"> Today <span class="badge-live">LIVE</span>
         </div>
-        
-        <!-- NEW: Toggle for Vendors to switch views -->
-        <div id="vendorHistoryToggle" class="toggle-pill-container hidden">
-            <button class="toggle-btn active" id="btnShowSales" onclick="switchHistoryMode('sales')">My Sales</button>
-            <button class="toggle-btn" id="btnShowPurchases" onclick="switchHistoryMode('purchases')">My Purchases</button>
+        <div class="header-controls">
+         <span class="control-link control-expand" onclick="toggleAllCards('buyerTodayGrid', false)"> ↓ Expand </span>
+         <span class="control-link control-collapse" onclick="toggleAllCards('buyerTodayGrid', true)"> ↑ Collapse </span>
         </div>
-
-        <button class="icon-back-btn" onclick="closeHistoryView()">Back</button>
-    </div>
-
-    <!-- FILTERS -->
-    <div class="filter-row">
-        <div class="custom-select-wrapper">
-            <select id="filterMonth" onchange="renderHistory()"></select>
+       </h3>
+       <div class="card-grid" id="buyerTodayGrid"></div>
+      </div>
+      <!-- RIGHT: PRE-ORDER -->
+      <div class="menu-column menu-right">
+       <h3 class="section-title">
+        <div style="display:flex; align-items:center; gap:12px;"> Pre-Order <span class="badge-pre">TOMORROW</span>
         </div>
-        <div class="custom-select-wrapper">
-            <select id="filterYear" onchange="renderHistory()"></select>
+        <div class="header-controls">
+         <span class="control-link control-expand" onclick="toggleAllCards('buyerPreOrderGrid', false)"> ↓ Expand </span>
+         <span class="control-link control-collapse" onclick="toggleAllCards('buyerPreOrderGrid', true)"> ↑ Collapse </span>
         </div>
-        <div class="total-badge" id="historyTotalBadge">Total: ₱0</div>
+       </h3>
+       <div class="card-grid" id="buyerPreOrderGrid"></div>
+      </div>
+     </div>
     </div>
-
-    <div class="vendor-card flat">
-        <table class="sales-table">
-            <thead id="historyTableHead"></thead>
-            <tbody id="historyTableBody"></tbody>
-        </table>
+    <!-- VENDOR VIEW -->
+    <div id="vendorView" class="hidden">
+     <div class="dashboard-3-col" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
+      <!-- 1. Inventory -->
+      <div class="panel">
+       <div class="panel-header-row">
+        <h3>My Inventory</h3>
+        <button class="btn-sm-primary" onclick="openAddModal()">+ Add Item</button>
+       </div>
+       <div id="adminProductList" class="inventory-list"></div>
+      </div>
+      <!-- 2. Incoming Orders -->
+      <div class="panel">
+       <div class="panel-header-row">
+        <h3>Incoming Orders</h3>
+        <button class="btn btn-secondary" style="padding:4px 10px; font-size:0.8rem;" onclick="finishDay()">End Shift</button>
+       </div>
+       <div id="orderList" style="display:flex; flex-direction:column; gap:10px;"></div>
+      </div>
+      <!-- 3. Market Preview (To buy from others) -->
+      <div class="panel">
+       <h3>Shop Preview</h3>
+       <p style="font-size:0.8rem; color:#777; margin-bottom:10px;">View and buy from other shops</p>
+       <div id="vendorMarketPreview" style="display:grid; gap:10px;"></div>
+      </div>
+     </div>
     </div>
-</div>
-        </main>
+    <div id="adminView" class="hidden">
+     <div class="panel">
+      <h3 style="border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:15px;"> 🛡️ Super Admin Control </h3>
+      <p style="font-size:0.85rem; color:#777; margin-bottom:20px;"> Manage registered vendors. Muting hides their shop from customers. </p>
+      <div id="adminVendorList" class="card-grid">
+       <!-- Vendor cards will load here -->
+      </div>
+     </div>
     </div>
-
-    <!-- MODALS -->
-    <!-- Add Product -->
-    <div id="productModal" class="modal hidden">
-        <div class="modal-card">
-            <h3>Manage Item</h3>
-            <input type="hidden" id="mId">
-            <div class="input-group">
-                <label class="required-star">Name</label>
-                <input type="text" id="mName" placeholder="e.g. Adobo Rice">
-            </div>
-            <div class="input-group">
-                <label>Price</label>
-                <input type="number" id="mPrice" placeholder="₱">
-            </div>
-            <div class="file-upload-wrapper">
-                <label>Product Image</label>
-                <input type="file" id="mFile" accept="image/*">
-            </div>
-            <div class="modal-actions">
-                <button class="secondary" onclick="closeModal()">Cancel</button>
-                <button class="primary" onclick="commitProduct()">Save Item</button>
-            </div>
-        </div>
+   </main>
+  </div>
+  <!-- SLIDE OVER PANEL (HISTORY) -->
+  <div class="slide-panel-overlay" id="slideOverlay" onclick="closeSlidePanel()"></div>
+  <div class="slide-panel" id="slidePanel">
+   <div class="slide-header">
+    <h2 id="historyTitle">History</h2>
+    <button class="close-panel-btn" onclick="closeSlidePanel()">&times;</button>
+   </div>
+   <div class="slide-content">
+    <!-- Vendor Toggles -->
+    <div id="vendorHistoryToggle" class="hidden" style="margin-bottom:15px; background:#f4f4f5; padding:4px; border-radius:8px; display:flex;">
+     <button id="btnShowSales" onclick="switchHistoryMode('sales')" style="flex:1; border:none; padding:8px; border-radius:6px; font-weight:600; cursor:pointer;">My Sales</button>
+     <button id="btnShowPurchases" onclick="switchHistoryMode('purchases')" style="flex:1; border:none; padding:8px; border-radius:6px; font-weight:600; cursor:pointer;">My Purchases</button>
     </div>
-
-    <!-- Register Modal (Universal) -->
-    <div id="registerModal" class="modal hidden">
-        <div class="modal-card">
-            <span class="close-icon" onclick="closeRegisterModal()">&times;</span>
-            <h3 id="regTitle">Register</h3>
-            <input type="hidden" id="regRole">
-            <div class="input-group">
-                <label>Full Name</label>
-                <input type="text" id="regName" placeholder="Full Name">
-            </div>
-            <div class="input-group">
-                <label>Account</label>
-                <input type="text" id="regAccount" placeholder="Account">
-            </div>
-            <div class="modal-actions">
-                <button class="primary full-width" onclick="submitRegistration()">Register</button>
-            </div>
-        </div>
+    <!-- Filters -->
+    <div class="history-filters">
+     <select id="filterMonth" onchange="renderHistory()"></select>
+     <select id="filterYear" onchange="renderHistory()"></select>
+     <div style="margin-left:auto; font-weight:800; font-size:1.1rem; align-self:center;" id="historyTotalBadge">₱0</div>
     </div>
-
-    <!-- Lightbox -->
-    <div id="lightbox" class="lightbox hidden" onclick="closeLightbox()">
-        <img id="lightbox-img" class="lightbox-content">
+    <!-- Table -->
+    <table class="compact-table">
+     <thead id="historyTableHead"></thead>
+     <tbody id="historyTableBody"></tbody>
+    </table>
+   </div>
+  </div>
+  <!-- MODAL: ADD/EDIT PRODUCT -->
+  <div id="productModal" class="modal">
+   <div class="modal-card">
+    <div class="close-modal-x" onclick="closeModal()">×</div>
+    <h3 id="modalTitle">Add Item</h3>
+    <input type="hidden" id="mId">
+    <div class="image-upload-box" onclick="document.getElementById('mFile').click()">
+     <div id="uploadPlaceholder" class="upload-placeholder">
+      <span style="font-size:1.5rem">📷</span>
+      <br>Click to upload image
+     </div>
+     <img id="mPreview" class="image-preview">
+     <input type="file" id="mFile" hidden accept="image/*" onchange="previewImage(this)">
     </div>
-
-    <script type="module" src="script.js"></script>
+    <div class="input-wrapper" style="background:#f9fafb; border:1px solid #e4e4e7; margin-bottom:10px;">
+     <input type="text" id="mName" placeholder="Item Name (e.g. Adobo)" style="color:black;">
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom:10px;">
+     <div class="input-wrapper" style="background:#f9fafb; border:1px solid #e4e4e7;">
+      <input type="number" id="mPrice" placeholder="Price (₱)" style="color:black;">
+     </div>
+     <div class="input-wrapper" style="background:#f9fafb; border:1px solid #e4e4e7;">
+      <input type="number" id="mStock" placeholder="Qty / Stock" style="color:black;">
+     </div>
+     <div class="input-wrapper" style="background:#f9fafb; border:1px solid #e4e4e7; margin-bottom:10px;">
+      <input type="text" id="mVariants" placeholder="Variants (e.g. Regular, Spicy) - Optional" style="color:black;">
+     </div>
+    </div>
+    <!-- NEW NOTE PANEL -->
+    <div class="input-wrapper" style="background:#f9fafb; border:1px solid #e4e4e7; margin-bottom:20px;">
+     <input type="text" id="mNote" placeholder="Note (e.g. Spicy, Contains Nuts)" style="color:black;">
+    </div>
+    <div class="btn-grid">
+     <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+     <button class="btn btn-primary" onclick="commitProduct()">Save Item</button>
+    </div>
+   </div>
+  </div>
+  <!-- MODAL: REGISTER -->
+  <div id="registerModal" class="modal">
+   <div class="modal-card">
+    <div class="close-modal-x" onclick="closeRegisterModal()">×</div>
+    <h3 id="regTitle">Join</h3>
+    <input type="hidden" id="regRole">
+    <div style="margin-bottom:15px;">
+     <label style="font-size:0.75rem; font-weight:700;">Full Name</label>
+     <input type="text" id="regName" style="width:100%; padding:10px; border:1px solid #e4e4e7; border-radius:8px; margin-top:5px;">
+    </div>
+    <div style="margin-bottom:20px;">
+     <label style="font-size:0.75rem; font-weight:700;">Account</label>
+     <input type="text" id="regAccount" style="width:100%; padding:10px; border:1px solid #e4e4e7; border-radius:8px; margin-top:5px;">
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="submitRegistration()">Register</button>
+   </div>
+  </div>
+  <!-- MODAL: CONFIRMATION (New) -->
+  <div id="confirmModal" class="modal">
+   <div class="modal-card" style="max-width: 320px; text-align: center;">
+    <h3 style="margin-top:0;">Are you sure?</h3>
+    <p id="confirmMsg" style="color:#71717A; margin-bottom:24px; font-size: 0.95rem;"></p>
+    <div class="btn-grid">
+     <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
+     <button class="btn btn-primary" id="confirmYesBtn" onclick="executeConfirm()">Yes, Confirm</button>
+    </div>
+   </div>
+  </div>
+  <div id="helpModal" class="modal">
+   <div class="modal-card">
+    <div class="close-modal-x" onclick="closeModalById('helpModal')">×</div>
+    <h3 id="helpTitle">Guide</h3>
+    <div id="helpContent" style="font-size: 0.9rem; color: #555; line-height: 1.6;"></div>
+   </div>
+  </div>
+  <script type="module" src="script.js"></script>
+ </body>
+</html>
+<script type="module" src="script.js"></script>
 </body>
 </html>

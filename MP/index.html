@@ -2,156 +2,160 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Market Final</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SOS MARKETPLACE</title>
+    <!-- Premium Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <!-- HEADER -->
     <header>
-        <div class="top-bar">
-            <h1>Cloud Market</h1>
-            <div class="datetime" id="clock">--:--</div>
-        </div>
+        <div class="header-content">
+            <div class="top-bar">
+                <h1>SOS Marketplace</h1>
+                <div class="datetime" id="clock">--:--</div>
+            </div>
 
-        <!-- LOGIN BAR -->
-        <div class="auth-bar" id="loginSection">
-            <input type="text" id="codeJson" placeholder=" Enter Unique Code">
-            <button onclick="handleLogin()">Login</button>
-            <button class="secondary" onclick="openNewVendor()">New</button>
-        </div>
+            <!-- LOGIN BAR -->
+            <div class="auth-bar" id="loginSection">
+                <input type="text" id="codeJson" placeholder="Enter Access Code" autocomplete="off">
+                <button onclick="handleLogin()" class="icon-btn">➜</button>
+                <button class="secondary text-btn" onclick="openNewVendor()">Join</button>
+            </div>
 
-        <!-- VENDOR LOGGED IN BAR -->
-        <div class="auth-bar hidden" id="vendorControls">
-            <span id="vendorGreeting" style="align-self: center; flex:1; font-weight:bold;"></span>
-            
-            <!-- NEW BUTTONS LAYOUT -->
-            <button style="background:var(--success)" onclick="openSalesHistory()">Sales</button>
-            <button class="danger" onclick="soldOut()">Sold Out</button>
-            <button class="secondary" onclick="logout()">Logout</button>
+            <!-- VENDOR CONTROLS -->
+            <div class="auth-bar hidden" id="vendorControls">
+                <div class="vendor-badge">
+                    <span class="dot"></span>
+                    <span id="vendorGreeting">Vendor</span>
+                </div>
+                <div class="action-row">
+                    <button class="small-btn ghost" onclick="openSalesHistory()">History</button>
+                    <button class="small-btn ghost danger-text" onclick="soldOut()">Sold Out</button>
+                    <button class="small-btn ghost" onclick="logout()">Log Out</button>
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- VIEW: BUYER -->
-    <div id="buyerView">
-        <div class="tabs">
-            <div class="tab-btn active" onclick="switchTab('today')" id="tab-today">Today's Sale</div>
-            <div class="tab-btn" onclick="switchTab('preorder')" id="tab-preorder">Pre-Orders (Tmrw)</div>
+    <!-- MAIN CONTAINER (Centers content and prevents stretching) -->
+    <main class="app-container">
+        
+        <!-- VIEW: BUYER -->
+        <div id="buyerView" class="fade-in">
+            <div class="tabs">
+                <div class="tab-btn active" onclick="switchTab('today')" id="tab-today">Today</div>
+                <div class="tab-btn" onclick="switchTab('preorder')" id="tab-preorder">Pre-Order</div>
+            </div>
+
+            <div id="view-today" class="tab-content active-content">
+                <div class="grid-stack" id="buyerTodayGrid"></div>
+            </div>
+
+            <div id="view-preorder" class="tab-content hidden">
+                <div class="grid-stack" id="buyerPreOrderGrid"></div>
+            </div>
         </div>
 
-        <div id="view-today" class="tab-content active-content">
-            <div class="grid-container" id="buyerTodayGrid"></div>
-        </div>
-
-        <div id="view-preorder" class="tab-content hidden">
-            <div class="grid-container" id="buyerPreOrderGrid"></div>
-        </div>
-    </div>
-
-    <!-- VIEW: VENDOR DASHBOARD -->
-    <div id="vendorView" class="panel-container hidden">
-        <div class="panel">
-            <div class="section-title">My Products</div>
-            <div class="vendor-card" style="height: auto; min-height: 350px;">
-                <div class="card-header">
-                    <span id="adminCardName">My Shop</span>
-                    <span>Admin</span>
+        <!-- VIEW: VENDOR DASHBOARD -->
+        <div id="vendorView" class="hidden fade-in">
+            <div class="dashboard-grid">
+                <div class="panel">
+                    <div class="section-header">
+                        <h3>Inventory</h3>
+                        <button class="add-btn" onclick="openAddModal()">+ Add Item</button>
+                    </div>
+                    <div class="vendor-card flat">
+                        <div id="adminProductList"></div>
+                    </div>
+                    <button class="secondary save-config-btn" onclick="saveConfig()">Save Configuration</button>
                 </div>
-                <div class="card-content">
-                    <button class="secondary" style="width:100%; margin-bottom:10px; border:1px dashed #999;" onclick="openAddModal()">+ Add New Item</button>
-                    <div id="adminProductList"></div>
-                </div>
-                <div class="card-footer">
-                    <button onclick="saveConfig()">Save Config</button>
+
+                <div class="panel">
+                    <div class="section-header">
+                        <h3>Live Orders</h3>
+                        <button class="finish-btn" onclick="finishDay()">End Shift</button>
+                    </div>
+                    <div class="vendor-card flat">
+                        <div class="card-content scrollable" id="orderList">
+                            <div class="empty-state">No orders yet</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="panel">
-            <div class="section-title">Today's Orders</div>
-            <div class="vendor-card">
-                <div class="card-header">Live Feed</div>
-                <div class="card-content" id="orderList">
-                    <div style="text-align:center; color:#999; margin-top:20px;">No orders yet</div>
-                </div>
-                <!-- This button is now just a "Clear" visual confirmation -->
-                <div class="card-footer">
-                    <button class="submit-btn" onclick="finishDay()">Finish Day (Save)</button>
-                </div>
+
+        <!-- VIEW: SALES HISTORY -->
+        <div id="salesView" class="hidden fade-in">
+            <div class="section-header">
+                <h3>Sales Performance</h3>
+                <button class="secondary small-btn" onclick="closeSalesHistory()">Back</button>
+            </div>
+            <div class="vendor-card flat">
+                <table class="sales-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th class="text-center">Count</th>
+                            <th class="text-center">Items</th>
+                            <th class="text-right">Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody"></tbody>
+                </table>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- VIEW: SALES HISTORY (NEW) -->
-    <div id="salesView" class="hidden">
-        <div class="panel">
-            <div class="section-title" style="display:flex; justify-content:space-between;">
-                <span>Monthly Sales History</span>
-                <button class="secondary" style="padding: 2px 8px; font-size:0.8rem;" onclick="closeSalesHistory()">Back to Dashboard</button>
-            </div>
-            
-            <div class="vendor-card" style="height:auto; min-height:400px;">
-                <div class="card-content">
-                    <table class="sales-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Buyers</th>
-                                <th>Items</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="salesTableBody">
-                            <!-- Rows injected via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: ADD/EDIT -->
+    <!-- MODALS -->
     <div id="productModal" class="modal hidden">
-        <div class="modal-content">
-            <h3>Item Details</h3>
+        <div class="modal-card">
+            <h3>Manage Item</h3>
             <input type="hidden" id="mId">
-            <input type="text" id="mName" placeholder="Item Name">
-            <input type="number" id="mPrice" placeholder="Price">
-            <label style="font-size:0.8rem; color:#666; margin-bottom:5px; display:block;">Product Image/GIF:</label>
-            <input type="file" id="mFile" accept="image/*" style="padding: 5px;">
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="secondary" style="flex:1" onclick="closeModal()">Cancel</button>
-                <button class="submit-btn" style="flex:1" onclick="commitProduct()">Save</button>
+            <div class="input-group">
+                <input type="text" id="mName" placeholder="Product Name">
+            </div>
+            <div class="input-group">
+                <input type="number" id="mPrice" placeholder="Price (₱)">
+            </div>
+            <div class="file-upload-wrapper">
+                <label>Product Image</label>
+                <input type="file" id="mFile" accept="image/*">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary" onclick="closeModal()">Cancel</button>
+                <button class="primary" onclick="commitProduct()">Save Item</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: NEW VENDOR -->
     <div id="newVendorModal" class="modal hidden" onclick="handleModalClick(event, 'newVendorModal')">
-        <div class="modal-content">
-            <span class="close-x" onclick="closeNewVendor()">&times;</span>
-            <h3>Join Marketplace</h3>
-            <input type="text" id="vName" placeholder="Vendor Name">
-            <input type="text" id="vAccount" placeholder="Account Type">
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button class="secondary" style="flex:1" onclick="clearNewVendor()">Clear</button>
-                <button class="submit-btn" style="flex:1" onclick="registerVendor()">Confirm</button>
+        <div class="modal-card">
+            <span class="close-icon" onclick="closeNewVendor()">&times;</span>
+            <h3>New Shop</h3>
+            <input type="text" id="vName" placeholder="Shop Name">
+            <input type="text" id="vAccount" placeholder="Account">
+            <div class="modal-actions">
+                <button class="primary full-width" onclick="registerVendor()">Create Shop</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: SALES DETAILS (NEW) -->
     <div id="salesDetailModal" class="modal hidden" onclick="handleModalClick(event, 'salesDetailModal')">
-        <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
-            <span class="close-x" onclick="document.getElementById('salesDetailModal').classList.add('hidden')">&times;</span>
-            <h3 id="detailDate">Date Details</h3>
+        <div class="modal-card scrollable-modal">
+            <div class="modal-header">
+                <h3 id="detailDate">Details</h3>
+                <span class="close-icon" onclick="document.getElementById('salesDetailModal').classList.add('hidden')">&times;</span>
+            </div>
             <div id="detailList"></div>
         </div>
     </div>
 
-    <!-- UTILS -->
     <div id="lightbox" class="lightbox hidden" onclick="closeLightbox()">
-        <span class="lightbox-close">&times;</span>
         <img id="lightbox-img" class="lightbox-content">
     </div>
 

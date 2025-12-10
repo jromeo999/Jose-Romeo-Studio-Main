@@ -1,1 +1,488 @@
-const _0x3f22e2=_0x2410;(function(_0x5d35d8,_0x5c0673){const _0xd257e9=_0x2410,_0x2bcea7=_0x5d35d8();while(!![]){try{const _0x3cd931=-parseInt(_0xd257e9(0xf7))/0x1*(-parseInt(_0xd257e9(0x12a))/0x2)+parseInt(_0xd257e9(0xff))/0x3*(-parseInt(_0xd257e9(0x75))/0x4)+-parseInt(_0xd257e9(0xcd))/0x5*(parseInt(_0xd257e9(0xe1))/0x6)+parseInt(_0xd257e9(0xc7))/0x7*(-parseInt(_0xd257e9(0x7f))/0x8)+-parseInt(_0xd257e9(0x12c))/0x9+-parseInt(_0xd257e9(0xad))/0xa+parseInt(_0xd257e9(0x87))/0xb;if(_0x3cd931===_0x5c0673)break;else _0x2bcea7['push'](_0x2bcea7['shift']());}catch(_0x3675f9){_0x2bcea7['push'](_0x2bcea7['shift']());}}}(_0x44e1,0x3c973));import{initializeApp}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';import{getFirestore,collection,addDoc,updateDoc,deleteDoc,doc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';const firebaseConfig={'apiKey':_0x3f22e2(0x7a),'authDomain':_0x3f22e2(0x121),'projectId':'sos-marketplace','storageBucket':_0x3f22e2(0x7d),'messagingSenderId':_0x3f22e2(0xd4),'appId':_0x3f22e2(0x96),'measurementId':_0x3f22e2(0xfa)},app=initializeApp(firebaseConfig),db=getFirestore(app);let currentUser=null,cart={},validVendors=[],products=[],orders=[];function _0x2410(_0x1c346e,_0x1eda1d){_0x1c346e=_0x1c346e-0x71;const _0x44e117=_0x44e1();let _0x241020=_0x44e117[_0x1c346e];return _0x241020;}function _0x44e1(){const _0x5d5e11=['buyer-details-','Configuration\x20Saved\x20to\x20Cloud!','view-preorder','</td>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<td><span\x20class=\x22clickable-count\x22\x20onclick=\x22showDayDetails(\x27','</td>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<td\x20style=\x22color:var(--success);\x20font-weight:bold;\x22>₱','keys','newVendorModal','orders','\x27)\x22>X</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20','24690qqWpux','\x22>₱0</span></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22buyer-details\x22\x20id=\x22buyer-details-','trim','parentElement','qty-','products','timestamp','data','reduce','adminProductList','\x20|\x20','\x27)\x22>-</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span\x20class=\x22qty-val\x22\x20id=\x22qty-','.buyer-name','vName','mName','toLocaleDateString','deleteProduct','.pay-btn','openNewVendor','\x20onchange=\x22toggleActive(\x27','closeLightbox','Updating\x20database...','clock','join','openAddModal','Order\x20Sent!\x20Recorded\x20for:\x20','882jdVUBr','sort','tab-today','Connection\x20Error.','Mark\x20ALL\x20items\x20as\x20Sold\x20Out?\x20(Hides\x20from\x20buyers)','toUpperCase','602540VLJqnj','querySelectorAll','minimized','toggleActive','total-','div','add','428350148342','\x20onclick=\x22event.stopPropagation()\x22\x20onchange=\x22togglePreOrder(\x27','Success!\x20Your\x20Code:\x20','togglePreOrder','price','method','filter','appendChild','keydown','togglePayment','</div><div\x20style=\x22font-size:0.8rem;font-weight:bold;\x22>','innerText','setDate','6autyBx','localeCompare','\x20(₱','</span></span></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22card-content\x22>','</span><span\x20class=\x22product-price\x22>₱','vAccount','\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div><div\x20style=\x22font-weight:bold;color:var(--primary);\x22>','account','logout','mId','salesView','toggleView','style','\x20|\x20<span\x20style=\x22color:var(--primary)\x22>','code','vendor','focus','Failed\x20to\x20send\x20order.','handleLogin','key','\x27)\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<img\x20src=\x22','getElementById','1779PbyHBt','\x20<span\x20style=\x22color:var(--primary)\x22>(','sales','G-8HJRB5YR2K','type','\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<input\x20type=\x22text\x22\x20class=\x22buyer-input\x20buyer-name\x22\x20placeholder=\x22Full\x20Name\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<input\x20type=\x22text\x22\x20class=\x22buyer-input\x20buyer-acc\x22\x20placeholder=\x22Account\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22payment-options\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22pay-btn\x22\x20onclick=\x22togglePayment(this)\x22>Cash</button><button\x20class=\x22pay-btn\x22\x20onclick=\x22togglePayment(this)\x22>Payday</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22submit-btn\x22\x20onclick=\x22submitOrder(\x27','forEach','lightbox','174804nBkIGF','Submit\x20Pre-Order','closeNewVendor','lightbox-img','orderList','toggle','getDate','hidden','\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22display:flex;\x20justify-content:space-between;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22font-weight:bold;\x22>','vendorCode','error','</div></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22text-align:right;\x22><div\x20style=\x22color:var(--success);font-weight:bold;\x22>₱','\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20','vendorName','find','date','mFile','count','media','mPrice','querySelector','active','buyerPreOrderGrid','value','closeModal','padding','admin-item-row','reverse','toLocaleString','qty','✅\x20Shift\x20marked\x20as\x20done.\x20Orders\x20reset\x20automatically\x20tomorrow\x20at\x206AM.','showDayDetails','clearNewVendor','tab-preorder','sos-marketplace.firebaseapp.com','name','substring','productModal','map',')</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22display:flex;gap:5px;align-items:center;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<label\x20style=\x22font-size:0.8rem;\x22><input\x20type=\x22checkbox\x22\x20','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22background:#f9f9f9;\x20padding:5px;\x20border-radius:4px;\x20font-size:0.85rem;\x20margin-top:5px;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20','Submit\x20Order',')</span></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20','558QTVwbV','RESET','1646163DHUPWa','vendorView','total','borderBottom','openEditModal','Delete\x20item?','toLocaleTimeString','isPreOrder','registerVendor','tab-','vendorControls','Code\x20already\x20exists.','0.9rem','\x27)\x22>','loginSection','</span></td>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<td>','salesTableBody','selected','4MtJKbS','\x22\x20style=\x22width:30px;height:30px;border-radius:4px;object-fit:cover;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div>','\x27)\x22>\x20Pre</label>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22danger\x22\x20style=\x22padding:2px\x206px;\x22\x20onclick=\x22event.stopPropagation();deleteProduct(\x27','files','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22font-weight:bold;\x20color:var(--success)\x22>₱','AIzaSyAHlmRVqHmpbdGllsDQNVtz3g9XEMaXKTA','https://via.placeholder.com/50','switchTab','sos-marketplace.firebasestorage.app','innerHTML','4632FJVHSp','reload','classList','visible','<tr><td\x20colspan=\x224\x22\x20style=\x22text-align:center;\x20padding:20px;\x22>No\x20history\x20yet.</td></tr>','changeQty','Cash','</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22font-size:0.75rem;\x20color:#999;\x22>','2078384YILwBX','\x27)\x22>+</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20','items','\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<td>','className','salesDetailModal','1px\x20solid\x20#eee','length','\x27,-1,','docs','createElement','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22font-size:0.75rem;color:#999;margin-top:5px;\x22>','buyerView','codeJson','\x27,1,','1:428350148342:web:55792ce066b50f7594e6d7','Details\x20too\x20short.','Sales:\x20','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22card-footer\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22total-display\x22><span>Total:</span><span\x20class=\x22total-amount\x22\x20id=\x22total-','buyer','readAsDataURL','vendor-card\x20minimized','remove','getHours','.pay-btn.selected','Cart\x20is\x20empty!','fontSize','vendors','target'];_0x44e1=function(){return _0x5d5e11;};return _0x44e1();}onSnapshot(collection(db,_0x3f22e2(0xa2)),_0xb3a613=>{const _0x3edb8c=_0x3f22e2;validVendors=_0xb3a613['docs']['map'](_0x5f82e9=>({..._0x5f82e9[_0x3edb8c(0xb4)](),'id':_0x5f82e9['id']}));}),onSnapshot(collection(db,_0x3f22e2(0xb2)),_0x5b53e8=>{const _0x4580be=_0x3f22e2;products=_0x5b53e8[_0x4580be(0x90)][_0x4580be(0x125)](_0x2f4f29=>({..._0x2f4f29['data'](),'id':_0x2f4f29['id']})),renderBuyerCards();if(currentUser)renderAdminProducts();}),onSnapshot(collection(db,_0x3f22e2(0xab)),_0x20db6a=>{const _0x565283=_0x3f22e2;orders=_0x20db6a[_0x565283(0x90)]['map'](_0x384d27=>({..._0x384d27[_0x565283(0xb4)](),'id':_0x384d27['id']})),currentUser&&(renderVendorOrders(),renderSalesHistory());});function getShiftDate(_0x5c5df9=![]){const _0x2753b5=_0x3f22e2,_0x4c905d=new Date();return _0x4c905d[_0x2753b5(0x9e)]()<0x6&&_0x4c905d[_0x2753b5(0xe0)](_0x4c905d['getDate']()-0x1),_0x5c5df9&&_0x4c905d[_0x2753b5(0xe0)](_0x4c905d[_0x2753b5(0x105)]()+0x1),_0x4c905d['toLocaleDateString']();}window[_0x3f22e2(0xf3)]=function(){const _0x560345=_0x3f22e2,_0x421113=document[_0x560345(0xf6)](_0x560345(0x94))[_0x560345(0x116)][_0x560345(0xaf)]();if(_0x421113===_0x560345(0x12b)){location[_0x560345(0x80)]();return;}const _0x3272c0=validVendors[_0x560345(0x10d)](_0x1f7d9b=>_0x1f7d9b['code']===_0x421113);_0x3272c0?(currentUser=_0x3272c0,window[_0x560345(0xec)]('vendor'),document[_0x560345(0xf6)](_0x560345(0x94))[_0x560345(0x116)]=''):alert('Invalid\x20Code\x20(or\x20waiting\x20for\x20database...)');},window[_0x3f22e2(0xe9)]=function(){const _0x49006d=_0x3f22e2;currentUser=null,document[_0x49006d(0xf6)](_0x49006d(0x94))[_0x49006d(0x116)]='',window['toggleView'](_0x49006d(0x9a));},window[_0x3f22e2(0xbf)]=function(){const _0x57336b=_0x3f22e2;document['getElementById'](_0x57336b(0xaa))['classList']['remove'](_0x57336b(0x106)),document['getElementById'](_0x57336b(0xba))[_0x57336b(0xf1)]();},window[_0x3f22e2(0x101)]=function(){const _0x28cfe2=_0x3f22e2;document[_0x28cfe2(0xf6)](_0x28cfe2(0xaa))[_0x28cfe2(0x81)]['add'](_0x28cfe2(0x106)),window['clearNewVendor']();},window[_0x3f22e2(0x11f)]=function(){const _0x3da3b6=_0x3f22e2;document[_0x3da3b6(0xf6)](_0x3da3b6(0xba))[_0x3da3b6(0x116)]='',document[_0x3da3b6(0xf6)](_0x3da3b6(0xe6))['value']='';},window[_0x3f22e2(0x134)]=async function(){const _0x1cb475=_0x3f22e2,_0x202d9c=document['getElementById'](_0x1cb475(0xba))[_0x1cb475(0x116)][_0x1cb475(0xaf)](),_0x3c1d6d=document[_0x1cb475(0xf6)](_0x1cb475(0xe6))[_0x1cb475(0x116)]['trim']();if(_0x202d9c[_0x1cb475(0x8e)]<0x3||_0x3c1d6d[_0x1cb475(0x8e)]<0x2)return alert(_0x1cb475(0x97));const _0x394df9=(_0x202d9c[_0x1cb475(0x123)](0x0,0x3)+_0x3c1d6d[_0x1cb475(0x123)](0x0,0x2))[_0x1cb475(0xcc)]();if(validVendors['find'](_0x2ca45d=>_0x2ca45d[_0x1cb475(0xef)]===_0x394df9))return alert(_0x1cb475(0x137));try{await addDoc(collection(db,_0x1cb475(0xa2)),{'code':_0x394df9,'name':_0x202d9c,'account':_0x3c1d6d}),alert(_0x1cb475(0xd6)+_0x394df9),document[_0x1cb475(0xf6)](_0x1cb475(0x94))[_0x1cb475(0x116)]=_0x394df9,window['closeNewVendor']();}catch(_0x86478f){console[_0x1cb475(0x109)](_0x86478f),alert(_0x1cb475(0xca));}},window[_0x3f22e2(0xec)]=function(_0x4438b6){const _0x37e720=_0x3f22e2;['buyerView',_0x37e720(0x12d),_0x37e720(0xeb)][_0x37e720(0xfd)](_0x3db3ea=>document[_0x37e720(0xf6)](_0x3db3ea)[_0x37e720(0x81)]['add']('hidden'));const _0x5680a5=document[_0x37e720(0xf6)](_0x37e720(0x71)),_0x332d2e=document[_0x37e720(0xf6)](_0x37e720(0x136));if(_0x4438b6===_0x37e720(0xf0))document[_0x37e720(0xf6)](_0x37e720(0x12d))[_0x37e720(0x81)][_0x37e720(0x9d)](_0x37e720(0x106)),_0x5680a5[_0x37e720(0x81)][_0x37e720(0xd3)](_0x37e720(0x106)),_0x332d2e[_0x37e720(0x81)][_0x37e720(0x9d)]('hidden'),document[_0x37e720(0xf6)]('vendorGreeting')['innerText']=currentUser['name'],renderAdminProducts(),renderVendorOrders();else _0x4438b6===_0x37e720(0xf9)?(document[_0x37e720(0xf6)](_0x37e720(0xeb))[_0x37e720(0x81)]['remove'](_0x37e720(0x106)),_0x5680a5['classList']['add'](_0x37e720(0x106)),_0x332d2e[_0x37e720(0x81)][_0x37e720(0x9d)](_0x37e720(0x106)),renderSalesHistory()):(document[_0x37e720(0xf6)](_0x37e720(0x93))[_0x37e720(0x81)][_0x37e720(0x9d)](_0x37e720(0x106)),_0x5680a5[_0x37e720(0x81)][_0x37e720(0x9d)](_0x37e720(0x106)),_0x332d2e[_0x37e720(0x81)]['add'](_0x37e720(0x106)),renderBuyerCards());},window[_0x3f22e2(0x7c)]=function(_0x3b822f){const _0x8634a6=_0x3f22e2;document[_0x8634a6(0xf6)](_0x8634a6(0xc9))[_0x8634a6(0x81)]['remove'](_0x8634a6(0x114)),document[_0x8634a6(0xf6)](_0x8634a6(0x120))[_0x8634a6(0x81)][_0x8634a6(0x9d)](_0x8634a6(0x114)),document[_0x8634a6(0xf6)]('view-today')['classList']['add']('hidden'),document[_0x8634a6(0xf6)](_0x8634a6(0xa6))['classList'][_0x8634a6(0xd3)]('hidden'),document['getElementById'](_0x8634a6(0x135)+_0x3b822f)[_0x8634a6(0x81)][_0x8634a6(0xd3)](_0x8634a6(0x114)),document['getElementById']('view-'+_0x3b822f)['classList'][_0x8634a6(0x9d)]('hidden');},window['soldOut']=function(){const _0x2525e6=_0x3f22e2;if(!confirm(_0x2525e6(0xcb)))return;const _0x302794=products[_0x2525e6(0xda)](_0xfdac5e=>_0xfdac5e[_0x2525e6(0xf0)]===currentUser['code']);_0x302794['forEach'](async _0x9f4dc7=>{const _0x197dc9=_0x2525e6;await updateDoc(doc(db,_0x197dc9(0xb2),_0x9f4dc7['id']),{'active':![]});}),alert(_0x2525e6(0xc2));},window['finishDay']=function(){const _0x13c05e=_0x3f22e2;alert(_0x13c05e(0x11d));},window['openSalesHistory']=function(){const _0x4d831d=_0x3f22e2;window[_0x4d831d(0xec)]('sales');},window['closeSalesHistory']=function(){const _0x41303e=_0x3f22e2;window[_0x41303e(0xec)](_0x41303e(0xf0));};function renderSalesHistory(){const _0x14edd0=_0x3f22e2,_0x1c8cca=document[_0x14edd0(0xf6)](_0x14edd0(0x73));_0x1c8cca[_0x14edd0(0x7e)]='';const _0x2d1061={},_0x11df7f=orders['filter'](_0x4486bc=>_0x4486bc[_0x14edd0(0x108)]===currentUser[_0x14edd0(0xef)]);_0x11df7f[_0x14edd0(0xfd)](_0x435a53=>{const _0x47df22=_0x14edd0,_0xc9a8f6=_0x435a53[_0x47df22(0x10e)];if(!_0x2d1061[_0xc9a8f6])_0x2d1061[_0xc9a8f6]={'count':0x0,'items':0x0,'total':0x0};_0x2d1061[_0xc9a8f6][_0x47df22(0x110)]++,_0x2d1061[_0xc9a8f6][_0x47df22(0x12e)]+=_0x435a53[_0x47df22(0x12e)],_0x2d1061[_0xc9a8f6][_0x47df22(0x89)]+=_0x435a53[_0x47df22(0x89)][_0x47df22(0xb5)]((_0x37366a,_0x2395cf)=>_0x37366a+_0x2395cf['qty'],0x0);});if(Object[_0x14edd0(0xa9)](_0x2d1061)[_0x14edd0(0x8e)]===0x0){_0x1c8cca[_0x14edd0(0x7e)]=_0x14edd0(0x83);return;}Object['keys'](_0x2d1061)[_0x14edd0(0x11a)]()['forEach'](_0x401f9a=>{const _0x3d1f36=_0x14edd0,_0x28f512=_0x2d1061[_0x401f9a],_0xb1dc68=document[_0x3d1f36(0x91)]('tr');_0xb1dc68[_0x3d1f36(0x7e)]=_0x3d1f36(0x8a)+_0x401f9a+_0x3d1f36(0xa7)+_0x401f9a+_0x3d1f36(0x139)+_0x28f512[_0x3d1f36(0x110)]+_0x3d1f36(0x72)+_0x28f512['items']+_0x3d1f36(0xa8)+_0x28f512[_0x3d1f36(0x12e)]['toLocaleString']()+'</td>\x0a\x20\x20\x20\x20\x20\x20\x20\x20',_0x1c8cca['appendChild'](_0xb1dc68);});}window[_0x3f22e2(0x11e)]=function(_0x58003c){const _0x3683c0=_0x3f22e2,_0xa30b00=document[_0x3683c0(0xf6)]('detailList');document[_0x3683c0(0xf6)]('detailDate')[_0x3683c0(0xdf)]=_0x3683c0(0x98)+_0x58003c,_0xa30b00['innerHTML']='';const _0x361821=orders[_0x3683c0(0xda)](_0x37c303=>_0x37c303[_0x3683c0(0x108)]===currentUser[_0x3683c0(0xef)]&&_0x37c303[_0x3683c0(0x10e)]===_0x58003c);_0x361821[_0x3683c0(0xfd)](_0x550f23=>{const _0x1b21b6=_0x3683c0,_0x244e67=document['createElement'](_0x1b21b6(0xd2));_0x244e67[_0x1b21b6(0xed)][_0x1b21b6(0x12f)]=_0x1b21b6(0x8d),_0x244e67['style'][_0x1b21b6(0x118)]='10px\x200',_0x244e67[_0x1b21b6(0x7e)]=_0x1b21b6(0x107)+_0x550f23[_0x1b21b6(0x9a)][_0x1b21b6(0x122)]+_0x1b21b6(0x79)+_0x550f23['total']+'</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22font-size:0.8rem;\x20color:#666;\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'+_0x550f23[_0x1b21b6(0x9a)]['account']+_0x1b21b6(0xb7)+_0x550f23[_0x1b21b6(0xd9)]+_0x1b21b6(0xee)+_0x550f23[_0x1b21b6(0xfb)]+_0x1b21b6(0x86)+_0x550f23[_0x1b21b6(0xb3)]+_0x1b21b6(0x127)+_0x550f23['items'][_0x1b21b6(0x125)](_0x7b93c6=>_0x7b93c6[_0x1b21b6(0x11c)]+'x\x20'+_0x7b93c6[_0x1b21b6(0x122)])[_0x1b21b6(0xc4)](',\x20')+_0x1b21b6(0x10b),_0xa30b00[_0x1b21b6(0xdb)](_0x244e67);}),document['getElementById']('salesDetailModal')['classList']['remove'](_0x3683c0(0x106));},window[_0x3f22e2(0xc5)]=function(){const _0x537a3e=_0x3f22e2;document[_0x537a3e(0xf6)](_0x537a3e(0xea))[_0x537a3e(0x116)]='',document['getElementById'](_0x537a3e(0xbb))['value']='',document[_0x537a3e(0xf6)]('mPrice')['value']='',document[_0x537a3e(0xf6)](_0x537a3e(0x10f))['value']='',document[_0x537a3e(0xf6)](_0x537a3e(0x124))['classList'][_0x537a3e(0x9d)](_0x537a3e(0x106));},window[_0x3f22e2(0x130)]=function(_0x458eed){const _0x430a57=_0x3f22e2,_0x5261bd=products[_0x430a57(0x10d)](_0x2fe0d4=>_0x2fe0d4['id']===_0x458eed);if(!_0x5261bd)return;document[_0x430a57(0xf6)](_0x430a57(0xea))['value']=_0x5261bd['id'],document[_0x430a57(0xf6)]('mName')[_0x430a57(0x116)]=_0x5261bd[_0x430a57(0x122)],document[_0x430a57(0xf6)](_0x430a57(0x112))[_0x430a57(0x116)]=_0x5261bd[_0x430a57(0xd8)],document[_0x430a57(0xf6)](_0x430a57(0x124))['classList'][_0x430a57(0x9d)]('hidden');},window['commitProduct']=function(){const _0x20a552=_0x3f22e2,_0x445e66=document['getElementById'](_0x20a552(0xea))[_0x20a552(0x116)],_0x14e419=document['getElementById'](_0x20a552(0xbb))[_0x20a552(0x116)],_0x3c1053=document[_0x20a552(0xf6)](_0x20a552(0x112))[_0x20a552(0x116)],_0x4ad5a6=document[_0x20a552(0xf6)](_0x20a552(0x10f));if(!_0x14e419||!_0x3c1053)return alert('Fill\x20details');const _0x448f5d=async _0x50ec16=>{const _0x61eec8=_0x20a552;try{if(_0x445e66){const _0x3ce60f={'name':_0x14e419,'price':parseInt(_0x3c1053)};if(_0x50ec16)_0x3ce60f[_0x61eec8(0x111)]=_0x50ec16;await updateDoc(doc(db,'products',_0x445e66),_0x3ce60f);}else await addDoc(collection(db,'products'),{'vendor':currentUser['code'],'vendorName':currentUser[_0x61eec8(0x122)],'name':_0x14e419,'price':parseInt(_0x3c1053),'media':_0x50ec16||_0x61eec8(0x7b),'isPreOrder':![],'active':!![]});window[_0x61eec8(0x117)]();}catch(_0x305ff2){console[_0x61eec8(0x109)](_0x305ff2),alert('Error\x20saving.');}};if(_0x4ad5a6[_0x20a552(0x78)]&&_0x4ad5a6[_0x20a552(0x78)][0x0]){const _0x3b68b4=new FileReader();_0x3b68b4['onload']=function(_0x294efd){const _0x556562=_0x20a552;_0x448f5d(_0x294efd[_0x556562(0xa3)]['result']);},_0x3b68b4[_0x20a552(0x9b)](_0x4ad5a6['files'][0x0]);}else _0x448f5d(null);},window[_0x3f22e2(0xd7)]=async function(_0x235c22){const _0x417aa4=_0x3f22e2,_0x4e3daf=products[_0x417aa4(0x10d)](_0x32cbee=>_0x32cbee['id']===_0x235c22);if(_0x4e3daf)await updateDoc(doc(db,'products',_0x235c22),{'isPreOrder':!_0x4e3daf[_0x417aa4(0x133)]});},window[_0x3f22e2(0xd0)]=async function(_0x5ef50d){const _0x361b18=_0x3f22e2,_0x338473=products[_0x361b18(0x10d)](_0x1a2548=>_0x1a2548['id']===_0x5ef50d);if(_0x338473)await updateDoc(doc(db,_0x361b18(0xb2),_0x5ef50d),{'active':!_0x338473[_0x361b18(0x114)]});},window[_0x3f22e2(0xbd)]=async function(_0x223d4e){const _0x226e4c=_0x3f22e2;if(confirm(_0x226e4c(0x131)))await deleteDoc(doc(db,'products',_0x223d4e));},window['saveConfig']=function(){const _0x139b10=_0x3f22e2;alert(_0x139b10(0xa5));},window[_0x3f22e2(0x117)]=function(){const _0x5cda1f=_0x3f22e2;document['getElementById']('productModal')['classList']['add'](_0x5cda1f(0x106));},window['submitOrder']=async function(_0x33f667,_0x400aad,_0x19eb2f){const _0x54fe80=_0x3f22e2,_0x3e5329=products[_0x54fe80(0xda)](_0x102920=>_0x102920['vendor']===_0x33f667),_0x4095b1=[];let _0x8bf4b5=0x0;_0x3e5329['forEach'](_0x34d62c=>{const _0x55bbc6=_0x54fe80,_0x58df4c=cart[_0x34d62c['id']]||0x0;_0x58df4c>0x0&&(_0x4095b1['push']({'name':_0x34d62c['name'],'qty':_0x58df4c,'price':_0x34d62c[_0x55bbc6(0xd8)],'total':_0x34d62c[_0x55bbc6(0xd8)]*_0x58df4c}),_0x8bf4b5+=_0x34d62c[_0x55bbc6(0xd8)]*_0x58df4c);});if(_0x4095b1[_0x54fe80(0x8e)]===0x0)return alert(_0x54fe80(0xa0));const _0x3dae5e=_0x400aad[_0x54fe80(0xb0)],_0xe7f003=_0x3dae5e[_0x54fe80(0x113)](_0x54fe80(0xb9))['value'][_0x54fe80(0xaf)](),_0x1d8ad9=_0x3dae5e[_0x54fe80(0x113)]('.buyer-acc')[_0x54fe80(0x116)][_0x54fe80(0xaf)]();if(!_0xe7f003||!_0x1d8ad9)return alert('Please\x20enter\x20Name\x20&\x20Account.');const _0x4dc525=_0x3dae5e[_0x54fe80(0x113)]('.pay-btn.selected')?_0x3dae5e[_0x54fe80(0x113)](_0x54fe80(0x9f))['innerText']:_0x54fe80(0x85),_0x3687b8=getShiftDate(_0x19eb2f),_0x4faf54=new Date()[_0x54fe80(0x11b)]();try{await addDoc(collection(db,_0x54fe80(0xab)),{'vendorCode':_0x33f667,'buyer':{'name':_0xe7f003,'account':_0x1d8ad9},'items':_0x4095b1,'total':_0x8bf4b5,'method':_0x4dc525,'date':_0x3687b8,'timestamp':_0x4faf54,'type':_0x19eb2f?'Pre-Order':'Standard'}),_0x3e5329[_0x54fe80(0xfd)](_0x2a2633=>cart[_0x2a2633['id']]=0x0),renderBuyerCards(),alert(_0x54fe80(0xc6)+_0x3687b8);}catch(_0xebd9c9){console[_0x54fe80(0x109)](_0xebd9c9),alert(_0x54fe80(0xf2));}};function renderBuyerCards(){const _0x86f979=_0x3f22e2,_0x35af37=document['getElementById']('buyerTodayGrid'),_0x43d32f=document['getElementById'](_0x86f979(0x115));_0x35af37[_0x86f979(0x7e)]='',_0x43d32f[_0x86f979(0x7e)]='';const _0x13bb51={};products[_0x86f979(0xfd)](_0x311d14=>{const _0x281768=_0x86f979;if(_0x311d14['active']===![])return;if(!_0x13bb51[_0x311d14[_0x281768(0xf0)]]){const _0x2ca5b8=validVendors[_0x281768(0x10d)](_0x441f8c=>_0x441f8c[_0x281768(0xef)]===_0x311d14[_0x281768(0xf0)]);_0x13bb51[_0x311d14[_0x281768(0xf0)]]={'name':_0x311d14[_0x281768(0x10c)],'account':_0x2ca5b8?_0x2ca5b8[_0x281768(0xe8)]:'','items':[],'code':_0x311d14[_0x281768(0xf0)]};}_0x13bb51[_0x311d14['vendor']][_0x281768(0x89)]['push'](_0x311d14);}),Object['keys'](_0x13bb51)[_0x86f979(0xfd)](_0x4b982c=>{const _0x553904=_0x86f979,_0x15653b=_0x13bb51[_0x4b982c],_0x3b0efd=_0x15653b[_0x553904(0x89)][_0x553904(0xda)](_0x3baa5e=>!_0x3baa5e[_0x553904(0x133)]),_0x5270af=_0x15653b[_0x553904(0x89)][_0x553904(0xda)](_0x32c0bc=>_0x32c0bc[_0x553904(0x133)]);if(_0x3b0efd[_0x553904(0x8e)]>0x0)createCard(_0x15653b,_0x3b0efd,_0x35af37);if(_0x5270af[_0x553904(0x8e)]>0x0)createCard(_0x15653b,_0x5270af,_0x43d32f);});}function createCard(_0x31fd64,_0x9b5069,_0xdd0e85){const _0x3fae94=_0x3f22e2,_0x1a6dc7=document['createElement']('div');_0x1a6dc7[_0x3fae94(0x8b)]=_0x3fae94(0x9c);const _0x2fb336=_0x9b5069['length']>0x0&&_0x9b5069[0x0][_0x3fae94(0x133)];let _0x5859e6=_0x9b5069[_0x3fae94(0x125)](_0xd9c983=>'\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22product-item\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<img\x20src=\x22'+_0xd9c983[_0x3fae94(0x111)]+'\x22\x20class=\x22product-img\x22\x20onclick=\x22openLightbox(\x27'+_0xd9c983[_0x3fae94(0x111)]+'\x27)\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22product-details\x22><span\x20class=\x22product-name\x22>'+_0xd9c983[_0x3fae94(0x122)]+_0x3fae94(0xe5)+_0xd9c983[_0x3fae94(0xd8)]+'</span></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22qty-controls\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22qty-btn\x22\x20onclick=\x22changeQty(\x27'+_0xd9c983['id']+_0x3fae94(0x8f)+_0xd9c983['price']+',\x27'+_0x31fd64[_0x3fae94(0xef)]+_0x3fae94(0xb8)+_0xd9c983['id']+'\x22>'+(cart[_0xd9c983['id']]||0x0)+'</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22qty-btn\x22\x20onclick=\x22changeQty(\x27'+_0xd9c983['id']+_0x3fae94(0x95)+_0xd9c983[_0x3fae94(0xd8)]+',\x27'+_0x31fd64[_0x3fae94(0xef)]+_0x3fae94(0x88))[_0x3fae94(0xc4)]('');_0x1a6dc7[_0x3fae94(0x7e)]='\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22card-header\x22\x20onclick=\x22toggleCard(this)\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22display:flex;gap:10px;align-items:center;width:100%\x22><span\x20class=\x22chevron\x22>▼</span><span>'+_0x31fd64[_0x3fae94(0x122)]+'\x20<span\x20style=\x22opacity:0.7;font-weight:normal\x22>-\x20'+_0x31fd64[_0x3fae94(0xe8)]+_0x3fae94(0xe4)+_0x5859e6+_0x3fae94(0x99)+_0x31fd64[_0x3fae94(0xef)]+_0x3fae94(0xae)+_0x31fd64[_0x3fae94(0xef)]+_0x3fae94(0xfc)+_0x31fd64[_0x3fae94(0xef)]+'\x27,\x20this,\x20'+_0x2fb336+')\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'+(_0x2fb336?_0x3fae94(0x100):_0x3fae94(0x128))+'\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20',_0xdd0e85[_0x3fae94(0xdb)](_0x1a6dc7);}function renderAdminProducts(){const _0x85de9c=_0x3f22e2,_0x4ba23a=document[_0x85de9c(0xf6)](_0x85de9c(0xb6));_0x4ba23a[_0x85de9c(0x7e)]='',products[_0x85de9c(0xda)](_0x51e13c=>_0x51e13c[_0x85de9c(0xf0)]===currentUser['code'])[_0x85de9c(0xfd)](_0xeab837=>{const _0x39f504=_0x85de9c,_0x211157=document[_0x39f504(0x91)](_0x39f504(0xd2));_0x211157[_0x39f504(0x8b)]=_0x39f504(0x119),_0x211157['innerHTML']='\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22margin-right:10px;\x22><input\x20type=\x22checkbox\x22\x20'+(_0xeab837[_0x39f504(0x114)]!==![]?'checked':'')+_0x39f504(0xc0)+_0xeab837['id']+'\x27)\x22></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22clickable-area\x22\x20onclick=\x22openEditModal(\x27'+_0xeab837['id']+_0x39f504(0xf5)+_0xeab837['media']+_0x39f504(0x76)+_0xeab837[_0x39f504(0x122)]+_0x39f504(0xe3)+_0xeab837[_0x39f504(0xd8)]+_0x39f504(0x126)+(_0xeab837[_0x39f504(0x133)]?'checked':'')+_0x39f504(0xd5)+_0xeab837['id']+_0x39f504(0x77)+_0xeab837['id']+_0x39f504(0xac),_0x4ba23a[_0x39f504(0xdb)](_0x211157);});}function renderVendorOrders(){const _0x2f7763=_0x3f22e2,_0x34f145=document['getElementById'](_0x2f7763(0x103));_0x34f145[_0x2f7763(0x7e)]='';const _0x4109be=getShiftDate(![]),_0x3d3fb5=orders['filter'](_0x317988=>_0x317988[_0x2f7763(0x108)]===currentUser[_0x2f7763(0xef)]&&_0x317988[_0x2f7763(0x10e)]===_0x4109be);if(_0x3d3fb5['length']===0x0)return _0x34f145[_0x2f7763(0x7e)]='<div\x20style=\x22text-align:center;\x20color:#999;\x20margin-top:20px;\x22>No\x20orders\x20for\x20this\x20shift</div>';_0x3d3fb5[_0x2f7763(0xc8)]((_0x40e3e6,_0x416ab3)=>_0x416ab3[_0x2f7763(0xb3)][_0x2f7763(0xe2)](_0x40e3e6[_0x2f7763(0xb3)])),_0x3d3fb5[_0x2f7763(0xfd)](_0x456d2f=>{const _0x44c755=_0x2f7763,_0x53ca52=document[_0x44c755(0x91)](_0x44c755(0xd2));_0x53ca52[_0x44c755(0xed)][_0x44c755(0x12f)]='1px\x20solid\x20#eee',_0x53ca52[_0x44c755(0xed)][_0x44c755(0x118)]='10px',_0x53ca52[_0x44c755(0xed)][_0x44c755(0xa1)]=_0x44c755(0x138),_0x53ca52[_0x44c755(0x7e)]=_0x44c755(0xe7)+_0x456d2f[_0x44c755(0x9a)][_0x44c755(0x122)]+'</div><div\x20style=\x22font-size:0.8rem;color:#666;\x22>'+_0x456d2f['buyer']['account']+_0x44c755(0x10a)+_0x456d2f[_0x44c755(0x12e)]+_0x44c755(0xde)+_0x456d2f[_0x44c755(0xd9)]+'</div></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20style=\x22background:#f9f9f9;padding:5px;border-radius:4px;color:#555;\x22>'+_0x456d2f[_0x44c755(0x89)][_0x44c755(0x125)](_0x450d31=>_0x450d31[_0x44c755(0x11c)]+'x\x20'+_0x450d31[_0x44c755(0x122)])[_0x44c755(0xc4)](',\x20')+_0x44c755(0x92)+_0x456d2f[_0x44c755(0xb3)]+_0x44c755(0xf8)+_0x456d2f[_0x44c755(0xfb)]+_0x44c755(0x129),_0x34f145[_0x44c755(0xdb)](_0x53ca52);});}window['handleModalClick']=function(_0x38268b,_0x1c9984){const _0x37e271=_0x3f22e2;if(_0x38268b[_0x37e271(0xa3)]['id']===_0x1c9984){if(_0x1c9984===_0x37e271(0xaa))window[_0x37e271(0x101)]();if(_0x1c9984===_0x37e271(0x8c))document[_0x37e271(0xf6)](_0x37e271(0x8c))['classList']['add'](_0x37e271(0x106));}},window['toggleCard']=function(_0x59eacc){const _0x1cb8da=_0x3f22e2;_0x59eacc['parentElement'][_0x1cb8da(0x81)][_0x1cb8da(0x104)](_0x1cb8da(0xcf));},window[_0x3f22e2(0x84)]=function(_0x556f97,_0x4cfe30,_0x21c330,_0x1d7789){const _0x50fab6=_0x3f22e2;if(!cart[_0x556f97])cart[_0x556f97]=0x0;cart[_0x556f97]+=_0x4cfe30;if(cart[_0x556f97]<0x0)cart[_0x556f97]=0x0;document[_0x50fab6(0xf6)](_0x50fab6(0xb1)+_0x556f97)[_0x50fab6(0xdf)]=cart[_0x556f97];const _0x5b1262=products[_0x50fab6(0xda)](_0x5e6a2c=>_0x5e6a2c[_0x50fab6(0xf0)]===_0x1d7789);let _0xd1d6d6=0x0;_0x5b1262['forEach'](_0x13f398=>_0xd1d6d6+=_0x13f398['price']*(cart[_0x13f398['id']]||0x0)),document[_0x50fab6(0xf6)](_0x50fab6(0xd1)+_0x1d7789)[_0x50fab6(0xdf)]='₱'+_0xd1d6d6[_0x50fab6(0x11b)]();const _0x39dafc=document['getElementById'](_0x50fab6(0xa4)+_0x1d7789);if(_0x39dafc)_0xd1d6d6>0x0?_0x39dafc[_0x50fab6(0x81)][_0x50fab6(0xd3)](_0x50fab6(0x82)):_0x39dafc['classList'][_0x50fab6(0x9d)](_0x50fab6(0x82));},window[_0x3f22e2(0xdd)]=function(_0x1477fc){const _0x30ed30=_0x3f22e2;_0x1477fc[_0x30ed30(0xb0)][_0x30ed30(0xce)](_0x30ed30(0xbe))['forEach'](_0x579542=>_0x579542[_0x30ed30(0x81)]['remove']('selected')),_0x1477fc[_0x30ed30(0x81)][_0x30ed30(0xd3)](_0x30ed30(0x74));},window['openLightbox']=function(_0x43cf9d){const _0x324822=_0x3f22e2;document[_0x324822(0xf6)](_0x324822(0x102))['src']=_0x43cf9d,document[_0x324822(0xf6)](_0x324822(0xfe))[_0x324822(0x81)][_0x324822(0x9d)](_0x324822(0x106));},window[_0x3f22e2(0xc1)]=function(){const _0x51ac4d=_0x3f22e2;document[_0x51ac4d(0xf6)](_0x51ac4d(0xfe))[_0x51ac4d(0x81)][_0x51ac4d(0xd3)](_0x51ac4d(0x106));},setInterval(()=>{const _0x29644c=_0x3f22e2;document[_0x29644c(0xf6)](_0x29644c(0xc3))[_0x29644c(0xdf)]=new Date()[_0x29644c(0xbc)]()+_0x29644c(0xb7)+new Date()[_0x29644c(0x132)]([],{'hour':'2-digit','minute':'2-digit'});},0x3e8),document['addEventListener'](_0x3f22e2(0xdc),_0x2c4d53=>{const _0x2a5027=_0x3f22e2;_0x2c4d53[_0x2a5027(0xf4)]==='Escape'&&(window['closeNewVendor'](),window[_0x2a5027(0x117)](),window[_0x2a5027(0xc1)]());});
+// --- 1. FIREBASE IMPORTS ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { 
+    getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// --- 2. YOUR CONFIGURATION ---
+const firebaseConfig = {
+    apiKey: "AIzaSyAHlmRVqHmpbdGllsDQNVtz3g9XEMaXKTA",
+    authDomain: "sos-marketplace.firebaseapp.com",
+    projectId: "sos-marketplace",
+    storageBucket: "sos-marketplace.firebasestorage.app",
+    messagingSenderId: "428350148342",
+    appId: "1:428350148342:web:55792ce066b50f7594e6d7",
+    measurementId: "G-8HJRB5YR2K"
+};
+
+// --- 3. INITIALIZE DB ---
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// --- STATE ---
+let currentUser = null;
+let cart = {}; 
+let validVendors = [];
+let products = [];
+let orders = [];
+
+// --- REAL-TIME LISTENERS ---
+
+// 1. Listen for Vendors
+onSnapshot(collection(db, "vendors"), (snapshot) => {
+    validVendors = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+});
+
+// 2. Listen for Products
+onSnapshot(collection(db, "products"), (snapshot) => {
+    products = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    renderBuyerCards();
+    if(currentUser) renderAdminProducts();
+});
+
+// 3. Listen for Orders
+onSnapshot(collection(db, "orders"), (snapshot) => {
+    orders = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    if(currentUser) {
+        renderVendorOrders();
+        renderSalesHistory();
+    }
+});
+
+// --- HELPER: SHIFT LOGIC ---
+function getShiftDate(isPreOrder = false) {
+    const now = new Date();
+    // If before 6AM, it counts as yesterday
+    if (now.getHours() < 6) {
+        now.setDate(now.getDate() - 1);
+    }
+    // If pre-order, it counts for tomorrow (relative to the shift)
+    if (isPreOrder) {
+        now.setDate(now.getDate() + 1);
+    }
+    return now.toLocaleDateString(); 
+}
+
+// --- AUTHENTICATION ---
+window.handleLogin = function() {
+    const code = document.getElementById('codeJson').value.trim();
+    // Secret Reset (Optional, mostly for testing)
+    if(code === "RESET") { location.reload(); return; }
+
+    const vendor = validVendors.find(v => v.code === code);
+    if(vendor) {
+        currentUser = vendor;
+        window.toggleView('vendor');
+        document.getElementById('codeJson').value = ''; 
+    } else {
+        alert("Invalid Code (or waiting for database...)");
+    }
+}
+
+window.logout = function() {
+    currentUser = null;
+    document.getElementById('codeJson').value = '';
+    window.toggleView('buyer');
+}
+
+// --- NEW VENDOR REGISTRATION ---
+window.openNewVendor = function() { document.getElementById('newVendorModal').classList.remove('hidden'); document.getElementById('vName').focus(); }
+window.closeNewVendor = function() { document.getElementById('newVendorModal').classList.add('hidden'); window.clearNewVendor(); }
+window.clearNewVendor = function() { document.getElementById('vName').value = ''; document.getElementById('vAccount').value = ''; }
+
+window.registerVendor = async function() {
+    const name = document.getElementById('vName').value.trim();
+    const acc = document.getElementById('vAccount').value.trim();
+    
+    if(name.length < 3 || acc.length < 2) return alert("Details too short.");
+
+    const code = (name.substring(0, 3) + acc.substring(0, 2)).toUpperCase();
+    
+    if(validVendors.find(v => v.code === code)) return alert("Code already exists.");
+
+    try {
+        await addDoc(collection(db, "vendors"), { 
+            code: code, name: name, account: acc 
+        });
+        alert(`Success! Your Code: ${code}`);
+        document.getElementById('codeJson').value = code;
+        window.closeNewVendor();
+    } catch(e) {
+        console.error(e);
+        alert("Connection Error.");
+    }
+}
+
+// --- NAVIGATION & VIEWS ---
+window.toggleView = function(view) {
+    ['buyerView', 'vendorView', 'salesView'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    
+    const login = document.getElementById('loginSection');
+    const controls = document.getElementById('vendorControls');
+
+    if (view === 'vendor') {
+        document.getElementById('vendorView').classList.remove('hidden');
+        login.classList.add('hidden');
+        controls.classList.remove('hidden');
+        document.getElementById('vendorGreeting').innerText = currentUser.name;
+        renderAdminProducts();
+        renderVendorOrders();
+    } else if (view === 'sales') {
+        document.getElementById('salesView').classList.remove('hidden');
+        login.classList.add('hidden');
+        controls.classList.remove('hidden');
+        renderSalesHistory();
+    } else {
+        document.getElementById('buyerView').classList.remove('hidden');
+        login.classList.remove('hidden');
+        controls.classList.add('hidden');
+        renderBuyerCards();
+    }
+}
+
+window.switchTab = function(tab) {
+    document.getElementById('tab-today').classList.remove('active');
+    document.getElementById('tab-preorder').classList.remove('active');
+    document.getElementById('view-today').classList.add('hidden');
+    document.getElementById('view-preorder').classList.add('hidden');
+
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    document.getElementById(`view-${tab}`).classList.remove('hidden');
+}
+
+// --- VENDOR ACTIONS ---
+window.soldOut = function() {
+    if(!confirm("Mark ALL items as Sold Out? (Hides from buyers)")) return;
+    
+    // Update all my products in Firestore
+    const myProducts = products.filter(p => p.vendor === currentUser.code);
+    myProducts.forEach(async (p) => {
+        await updateDoc(doc(db, "products", p.id), { active: false });
+    });
+    alert("Updating database...");
+}
+
+window.finishDay = function() {
+    // Visual only - data is permanent in Firestore
+    alert("✅ Shift marked as done. Orders reset automatically tomorrow at 6AM.");
+}
+
+// --- SALES HISTORY LOGIC ---
+window.openSalesHistory = function() { window.toggleView('sales'); }
+window.closeSalesHistory = function() { window.toggleView('vendor'); }
+
+function renderSalesHistory() {
+    const tbody = document.getElementById('salesTableBody');
+    tbody.innerHTML = '';
+    
+    const history = {};
+    const myOrders = orders.filter(o => o.vendorCode === currentUser.code);
+
+    myOrders.forEach(o => {
+        const dateKey = o.date;
+        if(!history[dateKey]) history[dateKey] = { count: 0, items: 0, total: 0 };
+        
+        history[dateKey].count++;
+        history[dateKey].total += o.total;
+        history[dateKey].items += o.items.reduce((sum, i) => sum + i.qty, 0);
+    });
+
+    if(Object.keys(history).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">No history yet.</td></tr>';
+        return;
+    }
+
+    Object.keys(history).reverse().forEach(date => {
+        const data = history[date];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${date}</td>
+            <td><span class="clickable-count" onclick="showDayDetails('${date}')">${data.count}</span></td>
+            <td>${data.items}</td>
+            <td style="color:var(--success); font-weight:bold;">₱${data.total.toLocaleString()}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+window.showDayDetails = function(dateString) {
+    const list = document.getElementById('detailList');
+    document.getElementById('detailDate').innerText = `Sales: ${dateString}`;
+    list.innerHTML = '';
+
+    const dayOrders = orders.filter(o => o.vendorCode === currentUser.code && o.date === dateString);
+
+    dayOrders.forEach(o => {
+        const div = document.createElement('div');
+        div.style.borderBottom = "1px solid #eee";
+        div.style.padding = "10px 0";
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between;">
+                <div style="font-weight:bold;">${o.buyer.name}</div>
+                <div style="font-weight:bold; color:var(--success)">₱${o.total}</div>
+            </div>
+            <div style="font-size:0.8rem; color:#666;">
+                ${o.buyer.account} | ${o.method} | <span style="color:var(--primary)">${o.type}</span>
+            </div>
+            <div style="font-size:0.75rem; color:#999;">${o.timestamp}</div>
+            <div style="background:#f9f9f9; padding:5px; border-radius:4px; font-size:0.85rem; margin-top:5px;">
+                ${o.items.map(i => `${i.qty}x ${i.name}`).join(', ')}
+            </div>
+        `;
+        list.appendChild(div);
+    });
+
+    document.getElementById('salesDetailModal').classList.remove('hidden');
+}
+
+// --- ADMIN: PRODUCTS (CRUD) ---
+window.openAddModal = function() {
+    document.getElementById('mId').value = ''; 
+    document.getElementById('mName').value = '';
+    document.getElementById('mPrice').value = '';
+    document.getElementById('mFile').value = '';
+    document.getElementById('productModal').classList.remove('hidden');
+}
+
+window.openEditModal = function(id) {
+    const p = products.find(x => x.id === id);
+    if(!p) return;
+    document.getElementById('mId').value = p.id;
+    document.getElementById('mName').value = p.name;
+    document.getElementById('mPrice').value = p.price;
+    document.getElementById('productModal').classList.remove('hidden');
+}
+
+window.commitProduct = function() {
+    const id = document.getElementById('mId').value;
+    const name = document.getElementById('mName').value;
+    const price = document.getElementById('mPrice').value;
+    const fileInput = document.getElementById('mFile');
+    
+    if(!name || !price) return alert("Fill details");
+
+    const saveToFirestore = async (imgSrc) => {
+        try {
+            if (id) {
+                // EDIT
+                const updateData = { name: name, price: parseInt(price) };
+                if(imgSrc) updateData.media = imgSrc;
+                await updateDoc(doc(db, "products", id), updateData);
+            } else {
+                // NEW
+                await addDoc(collection(db, "products"), {
+                    vendor: currentUser.code,
+                    vendorName: currentUser.name,
+                    name: name,
+                    price: parseInt(price),
+                    media: imgSrc || 'https://via.placeholder.com/50',
+                    isPreOrder: false,
+                    active: true 
+                });
+            }
+            window.closeModal();
+        } catch(e) { console.error(e); alert("Error saving."); }
+    };
+
+    if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) { saveToFirestore(e.target.result); };
+        reader.readAsDataURL(fileInput.files[0]);
+    } else { saveToFirestore(null); }
+}
+
+window.togglePreOrder = async function(id) {
+    const p = products.find(x => x.id === id);
+    if(p) await updateDoc(doc(db, "products", id), { isPreOrder: !p.isPreOrder });
+}
+
+window.toggleActive = async function(id) {
+    const p = products.find(x => x.id === id);
+    if(p) await updateDoc(doc(db, "products", id), { active: !p.active });
+}
+
+window.deleteProduct = async function(id) {
+    if(confirm("Delete item?")) await deleteDoc(doc(db, "products", id));
+}
+
+window.saveConfig = function() { alert("Configuration Saved to Cloud!"); }
+window.closeModal = function() { document.getElementById('productModal').classList.add('hidden'); }
+
+// --- BUYER & ORDERING ---
+window.submitOrder = async function(vCode, btn, isPreOrder) {
+    const vItems = products.filter(p => p.vendor === vCode);
+    const purchased = [];
+    let total = 0;
+
+    vItems.forEach(p => {
+        const qty = cart[p.id] || 0;
+        if(qty > 0) {
+            purchased.push({ name: p.name, qty: qty, price: p.price, total: p.price * qty });
+            total += (p.price * qty);
+        }
+    });
+
+    if(purchased.length === 0) return alert("Cart is empty!");
+
+    const footer = btn.parentElement;
+    const name = footer.querySelector('.buyer-name').value.trim();
+    const acc = footer.querySelector('.buyer-acc').value.trim();
+    if(!name || !acc) return alert("Please enter Name & Account.");
+    
+    const method = footer.querySelector('.pay-btn.selected') ? footer.querySelector('.pay-btn.selected').innerText : "Cash";
+    const accountingDate = getShiftDate(isPreOrder);
+    const realTimestamp = new Date().toLocaleString();
+
+    try {
+        await addDoc(collection(db, "orders"), {
+            vendorCode: vCode,
+            buyer: { name: name, account: acc },
+            items: purchased,
+            total: total,
+            method: method,
+            date: accountingDate,
+            timestamp: realTimestamp,
+            type: isPreOrder ? "Pre-Order" : "Standard"
+        });
+        
+        vItems.forEach(p => cart[p.id] = 0);
+        renderBuyerCards();
+        alert(`Order Sent! Recorded for: ${accountingDate}`);
+    } catch(e) { console.error(e); alert("Failed to send order."); }
+}
+
+// --- RENDERERS ---
+function renderBuyerCards() {
+    const today = document.getElementById('buyerTodayGrid');
+    const pre = document.getElementById('buyerPreOrderGrid');
+    today.innerHTML = ''; pre.innerHTML = '';
+
+    const vendors = {};
+    products.forEach(p => {
+        if(p.active === false) return; 
+
+        if(!vendors[p.vendor]) {
+            const vObj = validVendors.find(v => v.code === p.vendor);
+            vendors[p.vendor] = { name: p.vendorName, account: vObj ? vObj.account : '', items: [], code: p.vendor };
+        }
+        vendors[p.vendor].items.push(p);
+    });
+
+    Object.keys(vendors).forEach(code => {
+        const vData = vendors[code];
+        const tItems = vData.items.filter(i => !i.isPreOrder);
+        const pItems = vData.items.filter(i => i.isPreOrder);
+        
+        if(tItems.length > 0) createCard(vData, tItems, today);
+        if(pItems.length > 0) createCard(vData, pItems, pre);
+    });
+}
+
+function createCard(vData, items, container) {
+    const card = document.createElement('div');
+    card.className = 'vendor-card minimized'; 
+    const isPreOrderCard = items.length > 0 && items[0].isPreOrder;
+
+    let html = items.map(i => `
+        <div class="product-item">
+            <img src="${i.media}" class="product-img" onclick="openLightbox('${i.media}')">
+            <div class="product-details"><span class="product-name">${i.name}</span><span class="product-price">₱${i.price}</span></div>
+            <div class="qty-controls">
+                <button class="qty-btn" onclick="changeQty('${i.id}',-1,${i.price},'${vData.code}')">-</button>
+                <span class="qty-val" id="qty-${i.id}">${cart[i.id]||0}</span>
+                <button class="qty-btn" onclick="changeQty('${i.id}',1,${i.price},'${vData.code}')">+</button>
+            </div>
+        </div>
+    `).join('');
+
+    card.innerHTML = `
+        <div class="card-header" onclick="toggleCard(this)">
+            <div style="display:flex;gap:10px;align-items:center;width:100%"><span class="chevron">▼</span><span>${vData.name} <span style="opacity:0.7;font-weight:normal">- ${vData.account}</span></span></div>
+        </div>
+        <div class="card-content">${html}</div>
+        <div class="card-footer">
+            <div class="total-display"><span>Total:</span><span class="total-amount" id="total-${vData.code}">₱0</span></div>
+            <div class="buyer-details" id="buyer-details-${vData.code}">
+                <input type="text" class="buyer-input buyer-name" placeholder="Full Name">
+                <input type="text" class="buyer-input buyer-acc" placeholder="Account">
+            </div>
+            <div class="payment-options">
+                <button class="pay-btn" onclick="togglePayment(this)">Cash</button><button class="pay-btn" onclick="togglePayment(this)">Payday</button>
+            </div>
+            <button class="submit-btn" onclick="submitOrder('${vData.code}', this, ${isPreOrderCard})">
+                ${isPreOrderCard ? 'Submit Pre-Order' : 'Submit Order'}
+            </button>
+        </div>
+    `;
+    container.appendChild(card);
+}
+
+function renderAdminProducts() {
+    const list = document.getElementById('adminProductList');
+    list.innerHTML = '';
+    products.filter(p => p.vendor === currentUser.code).forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'admin-item-row';
+        div.innerHTML = `
+            <div style="margin-right:10px;"><input type="checkbox" ${p.active !== false ? 'checked' : ''} onchange="toggleActive('${p.id}')"></div>
+            <div class="clickable-area" onclick="openEditModal('${p.id}')">
+                <img src="${p.media}" style="width:30px;height:30px;border-radius:4px;object-fit:cover;">
+                <div>${p.name} (₱${p.price})</div>
+            </div>
+            <div style="display:flex;gap:5px;align-items:center;">
+                <label style="font-size:0.8rem;"><input type="checkbox" ${p.isPreOrder?'checked':''} onclick="event.stopPropagation()" onchange="togglePreOrder('${p.id}')"> Pre</label>
+                <button class="danger" style="padding:2px 6px;" onclick="event.stopPropagation();deleteProduct('${p.id}')">X</button>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+function renderVendorOrders() {
+    const list = document.getElementById('orderList');
+    list.innerHTML = '';
+    const currentShiftDate = getShiftDate(false);
+    
+    // Filter orders by Date AND Vendor Code
+    const myOrders = orders.filter(o => o.vendorCode === currentUser.code && o.date === currentShiftDate);
+
+    if(myOrders.length === 0) return list.innerHTML = '<div style="text-align:center; color:#999; margin-top:20px;">No orders for this shift</div>';
+
+    // Sort: Newest at top
+    myOrders.sort((a,b) => b.timestamp.localeCompare(a.timestamp));
+
+    myOrders.forEach(o => {
+        const div = document.createElement('div');
+        div.style.borderBottom = "1px solid #eee"; div.style.padding = "10px"; div.style.fontSize = "0.9rem";
+        div.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;">
+                <div><div style="font-weight:bold;color:var(--primary);">${o.buyer.name}</div><div style="font-size:0.8rem;color:#666;">${o.buyer.account}</div></div>
+                <div style="text-align:right;"><div style="color:var(--success);font-weight:bold;">₱${o.total}</div><div style="font-size:0.8rem;font-weight:bold;">${o.method}</div></div>
+            </div>
+            <div style="background:#f9f9f9;padding:5px;border-radius:4px;color:#555;">${o.items.map(i=>i.qty+"x "+i.name).join(', ')}</div>
+            <div style="font-size:0.75rem;color:#999;margin-top:5px;">${o.timestamp} <span style="color:var(--primary)">(${o.type})</span></div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+// --- UTILS ---
+window.handleModalClick = function(e, id) { 
+    if(e.target.id === id) {
+        if(id === 'newVendorModal') window.closeNewVendor();
+        if(id === 'salesDetailModal') document.getElementById('salesDetailModal').classList.add('hidden');
+    }
+}
+window.toggleCard = function(el) { el.parentElement.classList.toggle('minimized'); }
+window.changeQty = function(id,chg,p,vc) { 
+    if(!cart[id])cart[id]=0; cart[id]+=chg; if(cart[id]<0)cart[id]=0; 
+    document.getElementById(`qty-${id}`).innerText=cart[id]; 
+    const vItems=products.filter(x=>x.vendor===vc); let tot=0; vItems.forEach(i=>tot+=(i.price*(cart[i.id]||0))); 
+    document.getElementById(`total-${vc}`).innerText=`₱${tot.toLocaleString()}`;
+    const panel = document.getElementById(`buyer-details-${vc}`); if(panel) tot>0?panel.classList.add('visible'):panel.classList.remove('visible');
+}
+window.togglePayment = function(btn) { btn.parentElement.querySelectorAll('.pay-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); }
+window.openLightbox = function(src) { document.getElementById('lightbox-img').src=src; document.getElementById('lightbox').classList.remove('hidden'); }
+window.closeLightbox = function() { document.getElementById('lightbox').classList.add('hidden'); }
+setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleDateString() + " | " + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }, 1000);
+document.addEventListener('keydown', e => { if(e.key==="Escape") { window.closeNewVendor(); window.closeModal(); window.closeLightbox(); }});

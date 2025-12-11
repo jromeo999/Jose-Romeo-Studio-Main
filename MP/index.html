@@ -172,7 +172,27 @@
       <div class="panel">
        <h3>Shop Preview</h3>
        <p style="font-size:0.8rem; color:#777; margin-bottom:10px;">View and buy from other shops</p>
-       <div id="vendorMarketPreview" style="display:grid; gap:10px;"></div>
+       <div style="display: flex; flex-direction: column; gap: 15px; height: 100%;">
+    
+    <!-- Top: Standard / Today -->
+    <div style="display: flex; flex-direction: column; overflow: hidden;">
+        <h3 style="font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; color: #333;">Standard / Today</h3>
+        <!-- Scrollable Container -->
+        <div id="vendorPreviewToday" class="buyer-grid" 
+             style="overflow-y: auto; max-height: 45vh; border: 1px solid #eee; padding: 5px; border-radius: 6px;">
+        </div>
+    </div>
+
+    <!-- Bottom: Pre-Orders -->
+    <div style="display: flex; flex-direction: column; overflow: hidden;">
+        <h3 style="font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; color: #333;">Pre-Orders</h3>
+        <!-- Scrollable Container -->
+        <div id="vendorPreviewPreOrder" class="buyer-grid" 
+             style="overflow-y: auto; max-height: 45vh; background: #e2e8f0; border: 1px solid #eee; padding: 5px; border-radius: 6px;">
+        </div>
+    </div>
+
+</div>
       </div>
      </div>
     </div>

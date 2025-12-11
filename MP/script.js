@@ -87,11 +87,83 @@ onSnapshot(collection(db, "products"), (snapshot) => {
     }
 });
 
+let previousPendingCount = 0;
+
 onSnapshot(collection(db, "orders"), (snapshot) => {
     orders = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-    if(currentUser && currentUser.role === 'vendor') renderVendorOrders();
+    
+    // IF VENDOR: CHECK FOR NEW ORDERS & UPDATE BADGE
+    if(currentUser && currentUser.role === 'vendor') {
+        renderVendorOrders();
+        checkNewOrders(); 
+    }
+    
     if(document.getElementById('slidePanel').classList.contains('open')) renderHistory();
 });
+
+// NEW FUNCTION: CHECK FOR ALERTS
+function checkNewOrders() {
+    if (!currentUser || currentUser.role !== 'vendor') return;
+
+    const shiftDate = getShiftDate(false);
+    
+    // Count Unpaid orders for today
+    const pendingOrders = orders.filter(o => 
+        o.vendorCode === currentUser.code && 
+        o.date === shiftDate && 
+        o.status === 'Unpaid'
+    );
+    
+    const count = pendingOrders.length;
+    const badge = document.getElementById('floatingBadge'); // Targeted ID
+    const bell = document.getElementById('vendorFloatBell'); // Targeted ID
+    
+    // UPDATE BADGE
+    if(count > 0) {
+        badge.innerText = count;
+        badge.classList.remove('hidden');
+        // Optional: Shake the bell if new order
+        if(count > previousPendingCount) {
+             bell.style.animation = "shake-tiny 0.5s ease";
+             setTimeout(()=> bell.style.animation = "", 500);
+        }
+    } else {
+        badge.classList.add('hidden');
+    }
+
+    // PLAY SOUND
+    if(count > previousPendingCount) {
+        const audio = document.getElementById('orderSound');
+        if(audio) {
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log("Interaction needed"));
+        }
+        showToast(`🔔 ${count} Pending Order(s)`);
+    }
+
+    previousPendingCount = count;
+}
+// NEW FUNCTION: SCROLL TO ORDER PANEL
+window.scrollToOrders = function() {
+    // If we are in vendor view, scroll to the order list
+    const orderPanel = document.getElementById('orderList');
+    if(orderPanel) {
+        // Smooth scroll
+        orderPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Visual cue (Flash background)
+        const parent = orderPanel.closest('.panel');
+        if(parent) {
+            parent.style.transition = "box-shadow 0.3s ease, border-color 0.3s";
+            parent.style.boxShadow = "0 0 0 4px rgba(239, 68, 68, 0.2)"; // Red glow
+            parent.style.borderColor = "#ef4444";
+            setTimeout(() => {
+                parent.style.boxShadow = "none";
+                parent.style.borderColor = ""; // Reset
+            }, 1500);
+        }
+    }
+}
 
 // --- DATE HELPER ---
 function getShiftDate(isPreOrder = false) {
@@ -224,6 +296,7 @@ window.deleteVendor = function(id, name) {
 
 function loginUser(user) {
     currentUser = user;
+    previousPendingCount = 0;
     document.getElementById('codeJson').value = '';
     
     document.getElementById('loginSection').classList.add('hidden');
@@ -238,6 +311,8 @@ function loginUser(user) {
         document.getElementById('vendorSpecificButtons').classList.remove('hidden');
         document.getElementById('vendorView').classList.remove('hidden');
         document.getElementById('buyerView').classList.add('hidden');
+        document.getElementById('vendorFloatBell').classList.remove('hidden');
+        checkNewOrders(); // Run immediate check
         
         renderAdminProducts();
         renderVendorOrders();
@@ -252,6 +327,8 @@ function loginUser(user) {
         document.getElementById('vendorSpecificButtons').classList.add('hidden');
         document.getElementById('vendorView').classList.add('hidden');
         document.getElementById('buyerView').classList.remove('hidden');
+        document.getElementById('vendorFloatBell').classList.add('hidden');
+
     }
 }
 
@@ -263,6 +340,8 @@ window.logout = function() {
     // Hide specialized views
     document.getElementById('vendorView').classList.add('hidden');
     document.getElementById('adminView').classList.add('hidden'); // <--- ADDED THIS LINE
+    document.getElementById('vendorFloatBell').classList.add('hidden');
+
     
     // Show default public view (Buyer View)
     document.getElementById('buyerView').classList.remove('hidden');
@@ -507,7 +586,7 @@ window.openHelpModal = function() {
                 <li><b>Adding Items:</b> Click <i>+ Add Item</i>. Leave stock blank if not selling per piece.</li>
                 <li><b>Variants:</b> To add options (e.g., <i>Spicy, Regular</i>), type them in the Variants box separated by commas.</li>
                 <li><b>Pre-Order vs Standard:</b> Toggle the button on the item card. Pre-orders appear in the "Tomorrow" list.</li>
-                <li><b>Orders:</b> Mark orders as "Paid" when payment received. </li>
+                <li><b>Orders:</b> Mark orders as "Paid" when payment received.<br><span><i>*Also clears notification(s)</i></span></li>
                 <li><b>End Shift:</b> Clears your local view (data is saved in History).</li>
             </ul>
 
@@ -1151,9 +1230,42 @@ window.toggleAllCards = function(containerId, shouldCollapse) {
 }
 
 window.finishDay = function() {
-    if(showConfirm("Finish shift and logout?")) logout();
-}
+    showConfirm("End Shift? This will hide all items and log you out.", async () => {
+        
+        if (!currentUser) return;
 
+        // 1. Identify items to turn off (My active items)
+        const myActiveItems = products.filter(p => 
+            p.vendor === currentUser.code && p.active === true
+        );
+
+        if (myActiveItems.length > 0) {
+            showToast(`Closing shop... (${myActiveItems.length} items)`, "info");
+
+            try {
+                // 2. Batch update: Turn off all items in parallel
+                const updatePromises = myActiveItems.map(p => 
+                    updateDoc(doc(db, "products", p.id), { active: false })
+                );
+                
+                // Wait for database to finish
+                await Promise.all(updatePromises);
+                
+            } catch (e) {
+                console.error(e);
+                showToast("Error closing shop", "error");
+                return; // Stop if error
+            }
+        }
+
+        // 3. Success Feedback & Logout
+        showToast("Shift Ended. Good job! 🌙");
+        
+        setTimeout(() => {
+            logout();
+        }, 1500); // Small delay so they see the success message
+    });
+}
 setInterval(() => { 
     document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); 
 }, 1000);

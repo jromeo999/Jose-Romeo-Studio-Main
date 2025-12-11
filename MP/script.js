@@ -304,6 +304,8 @@ function loginUser(user) {
     document.getElementById('displayUserName').innerText = user.name;
     document.getElementById('displayUserAcc').innerText = user.account;
     
+    const displayCode = user.role === 'admin' ? 'ADMIN' : user.code;
+    document.getElementById('displayUserCode').innerText = displayCode;
     const profileImg = document.getElementById('sidebarProfileImg');
     profileImg.src = user.img ? user.img : DEFAULT_AVATAR;
 
@@ -348,7 +350,14 @@ window.logout = function() {
     
     closeSlidePanel();
 }
-
+window.copyAccessCode = function() {
+    const code = document.getElementById('displayUserCode').innerText;
+    if(code && code !== '----') {
+        navigator.clipboard.writeText(code).then(() => {
+            showToast(`Code ${code} Copied!`);
+        });
+    }
+}
 window.uploadProfilePic = function(input) {
     if(input.files && input.files[0]) {
         const reader = new FileReader();

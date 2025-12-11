@@ -500,33 +500,10 @@ window.openHelpModal = function() {
         title.innerText = "🏪 Merchant Guide";
         content.innerHTML = `
             <ul style="padding-left:15px; margin:0; display:flex; flex-direction:column; gap:10px;">
-                <li><b>Adding Items:</b> Click <i>+ Add Item</i>. Leave stock blank for "Unlimited".</li>
-                
-                <!-- NEW GIF INSTRUCTIONS (UPDATED FOR LARGE FILES) -->
-                <li style="background:#fff1f2; padding:10px; border-radius:8px; border:1px solid #fda4af; list-style:none; margin:5px 0;">
-                    <b style="color:#be123c;">⚠️ Heavy GIFs (Over 100MB)</b>
-                    <div style="font-size:0.8rem; margin-top:5px;">
-                        Giphy rejects files over 100MB. Use these tools instead:
-                    </div>
-                    <ol style="margin:8px 0 0 15px; padding:0; font-size:0.85rem; line-height:1.5; color:#334155;">
-                        <li style="margin-bottom:8px;">
-                            <b>Option A (Best): Shrink It</b><br>
-                            Go to <a href="https://ezgif.com/optimize" target="_blank" style="color:blue;text-decoration:underline;">Ezgif.com</a>. Upload your file, compress it to under 50MB, then upload that smaller file to Giphy.
-                        </li>
-                        <li>
-                            <b>Option B (Raw Host):</b><br>
-                            Go to <a href="https://catbox.moe/" target="_blank" style="color:blue;text-decoration:underline;">Catbox.moe</a> (Allows 200MB).<br>
-                            1. Upload file.<br>
-                            2. Copy the URL given.<br>
-                            3. Paste into app using the <b>"Paste Link"</b> tab.
-                        </li>
-                    </ol>
-                </li>
-                <!-- END NEW INSTRUCTIONS -->
-
+                <li><b>Adding Items:</b> Click <i>+ Add Item</i>. Leave stock if not selling per piece.</li>
                 <li><b>Variants:</b> To add options (e.g., <i>Spicy, Regular</i>), type them in the Variants box separated by commas.</li>
                 <li><b>Pre-Order vs Standard:</b> Toggle the button on the item card. Pre-orders appear in the "Tomorrow" list.</li>
-                <li><b>Orders:</b> Mark orders as "Paid" when you receive cash. </li>
+                <li><b>Orders:</b> Mark orders as "Paid" when payment received. </li>
                 <li><b>End Shift:</b> Clears your local view (data is saved in History).</li>
             </ul>
         `;

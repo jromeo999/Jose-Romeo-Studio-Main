@@ -540,7 +540,6 @@ body {
     .menu-right { border-left: 1px solid #E4E4E7; padding-left: 24px; } 
     .sidebar-footer { border-top: 1px solid #27272a; text-align: center; padding-top: 5px; margin-top: 2px;}
 }
-
 /* Very Small Mobile fixes */
 @media (max-width: 695px) {
     .quick-links-container {
@@ -554,7 +553,6 @@ body {
     .ql-text, .ql-arrow { display: none !important; } 
     .ql-header { text-align: center; }
 }
-
 @media (max-width: 494px) {
     .header-controls .btn-txt { display: none !important; }
     .section-title { font-size: 1rem; }

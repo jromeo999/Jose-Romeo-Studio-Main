@@ -47,16 +47,32 @@
      <!-- User Controls -->
      <div id="userControls" class="hidden" style="margin-top: 30px;">
       <div class="profile-section">
-       <div class="profile-img-wrapper" onclick="document.getElementById('profileUpload').click()">
-        <img id="sidebarProfileImg" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRTRFNEU3Ii8+PHBhdGggZD0iTTI0IDIwLjk5M1YyNEgwdi0yLjk5NkExNC45NzcgMTQuOTc3IDAgMDExMi4wMDQgMTVjNC45MDQgMCA5LjI2IDIuMzU0IDExLjk5NiA1Ljk5M3pNMTYuMDAyIDguOTk5YTQgNCAwIDExLTggMCA0IDQgMCAwMTggMHoiIGZpbGw9IiNBMUExQUEiLz48L3N2Zz4=">
-        <div class="edit-overlay">📷</div>
-        <input type="file" id="profileUpload" hidden accept="image/*" onchange="uploadProfilePic(this)">
-       </div>
-       <div class="profile-info">
-        <div class="user-name" id="displayUserName">Guest</div>
-        <div class="user-acc" id="displayUserAcc">Account</div>
-       </div>
+   <!-- TOP: Big Image -->
+   <div class="profile-img-wrapper" onclick="document.getElementById('profileUpload').click()">
+      <img id="sidebarProfileImg" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRTRFNEU3Ii8+PHBhdGggZD0iTTI0IDIwLjk5M1YyNEgwdi0yLjk5NkExNC45NzcgMTQuOTc3IDAgMDExMi4wMDQgMTVjNC45MDQgMCA5LjI2IDIuMzU0IDExLjk5NiA1Ljk5M3pNMTYuMDAyIDguOTk5YTQgNCAwIDExLTggMCA0IDQgMCAwMTggMHoiIGZpbGw9IiNBMUExQUEiLz48L3N2Zz4=">
+      <div class="edit-overlay">📷</div>
+      <input type="file" id="profileUpload" hidden accept="image/*" onchange="uploadProfilePic(this)">
+   </div>
+
+   <!-- BOTTOM ROW: Split Left and Right -->
+   <div class="profile-info">
+      
+      <!-- LEFT: Name & Account -->
+      <div class="info-left">
+         <div class="user-name" id="displayUserName">Guest</div>
+         <div class="user-acc" id="displayUserAcc">Account</div>
       </div>
+
+      <!-- RIGHT: Access Code -->
+      <div class="access-code-display" onclick="copyAccessCode()">
+         <span class="ac-label">CODE</span>
+         <div class="ac-value-row">
+            <span id="displayUserCode">----</span>
+         </div>
+      </div>
+
+   </div>
+</div>
       <button class="menu-btn" onclick="openSlidePanel()">
        <span>📜 History</span>
       </button>
@@ -79,7 +95,7 @@
        <!-- Add your links here -->
        <a href="https://forms.monday.com/forms/e8b1e434735df558cc3f2f8769b9a887?r=use1&fbclid=IwY2xjawOkBT1leHRuA2FlbQIxMQBzcnRjBmFwcF9pZAwzNTA2ODU1MzE3MjgAAR5ZudqagXvXTGNh9jP-pnF4voCudoxiBCnbkECd5dG3WumkSHLoLlVx411cwA_aem_YDzaTBvjuEAzPL7CAaFSDg" target="_blank" class="ql-item">
         <span class="ql-icon">🆘</span>
-        <span class="ql-text" title="Employee Call-in Form">SOS Employee Call-in Form</span>
+        <span class="ql-text" title="Employee Callin Form">Call-in Form</span>
         <span class="ql-arrow">→</span>
        </a>
        <a href="https://forms.monday.com/forms/c207fe9d9caa797b9095bf75220770cc?r=use1" target="_blank" class="ql-item" title="HR Department">
@@ -127,7 +143,7 @@
       <div class="menu-column menu-left">
        <h3 class="section-title">
         <div style="display:flex; align-items:center; gap:12px;">
-         <span class="btxt">Today</span>
+         <span class="btxt">Today's Menu</span>
          <span class="badge-live">LIVE</span>
         </div>
         <div class="header-controls">
@@ -220,7 +236,7 @@
       <!-- Add your links here -->
       <a href="https://forms.monday.com/forms/e8b1e434735df558cc3f2f8769b9a887?r=use1&fbclid=IwY2xjawOkBT1leHRuA2FlbQIxMQBzcnRjBmFwcF9pZAwzNTA2ODU1MzE3MjgAAR5ZudqagXvXTGNh9jP-pnF4voCudoxiBCnbkECd5dG3WumkSHLoLlVx411cwA_aem_YDzaTBvjuEAzPL7CAaFSDg" target="_blank" class="ql-item">
        <span class="ql-icon">🆘</span>
-       <span class="ql-text">SOS Employee Call-in Form</span>
+       <span class="ql-text">SOS Callin</span>
        <span class="ql-arrow">→</span>
       </a>
       <a href="https://forms.monday.com/forms/c207fe9d9caa797b9095bf75220770cc?r=use1" target="_blank" class="ql-item">

@@ -72,13 +72,18 @@ onSnapshot(collection(db, "buyers"), (snapshot) => {
 
 onSnapshot(collection(db, "products"), (snapshot) => {
     products = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-    // We only full-render on data updates, not user interaction
+    
+    // 1. Always render Buyer Views
     renderBuyerCards(document.getElementById('buyerTodayGrid'), false);
     renderBuyerCards(document.getElementById('buyerPreOrderGrid'), true);
     
+    // 2. If Vendor is logged in, Update Admin View AND the new Split Previews
     if(currentUser && currentUser.role === 'vendor') {
         renderAdminProducts();
-        renderBuyerCards(document.getElementById('vendorMarketPreview'), false, true, currentUser.code); 
+        
+        // --- FIX: UPDATE BOTH PREVIEWS ---
+        renderBuyerCards(document.getElementById('vendorPreviewToday'), false, true, currentUser.code); 
+        renderBuyerCards(document.getElementById('vendorPreviewPreOrder'), true, true, currentUser.code); 
     }
 });
 
@@ -226,24 +231,23 @@ function loginUser(user) {
     document.getElementById('displayUserName').innerText = user.name;
     document.getElementById('displayUserAcc').innerText = user.account;
     
-    // Only show profile img if exists
     const profileImg = document.getElementById('sidebarProfileImg');
-    if(user.img) {
-        profileImg.src = user.img;
-        profileImg.style.display = 'block';
-    } else {
-        // Optional: you can hide it or keep a tiny placeholder. 
-        // Showing a generic icon or nothing. Let's keep a generic icon for Sidebar as it looks weird empty.
-        profileImg.src = DEFAULT_AVATAR;
-    }
+    profileImg.src = user.img ? user.img : DEFAULT_AVATAR;
 
     if(user.role === 'vendor') {
         document.getElementById('vendorSpecificButtons').classList.remove('hidden');
         document.getElementById('vendorView').classList.remove('hidden');
         document.getElementById('buyerView').classList.add('hidden');
+        
         renderAdminProducts();
         renderVendorOrders();
-        renderBuyerCards(document.getElementById('vendorMarketPreview'), false, true, currentUser.code);
+        
+        // --- FIX: RENDER BOTH PREVIEWS HERE ---
+        // 1. Render Today
+        renderBuyerCards(document.getElementById('vendorPreviewToday'), false, true, currentUser.code);
+        // 2. Render Pre-Orders
+        renderBuyerCards(document.getElementById('vendorPreviewPreOrder'), true, true, currentUser.code);
+        
     } else {
         document.getElementById('vendorSpecificButtons').classList.add('hidden');
         document.getElementById('vendorView').classList.add('hidden');
@@ -499,24 +503,52 @@ window.openHelpModal = function() {
         // --- VENDOR GUIDE ---
         title.innerText = "🏪 Merchant Guide";
         content.innerHTML = `
-            <ul style="padding-left:15px; margin:0; display:flex; flex-direction:column; gap:10px;">
-                <li><b>Adding Items:</b> Click <i>+ Add Item</i>. Leave stock if not selling per piece.</li>
+            <ul style="padding-left:15px; margin:0 0 15px 0; display:flex; flex-direction:column; gap:8px;">
+                <li><b>Adding Items:</b> Click <i>+ Add Item</i>. Leave stock blank if not selling per piece.</li>
                 <li><b>Variants:</b> To add options (e.g., <i>Spicy, Regular</i>), type them in the Variants box separated by commas.</li>
                 <li><b>Pre-Order vs Standard:</b> Toggle the button on the item card. Pre-orders appear in the "Tomorrow" list.</li>
                 <li><b>Orders:</b> Mark orders as "Paid" when payment received. </li>
                 <li><b>End Shift:</b> Clears your local view (data is saved in History).</li>
             </ul>
+
+            <!-- DESIGNED BOTTOM SECTION (Blue Theme) -->
+            <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; text-align: center; color: #1e40af;">
+                <div style="font-size: 0.85rem; font-style: italic; margin-bottom: 10px; opacity: 0.9;">
+                    * Orders cannot be cancelled once placed.
+                </div>
+                
+                <div style="border-top: 1px dashed #93c5fd; padding-top: 10px;">
+                    <strong style="font-size: 1rem; display: block; margin-bottom: 4px; color: #1e3a8a;">ℹ️ ADMIN SUPPORT</strong>
+                    <span style="font-size: 0.85rem; color: #1e3a8a;">
+                        For questions, coordinate with admin via <span style="text-decoration: underline;">Synology Chat</span>.
+                    </span>
+                </div>
+            </div>
         `;
     }  else {
         // --- BUYER GUIDE ---
         title.innerText = "🛒 Buyer Guide";
         content.innerHTML = `
-            <ul style="padding-left:15px; margin:0; display:flex; flex-direction:column; gap:10px;">
+            <ul style="padding-left:15px; margin:0 0 15px 0; display:flex; flex-direction:column; gap:8px;">
                 <li><b>Ordering:</b> Click (+) to add items to your cart.</li>
                 <li><b>Payments:</b> Select "Cash" or "Payday" before submitting.</li>
                 <li><b>Today vs Pre-Order:</b> "Today" items are available now. "Pre-Order" items are for the next shift.</li>
-                <li><b>History:</b> Check the slide-out menu to see your past purchases.</li>        
+                <li><b>History:</b> Check the slide-out menu to see your past purchases.</li>          
             </ul>
+
+            <!-- DESIGNED BOTTOM SECTION -->
+            <div style="background-color: #fff1f2; border: 1px solid #fecaca; border-radius: 8px; padding: 15px; text-align: center; color: #881337;">
+                <div style="font-size: 0.85rem; font-style: italic; margin-bottom: 10px; opacity: 0.9;">
+                    * Orders cannot be cancelled once placed.
+                </div>
+                
+                <div style="border-top: 1px dashed #fca5a5; padding-top: 10px;">
+                    <strong style="font-size: 1rem; display: block; margin-bottom: 4px; color: #991b1b;">⚠️ PAY ON TIME</strong>
+                    <span style="font-size: 0.85rem; color: #7f1d1d;">
+                        For questions, coordinate with admin via <span style="text-decoration: underline;">Synology Chat</span>.
+                    </span>
+                </div>
+            </div>
         `;
     }
 
@@ -1006,13 +1038,14 @@ window.renderHistory = function() {
         return d.getMonth() === m && d.getFullYear() === y;
     });
 
-    // --- ANIMATION: RESET TOTAL BADGE ---
+    // Animation Reset (unchanged)
     const totalBadge = document.getElementById('historyTotalBadge');
-    totalBadge.classList.remove('total-pop'); // Remove class to reset
-    void totalBadge.offsetWidth; // Trigger reflow (Magic trick to restart CSS animation)
-    totalBadge.classList.add('total-pop'); // Add class back
+    totalBadge.classList.remove('total-pop'); 
+    void totalBadge.offsetWidth; 
+    totalBadge.classList.add('total-pop');
 
     if(historyMode === 'sales' && currentUser.role === 'vendor') {
+        // ... (Keep existing Vendor Sales logic unchanged) ...
         thead.innerHTML = `<tr><th>Date/Buyer</th><th class="text-right">Amt</th></tr>`;
         relevantOrders = relevantOrders.filter(o => o.vendorCode === currentUser.code);
         let grand = 0;
@@ -1020,7 +1053,6 @@ window.renderHistory = function() {
             const isPaid = o.status === 'Paid';
             const itemsStr = o.items.map(i=>`${i.qty} ${i.name}`).join(', ');
             
-            // ADDED CLASS: history-row
             tbody.innerHTML += `<tr class="history-row">
                 <td>
                     <div style="font-weight:600">${o.buyer.name}</div>
@@ -1034,6 +1066,7 @@ window.renderHistory = function() {
         totalBadge.innerText = `₱${grand.toLocaleString()}`;
 
     } else {
+        // --- UPDATED BUYER PURCHASES LOGIC ---
         thead.innerHTML = `<tr><th>Shop/Items</th><th class="text-right">Total</th></tr>`;
         relevantOrders = relevantOrders.filter(o => o.buyerCode === currentUser.code);
         let grand = 0;
@@ -1044,10 +1077,14 @@ window.renderHistory = function() {
             const itemsStr = o.items.map(i=>`${i.qty} ${i.name}`).join(', ');
             const statusText = isPaid ? '' : '<div style="color:#ef4444; font-size:0.7rem; font-weight:700;">TO BE PAID</div>';
             
-            // ADDED CLASS: history-row
+            // LOOKUP VENDOR NAME HERE
+            const vendorObj = validVendors.find(v => v.code === o.vendorCode);
+            const vendorDisplayName = vendorObj ? vendorObj.name : o.vendorCode; // Fallback to code if name not found
+
             tbody.innerHTML += `<tr class="history-row">
                 <td>
-                    <span style="font-weight:700;">${o.vendorCode}</span>
+                    <!-- Display Name instead of Code -->
+                    <span style="font-weight:700;">${vendorDisplayName}</span>
                     <div style="font-size:0.85rem; color:#555;">${itemsStr}</div>
                     ${statusText}
                 </td>

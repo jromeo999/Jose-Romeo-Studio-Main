@@ -9,6 +9,14 @@
   <link rel="stylesheet" href="style.css">
  </head>
  <body>
+    <!-- 1. FLOATING BELL (Facebook Style) -->
+  <div id="vendorFloatBell" class="floating-bell hidden" onclick="scrollToOrders()">
+     <span style="font-size: 1.2rem;">🔔</span>
+     <span id="floatingBadge" class="bell-badge hidden">0</span>
+  </div>
+
+  <!-- Audio Element for "Ding" Sound -->
+  <audio id="orderSound" src="data:audio/mp3;base64,//uQRAAAAWMSLwUIYAAsYkXgoQwAEaYLWfkWgAI0wWs/ItAAAG1ineJRgAAA0goL17MAAApzE3j7O541f/z4c6jWv/7c4yjglruz6if/9uCaAAAAAA4EaAOAAAAA405gWFFhAAAaExld03qTkNGqMiZQBAmJYiQXmm6Ts6nGBcACAVjQIv73T4y1U5vKT2QmZSMSh9E6zLHN9GtD2vlwo7wrVe//uQZAmABfSF1/0gAAP0Quv+kAAABWGLX/SAAAVYYtf9IAAA9Af//7r3///6//7el6edaWmsf///////4cn/7clYEA5tJ5/8t//9///+sW//7c4yglru/4if/9uCaAAAAAA4EaAOAAAAA405gWFFhAAAaExld03qTkNGqMiZQBAmJYiQXmm6Ts6nGBcACAVjQIv73T4y1U5vKT2QmZSMSh9E6zLHN9GtD2vlwo7wrVe"></audio>
   <!-- Toast Container -->
   <div id="toast-container"></div>
   <!-- LIGHTBOX (New) -->

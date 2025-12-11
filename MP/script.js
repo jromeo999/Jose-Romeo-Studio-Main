@@ -57,6 +57,13 @@ window.closeLightbox = function() {
 // --- LISTENERS ---
 onSnapshot(collection(db, "vendors"), (snapshot) => {
     validVendors = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, role: 'vendor' }));
+    
+    // FIX: Re-render the buyer grids immediately when vendor data (images/names) loads
+    renderBuyerCards(document.getElementById('buyerTodayGrid'), false);
+    renderBuyerCards(document.getElementById('buyerPreOrderGrid'), true);
+    
+    // Also update Admin panel if open
+    if(currentUser && currentUser.role === 'admin') renderAdminPanel();
 });
 
 onSnapshot(collection(db, "buyers"), (snapshot) => {
@@ -494,6 +501,29 @@ window.openHelpModal = function() {
         content.innerHTML = `
             <ul style="padding-left:15px; margin:0; display:flex; flex-direction:column; gap:10px;">
                 <li><b>Adding Items:</b> Click <i>+ Add Item</i>. Leave stock blank for "Unlimited".</li>
+                
+                <!-- NEW GIF INSTRUCTIONS (UPDATED FOR LARGE FILES) -->
+                <li style="background:#fff1f2; padding:10px; border-radius:8px; border:1px solid #fda4af; list-style:none; margin:5px 0;">
+                    <b style="color:#be123c;">⚠️ Heavy GIFs (Over 100MB)</b>
+                    <div style="font-size:0.8rem; margin-top:5px;">
+                        Giphy rejects files over 100MB. Use these tools instead:
+                    </div>
+                    <ol style="margin:8px 0 0 15px; padding:0; font-size:0.85rem; line-height:1.5; color:#334155;">
+                        <li style="margin-bottom:8px;">
+                            <b>Option A (Best): Shrink It</b><br>
+                            Go to <a href="https://ezgif.com/optimize" target="_blank" style="color:blue;text-decoration:underline;">Ezgif.com</a>. Upload your file, compress it to under 50MB, then upload that smaller file to Giphy.
+                        </li>
+                        <li>
+                            <b>Option B (Raw Host):</b><br>
+                            Go to <a href="https://catbox.moe/" target="_blank" style="color:blue;text-decoration:underline;">Catbox.moe</a> (Allows 200MB).<br>
+                            1. Upload file.<br>
+                            2. Copy the URL given.<br>
+                            3. Paste into app using the <b>"Paste Link"</b> tab.
+                        </li>
+                    </ol>
+                </li>
+                <!-- END NEW INSTRUCTIONS -->
+
                 <li><b>Variants:</b> To add options (e.g., <i>Spicy, Regular</i>), type them in the Variants box separated by commas.</li>
                 <li><b>Pre-Order vs Standard:</b> Toggle the button on the item card. Pre-orders appear in the "Tomorrow" list.</li>
                 <li><b>Orders:</b> Mark orders as "Paid" when you receive cash. </li>
@@ -508,7 +538,7 @@ window.openHelpModal = function() {
                 <li><b>Ordering:</b> Click (+) to add items to your cart.</li>
                 <li><b>Payments:</b> Select "Cash" or "Payday" before submitting.</li>
                 <li><b>Today vs Pre-Order:</b> "Today" items are available now. "Pre-Order" items are for the next shift.</li>
-                <li><b>History:</b> Check the slide-out menu to see your past purchases.</li>
+                <li><b>History:</b> Check the slide-out menu to see your past purchases.</li>        
             </ul>
         `;
     }
@@ -528,6 +558,28 @@ window.previewImage = function(input) {
         r.readAsDataURL(input.files[0]);
     }
 }
+window.switchUploadMode = function(mode) {
+    const btnUp = document.getElementById('tab-upload');
+    const btnLn = document.getElementById('tab-link');
+    const divFile = document.getElementById('mode-file');
+    const divUrl = document.getElementById('mode-url');
+
+    if(mode === 'file') {
+        divFile.classList.remove('hidden');
+        divUrl.classList.add('hidden');
+        btnUp.style.background = '#3b82f6'; btnUp.style.color = 'white';
+        btnLn.style.background = '#f3f4f6'; btnLn.style.color = '#555';
+        // Clear URL input so logic knows to use file
+        document.getElementById('mUrl').value = ''; 
+    } else {
+        divFile.classList.add('hidden');
+        divUrl.classList.remove('hidden');
+        btnLn.style.background = '#3b82f6'; btnLn.style.color = 'white';
+        btnUp.style.background = '#f3f4f6'; btnUp.style.color = '#555';
+        // Clear File input so logic knows to use URL
+        document.getElementById('mFile').value = '';
+    }
+}
 
 window.commitProduct = function() {
     const id = document.getElementById('mId').value;
@@ -535,18 +587,17 @@ window.commitProduct = function() {
     const price = document.getElementById('mPrice').value;
     const stockVal = document.getElementById('mStock').value; 
     const note = document.getElementById('mNote').value.trim();
-    
-    // --- NEW: Parse Variants ---
     const variantsStr = document.getElementById('mVariants').value;
-    // Split by comma, trim whitespace, remove empty strings
     const variants = variantsStr ? variantsStr.split(',').map(s => s.trim()).filter(s => s) : [];
 
+    // CHECK BOTH INPUTS
     const fileInput = document.getElementById('mFile');
-    
+    const urlInput = document.getElementById('mUrl').value.trim();
+
     if(!name || !price) return showToast("Name & Price required", "error");
     const stock = stockVal === '' ? null : parseInt(stockVal);
 
-    const save = async (img) => {
+    const save = async (imgData) => {
         try {
             const data = { 
                 vendor: currentUser.code, vendorName: currentUser.name, 
@@ -554,22 +605,16 @@ window.commitProduct = function() {
                 price: parseInt(price),
                 stock: stock, 
                 note: note, 
-                variants: variants, // <--- SAVE VARIANTS
-                media: img || null, 
+                variants: variants,
+                media: imgData || null, 
                 isPreOrder: false, 
                 active: true 
             };
             
             if(id) { 
                 delete data.vendor; delete data.vendorName; delete data.active; delete data.isPreOrder;
-                const updateData = { 
-                    name, 
-                    price: parseInt(price),
-                    stock: stock,
-                    note: note,
-                    variants: variants // <--- UPDATE VARIANTS
-                };
-                if(img) updateData.media = img;
+                const updateData = { name, price: parseInt(price), stock: stock, note: note, variants: variants };
+                if(imgData) updateData.media = imgData;
                 await updateDoc(doc(db,"products",id), updateData);
                 showToast("Item Updated");
             } else { 
@@ -583,18 +628,22 @@ window.commitProduct = function() {
         }
     };
 
+    // LOGIC: IF FILE SELECTED -> USE FILE. IF URL ENTERED -> USE URL.
     if(fileInput.files && fileInput.files[0]) { 
+        // SAFETY CHECK FOR FILES
+        if(fileInput.files[0].size > 700000) {
+            return showToast("File too big! Use 'Paste Link' tab.", "error");
+        }
         const r = new FileReader(); 
         r.onload = (e) => save(e.target.result); 
-        r.onerror = () => showToast("Error reading file", "error");
         r.readAsDataURL(fileInput.files[0]); 
-    } else if (id) {
-        save(null); 
+    } else if (urlInput) {
+        // USE THE GIF URL DIRECTLY
+        save(urlInput);
     } else {
         save(null); 
     }
 }
-
 // --- BUYER & CARD RENDERING ---
 function renderBuyerCards(container, showPreOrders, isCompact = false, excludeVendor = null) {
     if(!container) return;
@@ -708,9 +757,16 @@ function renderBuyerCards(container, showPreOrders, isCompact = false, excludeVe
 `}).join('');
 
         // VENDOR IMAGE HIDING LOGIC
-        const vendorImgHTML = (v.img && v.img.length > 50) 
-            ? `<img src="${v.img}" class="vendor-header-img">`
-            : '';
+        const hasCustomImg = (v.img && v.img.length > 50);
+const imgSrc = hasCustomImg ? v.img : DEFAULT_AVATAR;
+
+// 2. Add onclick ONLY if custom. CRITICAL: event.stopPropagation() prevents the card from closing.
+const clickAction = hasCustomImg 
+    ? `onclick="event.stopPropagation(); openLightbox('${imgSrc}')"` 
+    : ''; // Don't lightbox the default grey avatar
+
+// 3. Build the HTML
+const vendorImgHTML = `<img src="${imgSrc}" class="vendor-header-img" ${clickAction} style="${hasCustomImg ? 'cursor:pointer;' : ''}">`;
 
         card.innerHTML = `
             <div class="card-header" onclick="toggleCard(this)">

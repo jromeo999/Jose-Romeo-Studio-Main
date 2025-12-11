@@ -540,6 +540,7 @@ body {
     .menu-right { border-left: 1px solid #E4E4E7; padding-left: 24px; } 
     .sidebar-footer { border-top: 1px solid #27272a; text-align: center; padding-top: 5px; margin-top: 2px;}
 }
+
 /* Very Small Mobile fixes */
 @media (max-width: 695px) {
     .quick-links-container {
@@ -553,7 +554,58 @@ body {
     .ql-text, .ql-arrow { display: none !important; } 
     .ql-header { text-align: center; }
 }
+
 @media (max-width: 494px) {
     .header-controls .btn-txt { display: none !important; }
     .section-title { font-size: 1rem; }
+}
+.floating-bell {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 9999; /* Always on top */
+    transition: transform 0.2s ease;
+    border: 1px solid #e4e4e7;
+}
+
+.floating-bell:hover {
+    transform: scale(1.1);
+    background: #f4f4f5;
+}
+
+.floating-bell:active {
+    transform: scale(0.95);
+}
+
+/* RED BADGE COUNTER */
+.bell-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #ef4444; /* Facebook Red */
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white; /* Cutout effect */
+    animation: bounce-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes bounce-in {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
 }

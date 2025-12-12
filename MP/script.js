@@ -29,6 +29,10 @@ let historyMode = 'sales';
 let reports = [];
 let resolvedReports = [];
 
+function cleanId(str) {
+    return str.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 15);
+}
+
 // --- CUSTOM TOAST SYSTEM ---
 window.showToast = function(msg, type = 'success') {
     const container = document.getElementById('toast-container');
@@ -1283,10 +1287,15 @@ window.commitProduct = function() {
                 updateData.media = imgData; 
                 await updateDoc(doc(db,"products",id), updateData);
                 showToast("Item Updated");
-            } else { 
+             } else { 
                 // New Item
                 data.media = imgData || null;
-                await addDoc(collection(db,"products"), data); 
+                
+                // GENERATE ID: VENDOR - ITEM
+                // Example: JOESBURGERS-CHEESEBURGER
+                const customId = `${cleanId(currentUser.name)}-${cleanId(name)}`;
+
+                await setDoc(doc(db, "products", customId), data); 
                 showToast("Item Added");
             }
             window.closeModal();
@@ -1759,15 +1768,30 @@ window.submitOrder = async function(vCode, btn, isPreOrder) {
     btn.disabled = true;
     btn.innerText = "Sending...";
 
-    try {
-        await addDoc(collection(db, "orders"), {
+     try {
+        // 1. GET VENDOR NAME FOR THE ID
+        const vendorObj = validVendors.find(v => v.code === vCode);
+        const vName = vendorObj ? vendorObj.name : vCode;
+
+        // 2. GET ITEM NAME (If multiple, take the first one + "and_others")
+        let itemLabel = purchased[0].name;
+        if(purchased.length > 1) itemLabel += "_AND_OTHERS";
+        const shortCode = Math.floor(1000 + Math.random() * 9000);
+
+        // 3. GENERATE ID: VENDOR - BUYER - ITEM - TIMESTAMP
+        // We MUST add a timestamp (Date.now()) at the end. 
+        // Without it, if a buyer orders the same item twice, the second order deletes the first one.
+        const customOrderId = `${cleanId(vName)}-${cleanId(currentUser.name)}-${cleanId(itemLabel)}-${shortCode}`;
+
+        // 4. SAVE WITH CUSTOM ID
+        await setDoc(doc(db, "orders", customOrderId), {
             vendorCode: vCode,
             buyerCode: currentUser.code,
             buyer: { name: currentUser.name, account: currentUser.account },
             items: purchased.map(x => ({ name: x.name, qty: x.qty, price: x.price })),
             total: total,
             method: method,
-            receipt: receiptData, // Save image string
+            receipt: receiptData, 
             status: "Unpaid",
             date: getShiftDate(isPreOrder),
             timestamp: new Date().toLocaleString(),

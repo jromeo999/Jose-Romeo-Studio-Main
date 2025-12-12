@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
-    getFirestore, collection, addDoc, updateDoc, deleteDoc, setDoc, doc, onSnapshot 
+    getFirestore, collection, addDoc, updateDoc, deleteDoc, setDoc, doc, onSnapshot, getDoc, runTransaction,query, where, getDocs 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -26,6 +26,8 @@ let validBuyers = [];
 let products = [];
 let orders = [];
 let historyMode = 'sales';
+let reports = [];
+let resolvedReports = [];
 
 // --- CUSTOM TOAST SYSTEM ---
 window.showToast = function(msg, type = 'success') {
@@ -43,16 +45,87 @@ window.showToast = function(msg, type = 'success') {
 }
 
 // --- LIGHTBOX SYSTEM ---
-window.openLightbox = function(src) {
+window.openLightbox = function(src, caption = '') {
     if(!src) return;
     const box = document.getElementById('lightbox');
     document.getElementById('lightbox-img').src = src;
+    
+    const capEl = document.getElementById('lightbox-text');
+    if(caption) {
+        capEl.innerText = caption;
+        capEl.classList.remove('hidden');
+    } else {
+        capEl.classList.add('hidden');
+    }
     box.classList.add('open');
 }
 window.closeLightbox = function() {
     document.getElementById('lightbox').classList.remove('open');
 }
+// --- FORGOT PASSWORD SYSTEM ---
 
+window.openForgotModal = function() {
+    document.getElementById('recoveryEmail').value = '';
+    document.getElementById('btnRecover').innerText = "Send Code";
+    document.getElementById('btnRecover').disabled = false;
+    openModal('forgotModal');
+}
+
+window.submitRecovery = async function() {
+    const email = document.getElementById('recoveryEmail').value.trim();
+    const btn = document.getElementById('btnRecover');
+
+    if(!email || !email.includes('@')) return showToast("Enter a valid email", "error");
+
+    btn.innerText = "Searching...";
+    btn.disabled = true;
+
+    try {
+        // 1. Search Vendors
+        const vQuery = query(collection(db, "vendors"), where("email", "==", email));
+        const vSnap = await getDocs(vQuery);
+        
+        // 2. Search Buyers
+        let foundUser = null;
+        if(!vSnap.empty) {
+            foundUser = vSnap.docs[0].data();
+        } else {
+            const bQuery = query(collection(db, "buyers"), where("email", "==", email));
+            const bSnap = await getDocs(bQuery);
+            if(!bSnap.empty) foundUser = bSnap.docs[0].data();
+        }
+
+        if(foundUser) {
+            btn.innerText = "Sending...";
+
+            // 3. Prepare Data for EmailJS
+            // Make sure your EmailJS Template uses {{to_name}}, {{message}}, and {{to_email}}
+            const templateParams = {
+                to_email: email,       
+                to_name: foundUser.name,
+                message: foundUser.code 
+            };
+
+            // YOUR IDs
+            const SERVICE_ID = "service_a26o3ho"; 
+            const TEMPLATE_ID = "template_36hyb6z";
+
+            await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams);
+
+            closeModalById('forgotModal');
+            showToast(`✅ Code sent to ${email}`);
+        } else {
+            showToast("Email not found in database", "error");
+        }
+
+    } catch(e) {
+        console.error("EmailJS Error:", e);
+        showToast("Error sending email. Check console.", "error");
+    } finally {
+        btn.innerText = "Send Code";
+        btn.disabled = false;
+    }
+}
 // --- LISTENERS ---
 onSnapshot(collection(db, "vendors"), (snapshot) => {
     validVendors = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, role: 'vendor' }));
@@ -69,9 +142,15 @@ onSnapshot(collection(db, "buyers"), (snapshot) => {
     
     // IF ADMIN IS LOGGED IN, REFRESH THE BUYER LIST INSTANTLY
     if(currentUser && currentUser.role === 'admin') {
-        // Pass the current search value if it exists, otherwise empty string
         const searchVal = document.getElementById('adminBuyerSearch') ? document.getElementById('adminBuyerSearch').value : '';
         renderAdminBuyers(searchVal);
+    }
+});
+onSnapshot(collection(db, "resolved_reports"), (snapshot) => {
+    resolvedReports = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    // If admin is currently looking at history, refresh the view
+    if(currentUser && currentUser.role === 'admin' && document.getElementById('btnShowReportHistory')?.classList.contains('active-tab')) {
+        renderAdminReports('history');
     }
 });
 
@@ -88,6 +167,10 @@ onSnapshot(collection(db, "products"), (snapshot) => {
         renderBuyerCards(document.getElementById('vendorPreviewToday'), false, true, currentUser.code); 
         renderBuyerCards(document.getElementById('vendorPreviewPreOrder'), true, true, currentUser.code); 
     }
+});
+onSnapshot(collection(db, "reports"), (snapshot) => {
+    reports = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+    if(currentUser && currentUser.role === 'admin') renderAdminReports();
 });
 
 let previousPendingCount = 0;
@@ -172,7 +255,36 @@ function getShiftDate(isPreOrder = false) {
 // --- CONFIRM MODAL ---
 let pendingConfirmAction = null;
 window.showConfirm = function(msg, action) {
-    document.getElementById('confirmMsg').innerText = msg;
+    const modalTitle = document.querySelector('#confirmModal h3');
+    const yesBtn = document.getElementById('confirmYesBtn');
+    const cancelBtn = document.querySelector('#confirmModal .btn-secondary');
+
+    // Reset basics
+    yesBtn.style.display = ''; 
+    yesBtn.innerText = "Confirm"; // Simpler text
+    cancelBtn.innerText = "Cancel";
+    
+    // Remove old manual styles
+    yesBtn.style.background = ''; 
+    yesBtn.className = 'btn btn-primary'; // Reset classes
+
+    // Logic
+    if(msg.toLowerCase().includes('delete') || msg.toLowerCase().includes('cancel')) {
+        modalTitle.innerText = "Are you sure?";
+        modalTitle.style.color = "#ef4444"; 
+        
+        // Apply the new Danger Class
+        yesBtn.className = 'btn btn-danger';
+        yesBtn.innerText = "Yes, Delete";
+    } else {
+        modalTitle.innerText = "Please Confirm";
+        modalTitle.style.color = "#09090b";
+        
+        // Standard Black Button
+        yesBtn.className = 'btn btn-primary';
+    }
+
+    document.getElementById('confirmMsg').innerHTML  = msg;
     pendingConfirmAction = action;
     openModal('confirmModal');
 }
@@ -187,6 +299,16 @@ window.closeConfirmModal = function() {
 
 // --- AUTHENTICATION ---
 window.handleLogin = function() {
+    // 1. Trigger Animation
+    const btn = document.querySelector('.icon-btn'); // Select the arrow button
+    btn.classList.add('pulsing');
+    
+    // Remove class after animation ends so it can be clicked again if login fails
+    setTimeout(() => {
+        btn.classList.remove('pulsing');
+    }, 400);
+
+    // 2. Existing Logic
     const code = document.getElementById('codeJson').value.trim();
     if(code === "RESET") { location.reload(); return; }
 
@@ -209,18 +331,61 @@ window.handleLogin = function() {
     }
 }
 
-function loginAdmin() {
-    document.getElementById('codeJson').value = '';
-    document.getElementById('loginSection').classList.add('hidden');
-    document.getElementById('userControls').classList.remove('hidden');
-    document.getElementById('displayUserName').innerText = "Administrator";
-    document.getElementById('displayUserAcc').innerText = "Super User";
-    
-    document.getElementById('buyerView').classList.add('hidden');
-    document.getElementById('vendorView').classList.add('hidden');
-    document.getElementById('adminView').classList.remove('hidden');
-    
-    renderAdminPanel();
+window.loginAdmin = async function() {
+    // 1. Define where the admin lives in DB
+    const adminId = 'super_admin_profile';
+    const adminRef = doc(db, 'admins', adminId);
+
+    try {
+        // 2. Try to get existing profile
+        const snap = await getDoc(adminRef);
+        let adminData;
+
+        if (snap.exists()) {
+            adminData = snap.data();
+        } else {
+            // 3. First time? Create default Admin Profile
+            adminData = { name: 'Administrator', account: 'System Control', img: null };
+            await setDoc(adminRef, adminData);
+        }
+
+        // 4. Set Current User with ID and Role
+        currentUser = { ...adminData, id: adminId, role: 'admin' };
+
+        // 5. UI Updates (Same as before)
+        document.getElementById('codeJson').value = '';
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('userControls').classList.remove('hidden');
+        
+        // Populate Sidebar
+        document.getElementById('displayUserName').innerText = currentUser.name;
+        document.getElementById('displayUserAcc').innerText = currentUser.account;
+        document.getElementById('editNameInput').value = currentUser.name;
+        document.getElementById('editAccInput').value = currentUser.account;
+        document.getElementById('displayUserCode').innerText = "ADMIN";
+
+        // Handle Image
+        const profileImg = document.getElementById('sidebarProfileImg');
+        if(currentUser.img && currentUser.img.length > 100) {
+            profileImg.src = currentUser.img;
+            document.getElementById('btnRemoveImg').classList.remove('hidden');
+        } else {
+            profileImg.src = DEFAULT_AVATAR;
+            document.getElementById('btnRemoveImg').classList.add('hidden');
+        }
+
+        // View Switching
+        document.getElementById('buyerView').classList.add('hidden');
+        document.getElementById('vendorView').classList.add('hidden');
+        document.getElementById('adminView').classList.remove('hidden');
+        
+        // Admin Specifics
+        renderAdminPanel();
+
+    } catch (e) {
+        console.error(e);
+        showToast("Error logging in as Admin", "error");
+    }
 }
 
 function loginUser(user) {
@@ -256,6 +421,7 @@ function loginUser(user) {
 
     if(user.role === 'vendor') {
         document.getElementById('vendorSpecificButtons').classList.remove('hidden');
+        document.getElementById('buyerSpecificButtons').classList.add('hidden'); // Hide Upgrade btn
         document.getElementById('vendorView').classList.remove('hidden');
         document.getElementById('buyerView').classList.add('hidden');
         document.getElementById('vendorFloatBell').classList.remove('hidden');
@@ -269,6 +435,7 @@ function loginUser(user) {
         
     } else {
         document.getElementById('vendorSpecificButtons').classList.add('hidden');
+        document.getElementById('buyerSpecificButtons').classList.remove('hidden'); // Show Upgrade btn
         document.getElementById('vendorView').classList.add('hidden');
         document.getElementById('buyerView').classList.remove('hidden');
         document.getElementById('vendorFloatBell').classList.add('hidden');
@@ -276,19 +443,11 @@ function loginUser(user) {
 }
 
 window.logout = function() {
-    currentUser = null;
-    document.getElementById('loginSection').classList.remove('hidden');
-    document.getElementById('userControls').classList.add('hidden');
+    // Optional: Show a message right before refreshing
+    // showToast("Logging out..."); 
     
-    document.getElementById('vendorView').classList.add('hidden');
-    document.getElementById('adminView').classList.add('hidden');
-    document.getElementById('vendorFloatBell').classList.add('hidden');
-    document.getElementById('buyerView').classList.remove('hidden');
-    
-    // Close Edit Mode if open
-    window.toggleProfileEdit(false);
-    
-    closeSlidePanel();
+    // This forces the browser to refresh the page
+    location.reload();
 }
 
 window.copyAccessCode = function() {
@@ -323,11 +482,16 @@ window.saveProfileInfo = async function() {
     if(!newName || !newAcc) return showToast("Name and Account required", "error");
 
     try {
-        const collectionName = currentUser.role === 'vendor' ? 'vendors' : 'buyers';
+        // UPDATED LOGIC HERE:
+        let collectionName;
+        if(currentUser.role === 'admin') collectionName = 'admins';
+        else collectionName = currentUser.role === 'vendor' ? 'vendors' : 'buyers';
+
         await updateDoc(doc(db, collectionName, currentUser.id), {
             name: newName,
             account: newAcc
         });
+        
         currentUser.name = newName;
         currentUser.account = newAcc;
         document.getElementById('displayUserName').innerText = newName;
@@ -348,9 +512,13 @@ window.uploadProfilePic = function(input) {
             if(base64.length > 1000000) { showToast("Image too large", "error"); return; }
             
             document.getElementById('sidebarProfileImg').src = base64;
-            document.getElementById('btnRemoveImg').classList.remove('hidden'); // Show X button
+            document.getElementById('btnRemoveImg').classList.remove('hidden'); 
             
-            const collectionName = currentUser.role === 'vendor' ? 'vendors' : 'buyers';
+            // UPDATED LOGIC HERE:
+            let collectionName;
+            if(currentUser.role === 'admin') collectionName = 'admins';
+            else collectionName = currentUser.role === 'vendor' ? 'vendors' : 'buyers';
+
             await updateDoc(doc(db, collectionName, currentUser.id), { img: base64 });
             currentUser.img = base64;
             showToast("Profile Updated");
@@ -363,7 +531,11 @@ window.deleteProfileImage = function() {
     showConfirm("Remove profile picture?", async () => {
         if(!currentUser) return;
         try {
-            const collectionName = currentUser.role === 'vendor' ? 'vendors' : 'buyers';
+            // UPDATED LOGIC HERE:
+            let collectionName;
+            if(currentUser.role === 'admin') collectionName = 'admins';
+            else collectionName = currentUser.role === 'vendor' ? 'vendors' : 'buyers';
+
             await updateDoc(doc(db, collectionName, currentUser.id), { img: null });
             
             currentUser.img = null;
@@ -372,21 +544,133 @@ window.deleteProfileImage = function() {
             
             showToast("Image removed");
         } catch(e) {
+            console.error(e); // See exact error in console
             showToast("Error removing image", "error");
         }
     });
 }
 
-// --- ADMIN PANEL ---
-// --- NEW SPLIT ADMIN PANEL LOGIC ---
+// --- ACCOUNT UPGRADE (BUYER TO VENDOR) ---
+window.upgradeToVendor = function() {
+    showConfirm("<b>Want to Sell?</b><br><span style='font-size:0.9rem; opacity:0.8;'> Convert as Merchant.", async () => {
+        if(!currentUser || currentUser.role !== 'buyer') return;
+        
+        try {
+            const uid = currentUser.id;
+            const userRef = doc(db, 'buyers', uid);
+            const newVendorRef = doc(db, 'vendors', uid);
 
-// 1. Main Entry Point
+            // Fetch current data to preserve it
+            const snap = await getDoc(userRef);
+            if(!snap.exists()) return showToast("Account error", "error");
+            const data = snap.data();
+
+            // Run Transaction
+            await runTransaction(db, async (transaction) => {
+                transaction.delete(userRef);
+                transaction.set(newVendorRef, {
+                    ...data,
+                    role: 'vendor', // Explicitly logic handles this, but good to have
+                    paymentMethods: { cash: true, payday: true } // Default settings
+                });
+            });
+
+            showToast("Welcome, Vendor! Please re-login.");
+            setTimeout(() => { logout(); }, 1500);
+
+        } catch(e) {
+            console.error(e);
+            showToast("Upgrade failed", "error");
+        }
+    });
+}
+
+
+// --- PAYMENT SETTINGS (VENDOR) ---
+window.openPaymentSettings = function() {
+    const settings = currentUser.paymentMethods || { cash: true, payday: true, bank: false };
+    
+    document.getElementById('psCash').checked = !!settings.cash;
+    document.getElementById('psPayday').checked = !!settings.payday;
+    document.getElementById('psBank').checked = !!settings.bank;
+    
+    toggleBankSettings(!!settings.bank);
+
+    if(settings.bankDetails) {
+        document.getElementById('psBankText').value = settings.bankDetails.text || '';
+        if(settings.bankDetails.qr) {
+            document.getElementById('psQRPreview').src = settings.bankDetails.qr;
+            document.getElementById('psQRPreview').classList.add('show');
+            document.getElementById('psQRPlaceholder').style.display = 'none';
+        }
+    } else {
+        document.getElementById('psBankText').value = '';
+        document.getElementById('psQRPreview').classList.remove('show');
+        document.getElementById('psQRPlaceholder').style.display = 'block';
+    }
+
+    openModal('paymentSettingsModal');
+}
+
+window.toggleBankSettings = function(isChecked) {
+    if(isChecked) {
+        document.getElementById('bankSettings').classList.remove('hidden');
+    } else {
+        document.getElementById('bankSettings').classList.add('hidden');
+    }
+}
+
+window.previewQR = function(input) {
+    if(input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById('psQRPreview');
+            img.src = e.target.result;
+            img.classList.add('show');
+            document.getElementById('psQRPlaceholder').style.display = 'none';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+window.savePaymentSettings = async function() {
+    const cash = document.getElementById('psCash').checked;
+    const payday = document.getElementById('psPayday').checked;
+    const bank = document.getElementById('psBank').checked;
+    
+    const bankText = document.getElementById('psBankText').value.trim();
+    const qrSrc = document.getElementById('psQRPreview').src;
+    const hasQR = document.getElementById('psQRPreview').classList.contains('show');
+
+    // Logic: Vendors must have at least one payment method
+    if(!cash && !payday && !bank) return showToast("Select at least 1 method", "error");
+
+    const settings = {
+        cash, payday, bank,
+        bankDetails: {
+            text: bank ? bankText : '',
+            qr: (bank && hasQR) ? qrSrc : null
+        }
+    };
+
+    try {
+        await updateDoc(doc(db, "vendors", currentUser.id), { paymentMethods: settings });
+        currentUser.paymentMethods = settings;
+        showToast("Settings Saved");
+        closeModalById('paymentSettingsModal');
+    } catch(e) {
+        console.error(e);
+        showToast("Error saving settings", "error");
+    }
+}
+
+// --- ADMIN PANEL ---
 window.renderAdminPanel = function() {
+    renderAdminReports();
     renderAdminVendors();
     renderAdminBuyers();
 }
 
-// 2. Render Vendors (Left Column)
 window.renderAdminVendors = function() {
     const container = document.getElementById('adminVendorList');
     if(!container) return;
@@ -397,7 +681,6 @@ window.renderAdminVendors = function() {
         return;
     }
 
-    // Group Vendors by Account (Category) just like Buyers
     const grouped = {};
     validVendors.forEach(v => {
         const team = v.account ? v.account.toUpperCase() : 'GENERAL';
@@ -408,7 +691,6 @@ window.renderAdminVendors = function() {
     const sortedTeams = Object.keys(grouped).sort();
 
     sortedTeams.forEach(team => {
-        // Group Container
         const groupDiv = document.createElement('div');
         groupDiv.style.background = "white";
         groupDiv.style.borderRadius = "10px";
@@ -416,7 +698,6 @@ window.renderAdminVendors = function() {
         groupDiv.style.overflow = "hidden";
         groupDiv.style.marginBottom = "15px";
 
-        // Header
         groupDiv.innerHTML = `
             <div style="background:#f4f4f5; padding:8px 12px; font-size:0.75rem; font-weight:800; color:#555; border-bottom:1px solid #e4e4e7; display:flex; justify-content:space-between;">
                 <span>${team}</span>
@@ -426,31 +707,44 @@ window.renderAdminVendors = function() {
 
         const listDiv = document.createElement('div');
 
-        // Render Rows
         grouped[team].sort((a,b) => a.name.localeCompare(b.name)).forEach(v => {
             const isMuted = v.isMuted || false;
             const row = document.createElement('div');
-            row.className = 'admin-user-row'; // NEW CLASS
+            row.className = 'admin-user-row';
             if(isMuted) row.style.background = "#fef2f2";
 
-            // Click Row -> Open History
+            // Clicking empty space opens History
             row.onclick = () => viewUserHistory(v, 'vendor');
 
             const img = v.img || DEFAULT_AVATAR;
 
             row.innerHTML = `
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <img src="${img}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid #eee;">
-                    <div>
+                <div style="display:flex; align-items:center; gap:12px;" 
+                     onclick="event.stopPropagation(); openUserInfo('${v.code}', 'vendor')"
+                     title="View Profile">
+                    
+                    <img src="${img}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #eee; cursor:pointer;">
+                    
+                    <div style="cursor:pointer;">
                         <div style="font-size:0.9rem; font-weight:600; ${isMuted ? 'color:#991b1b; text-decoration:line-through;' : ''}">${v.name}</div>
                         <div style="font-size:0.7rem; color:#bbb;">Code: ${v.code}</div>
                     </div>
                 </div>
+
                 <div style="display:flex; gap:10px; align-items:center;">
-                    <button onclick="event.stopPropagation(); toggleVendorMute('${v.id}', ${isMuted})" style="cursor:pointer; border:none; background:transparent; font-size:1.1rem;" title="${isMuted ? 'Unmute' : 'Mute'}">
+                    <!-- FIXED: NOW USES openHistoryById -->
+                    <button onclick="event.stopPropagation(); openHistoryById('${v.id}', 'vendor')" 
+                            style="cursor:pointer; border:none; background:transparent; font-size:1rem;" title="View History">
+                        📜
+                    </button>
+
+                    <button onclick="event.stopPropagation(); toggleVendorMute('${v.id}', ${isMuted})" 
+                            style="cursor:pointer; border:none; background:transparent; font-size:1.1rem;" title="${isMuted ? 'Unmute' : 'Mute'}">
                         ${isMuted ? '✅' : '⛔'}
                     </button>
-                    <button onclick="event.stopPropagation(); deleteVendor('${v.id}', '${v.name}')" style="cursor:pointer; border:none; background:transparent; font-size:1rem;" title="Delete">
+                    
+                    <button onclick="event.stopPropagation(); deleteVendor('${v.id}', '${v.name}')" 
+                            style="cursor:pointer; border:none; background:transparent; font-size:1rem;" title="Delete">
                         🗑️
                     </button>
                 </div>
@@ -463,13 +757,11 @@ window.renderAdminVendors = function() {
     });
 }
 
-// 3. Render Buyers (Right Column - Grouped & Searchable)
 window.renderAdminBuyers = function(searchTerm = '') {
     const container = document.getElementById('adminBuyerList');
     if(!container) return;
     container.innerHTML = '';
 
-    // Filter by Search
     const term = searchTerm.toLowerCase();
     const filtered = validBuyers.filter(b => 
         b.name.toLowerCase().includes(term) || 
@@ -481,7 +773,6 @@ window.renderAdminBuyers = function(searchTerm = '') {
         return;
     }
 
-    // Group by Account (Team)
     const grouped = {};
     filtered.forEach(b => {
         const team = b.account ? b.account.toUpperCase() : 'NO TEAM';
@@ -489,11 +780,9 @@ window.renderAdminBuyers = function(searchTerm = '') {
         grouped[team].push(b);
     });
 
-    // Sort Teams Alphabetically
     const sortedTeams = Object.keys(grouped).sort();
 
     sortedTeams.forEach(team => {
-        // Create Group Header
         const groupDiv = document.createElement('div');
         groupDiv.style.background = "white";
         groupDiv.style.borderRadius = "10px";
@@ -501,7 +790,6 @@ window.renderAdminBuyers = function(searchTerm = '') {
         groupDiv.style.overflow = "hidden";
         groupDiv.style.marginBottom = "15px";
 
-        // Header
         groupDiv.innerHTML = `
             <div style="background:#f4f4f5; padding:8px 12px; font-size:0.75rem; font-weight:800; color:#555; border-bottom:1px solid #e4e4e7; display:flex; justify-content:space-between;">
                 <span>${team}</span>
@@ -509,41 +797,47 @@ window.renderAdminBuyers = function(searchTerm = '') {
             </div>
         `;
 
-        // List of Users
         const listDiv = document.createElement('div');
         
         grouped[team].sort((a,b) => a.name.localeCompare(b.name)).forEach(b => {
             const isMuted = b.isMuted || false;
             const row = document.createElement('div');
-            row.className = 'admin-user-row'; // Ensures hover effect and pointer cursor
+            row.className = 'admin-user-row'; 
             
-            // Add Red Tint if Muted
             if(isMuted) row.style.background = "#fef2f2";
-
-            // CLICK EVENT -> Open History
+            
+            // Clicking empty space opens History
             row.onclick = () => viewUserHistory(b, 'buyer');
-
-            // IMAGE LOGIC (New)
+            
             const img = b.img || DEFAULT_AVATAR;
 
             row.innerHTML = `
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <!-- AVATAR IMAGE -->
-                    <img src="${img}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid #eee;">
+                <div style="display:flex; align-items:center; gap:12px;"
+                     onclick="event.stopPropagation(); openUserInfo('${b.code}', 'buyer')"
+                     title="View Profile">
+                     
+                    <img src="${img}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #eee; cursor:pointer;">
                     
-                    <!-- NAME & CODE STACKED -->
-                    <div>
+                    <div style="cursor:pointer;">
                         <div style="font-size:0.9rem; font-weight:600; ${isMuted ? 'color:#991b1b; text-decoration:line-through;' : ''}">${b.name}</div>
                         <div style="font-size:0.7rem; color:#bbb;">Code: ${b.code}</div>
                     </div>
                 </div>
 
-                <!-- BUTTONS -->
                 <div style="display:flex; gap:10px; align-items:center;">
-                     <button onclick="event.stopPropagation(); toggleBuyerMute('${b.id}', ${isMuted})" style="cursor:pointer; border:none; background:transparent; font-size:1.1rem;" title="${isMuted ? 'Unmute' : 'Mute'}">
+                     <!-- FIXED: NOW USES openHistoryById -->
+                     <button onclick="event.stopPropagation(); openHistoryById('${b.id}', 'buyer')" 
+                            style="cursor:pointer; border:none; background:transparent; font-size:1rem;" title="View History">
+                        📜
+                    </button>
+
+                     <button onclick="event.stopPropagation(); toggleBuyerMute('${b.id}', ${isMuted})" 
+                             style="cursor:pointer; border:none; background:transparent; font-size:1.1rem;" title="${isMuted ? 'Unmute' : 'Mute'}">
                         ${isMuted ? '✅' : '⛔'}
                     </button>
-                    <button onclick="event.stopPropagation(); deleteBuyer('${b.id}', '${b.name}')" style="cursor:pointer; border:none; background:transparent; font-size:1rem;" title="Delete">
+                    
+                    <button onclick="event.stopPropagation(); deleteBuyer('${b.id}', '${b.name}')" 
+                            style="cursor:pointer; border:none; background:transparent; font-size:1rem;" title="Delete">
                         🗑️
                     </button>
                 </div>
@@ -555,13 +849,94 @@ window.renderAdminBuyers = function(searchTerm = '') {
         container.appendChild(groupDiv);
     });
 }
+window.renderAdminReports = function() {
+    // 1. Create section if missing
+    let reportContainer = document.getElementById('adminReportSection');
+    if(!reportContainer) {
+        const adminView = document.getElementById('adminView');
+        const wrapper = document.createElement('div');
+        wrapper.style.marginBottom = "30px";
+        wrapper.innerHTML = `
+            <h3 class="section-title" style="color:#ef4444;">🚨 Active Reports</h3>
+            <div id="adminReportSection" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:15px;"></div>
+        `;
+        adminView.insertBefore(wrapper, adminView.firstChild);
+        reportContainer = document.getElementById('adminReportSection');
+    }
+    
+    reportContainer.innerHTML = '';
+    
+    if(reports.length === 0) {
+        reportContainer.innerHTML = '<div style="color:#aaa; font-style:italic; text-align:center; padding:20px;">No active reports. All good!</div>';
+        return;
+    }
 
-// 4. Buyer Actions
+    // Sort Newest First
+    const sorted = reports.sort((a,b) => b.timestamp.localeCompare(a.timestamp));
+
+    sorted.forEach(r => {
+        const dateStr = new Date(r.timestamp).toLocaleDateString();
+        const proofHtml = r.proof ? `<div class="report-proof-link" onclick="openLightbox('${r.proof}', 'Report Evidence')">📸 View Attached Proof</div>` : '';
+        
+        const card = document.createElement('div');
+        card.className = 'report-card';
+        card.innerHTML = `
+            <div class="report-header">
+                <span>From: ${r.reporter}</span>
+                <span>${dateStr}</span>
+            </div>
+            <div style="margin-bottom:8px;">
+                <span style="color:#ef4444; font-weight:700;">AGAINST: ${r.target}</span>
+            </div>
+            <div class="report-body">"${r.reason}"</div>
+            ${proofHtml}
+            <div style="margin-top:12px; display:flex; gap:10px; justify-content:flex-end; align-items:center;">
+                 <button onclick="resolveReport('${r.id}')" style="font-size:0.75rem; background:#18181b; color:white; border:none; padding:6px 12px; border-radius:6px; cursor:pointer;">
+                    ✅ Resolve & Archive
+                 </button>
+                 <button onclick="openUserInfo('${r.targetCode}', 'buyer')" style="font-size:0.75rem; background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; padding:6px 12px; border-radius:6px; cursor:pointer;">
+                    Inspect
+                </button>
+            </div>
+        `;
+        reportContainer.appendChild(card);
+    });
+}
+
+window.resolveReport = async function(id) {
+    if(showConfirm("Mark this report as resolved? It will be moved to history.")) return;
+
+    // 1. Find the report data in our local array
+    const reportData = reports.find(r => r.id === id);
+    if(!reportData) return showToast("Report data error", "error");
+
+    try {
+        // 2. Add to History Collection
+        // We strip the ID so Firestore generates a new unique one, or use the same ID.
+        // Let's use same ID for consistency.
+        const { id: oldId, ...dataToSave } = reportData;
+        
+        await setDoc(doc(db, "resolved_reports", id), {
+            ...dataToSave,
+            resolvedAt: new Date().toISOString(),
+            resolvedBy: currentUser.name,
+            status: 'Resolved'
+        });
+
+        // 3. Delete from Active
+        await deleteDoc(doc(db, "reports", id));
+
+        showToast("Report Resolved & Archived");
+        // UI auto-updates via onSnapshot listeners
+    } catch(e) {
+        console.error(e);
+        showToast("Error moving report", "error");
+    }
+}
 window.toggleBuyerMute = async function(id, currentStatus) {
     try {
         await updateDoc(doc(db, "buyers", id), { isMuted: !currentStatus });
         showToast(currentStatus ? "Buyer Active" : "Buyer Muted");
-        // Listener updates UI automatically
     } catch(e) {
         showToast("Error updating status", "error");
     }
@@ -572,7 +947,6 @@ window.deleteBuyer = function(id, name) {
         try {
             await deleteDoc(doc(db, "buyers", id));
             showToast("User Deleted");
-            // Listener updates UI automatically
         } catch(e) {
             showToast("Error deleting", "error");
         }
@@ -613,8 +987,12 @@ window.submitRegistration = async function() {
     const role = document.getElementById('regRole').value;
     const nameInput = document.getElementById('regName').value.trim();
     const account = document.getElementById('regAccount').value.trim();
+    const emailInput = document.getElementById('regEmail').value.trim(); // NEW
     
-    if(!nameInput || !account) return showToast("Fill all fields", "error");
+    if(!nameInput || !account) return showToast("Name & Account required", "error");
+
+    // Basic email validation
+    if(emailInput && !emailInput.includes('@')) return showToast("Invalid Email", "error");
 
     const existingUsers = role === 'vendor' ? validVendors : validBuyers;
     if (existingUsers.some(user => user.id === nameInput)) {
@@ -623,10 +1001,17 @@ window.submitRegistration = async function() {
 
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     const collectionName = role === 'vendor' ? 'vendors' : 'buyers';
-    
+    const extraData = role === 'vendor' ? { paymentMethods: { cash: true, payday: true } } : {};
+
     try {
         await setDoc(doc(db, collectionName, nameInput), { 
-            code, name: nameInput, account, img: null 
+            code, 
+            name: nameInput, 
+            account, 
+            img: null,
+            email: emailInput || null, // Save Email here
+            joinedAt: new Date().toISOString(),
+            ...extraData
         });
         
         closeRegisterModal();
@@ -634,7 +1019,7 @@ window.submitRegistration = async function() {
         showToast(`Registered! Code: ${code}`);
     } catch(e) { 
         console.error(e);
-        showToast("Name already exists or Error connecting", "error"); 
+        showToast("Error connecting", "error"); 
     }
 }
 
@@ -740,10 +1125,16 @@ window.openAddModal = function() {
     document.getElementById('mPrice').value = '';
     document.getElementById('mStock').value = ''; 
     document.getElementById('mNote').value = ''; 
+    document.getElementById('mVariants').value = '';
+    
+    // Reset Image UI
+    document.getElementById('mPreview').src = '';
     document.getElementById('mPreview').classList.remove('show');
     document.getElementById('uploadPlaceholder').style.display = 'block';
-    document.getElementById('modalTitle').innerText = 'Add Item';
+    document.getElementById('btnRemoveProdImg').classList.add('hidden'); // Hide X
     document.getElementById('mFile').value = ''; 
+
+    document.getElementById('modalTitle').innerText = 'Add Item';
     openModal('productModal');
 }
 
@@ -757,18 +1148,22 @@ window.openEditModal = function(id) {
     document.getElementById('mVariants').value = (p.variants || []).join(', ');
     document.getElementById('mNote').value = p.note || ''; 
     
+    // Handle Image
     const hasImg = (p.media && p.media.length > 50);
     document.getElementById('mPreview').src = hasImg ? p.media : '';
+    document.getElementById('mFile').value = ''; // Reset input
+
     if(hasImg) {
         document.getElementById('mPreview').classList.add('show');
         document.getElementById('uploadPlaceholder').style.display = 'none';
+        document.getElementById('btnRemoveProdImg').classList.remove('hidden'); // Show X
     } else {
         document.getElementById('mPreview').classList.remove('show');
         document.getElementById('uploadPlaceholder').style.display = 'block';
+        document.getElementById('btnRemoveProdImg').classList.add('hidden'); // Hide X
     }
     
     document.getElementById('modalTitle').innerText = 'Edit Item';
-    document.getElementById('mFile').value = '';
     openModal('productModal');
 }
 
@@ -792,7 +1187,7 @@ window.openHelpModal = function() {
         content.innerHTML = `
             <ul style="padding-left:15px; margin:0 0 15px 0; display:flex; flex-direction:column; gap:8px;">
                 <li><b>Adding Items:</b> Click <i>+ Add Item</i>. Leave stock blank for unlimited.</li>
-                <li><b>Variants:</b> Comma separated options (e.g., Spicy, Regular).</li>
+                <li><b>Payment Settings:</b> Configure accepted payments and QR codes.</li>
                 <li><b>Orders:</b> Mark "Paid" to clear notifications. Use Trash icon to delete orders.</li>
                 <li><b>End Shift:</b> Clears your local view (data saved in History).</li>
             </ul>
@@ -804,7 +1199,7 @@ window.openHelpModal = function() {
         content.innerHTML = `
             <ul style="padding-left:15px; margin:0 0 15px 0; display:flex; flex-direction:column; gap:8px;">
                 <li><b>Ordering:</b> Click (+) to add items.</li>
-                <li><b>Cancel:</b> Use 'Cancel' button to clear cart for that shop.</li>
+                <li><b>Bank Transfer:</b> You must upload a receipt screenshot.</li>
                 <li><b>History:</b> Check slide-out menu for past purchases.</li>          
             </ul>
             <div style="background-color: #fff1f2; border: 1px solid #fecaca; border-radius: 8px; padding: 15px; text-align: center; color: #881337;">
@@ -822,6 +1217,7 @@ window.previewImage = function(input) {
             img.src = e.target.result;
             img.classList.add('show');
             document.getElementById('uploadPlaceholder').style.display = 'none';
+            document.getElementById('btnRemoveProdImg').classList.remove('hidden'); // Show X
         };
         r.readAsDataURL(input.files[0]);
     }
@@ -846,7 +1242,13 @@ window.switchUploadMode = function(mode) {
         document.getElementById('mFile').value = '';
     }
 }
-
+window.removeProductImage = function() {
+    document.getElementById('mFile').value = ''; // Clear input
+    document.getElementById('mPreview').src = '';
+    document.getElementById('mPreview').classList.remove('show');
+    document.getElementById('uploadPlaceholder').style.display = 'block';
+    document.getElementById('btnRemoveProdImg').classList.add('hidden');
+}
 window.commitProduct = function() {
     const id = document.getElementById('mId').value;
     const name = document.getElementById('mName').value.trim();
@@ -856,27 +1258,34 @@ window.commitProduct = function() {
     const variantsStr = document.getElementById('mVariants').value;
     const variants = variantsStr ? variantsStr.split(',').map(s => s.trim()).filter(s => s) : [];
 
+    // Image Logic
     const fileInput = document.getElementById('mFile');
-    const urlInput = document.getElementById('mUrl').value.trim();
+    const previewSrc = document.getElementById('mPreview').src;
+    const hasVisibleImg = document.getElementById('mPreview').classList.contains('show');
 
     if(!name || !price) return showToast("Name & Price required", "error");
     const stock = stockVal === '' ? null : parseInt(stockVal);
 
     const save = async (imgData) => {
         try {
-            const data = { 
+            // If adding new, we need base data
+            let data = { 
                 vendor: currentUser.code, vendorName: currentUser.name, 
                 name, price: parseInt(price), stock: stock, 
-                note: note, variants: variants, media: imgData || null, 
+                note: note, variants: variants, 
                 isPreOrder: false, active: true 
             };
+
+            // If updating
             if(id) { 
-                delete data.vendor; delete data.vendorName; delete data.active; delete data.isPreOrder;
                 const updateData = { name, price: parseInt(price), stock: stock, note: note, variants: variants };
-                if(imgData) updateData.media = imgData;
+                // Update media only if changed or removed
+                updateData.media = imgData; 
                 await updateDoc(doc(db,"products",id), updateData);
                 showToast("Item Updated");
             } else { 
+                // New Item
+                data.media = imgData || null;
                 await addDoc(collection(db,"products"), data); 
                 showToast("Item Added");
             }
@@ -887,26 +1296,29 @@ window.commitProduct = function() {
         }
     };
 
+    // Determine what to save for media
     if(fileInput.files && fileInput.files[0]) { 
-        if(fileInput.files[0].size > 700000) {
-            return showToast("File too big! Use 'Paste Link' tab.", "error");
-        }
+        if(fileInput.files[0].size > 1000000) return showToast("File too big (Max 1MB)", "error");
         const r = new FileReader(); 
         r.onload = (e) => save(e.target.result); 
         r.readAsDataURL(fileInput.files[0]); 
-    } else if (urlInput) {
-        save(urlInput);
+    } else if (hasVisibleImg && previewSrc.startsWith('data:')) {
+        // Keep existing image (passed as dataurl)
+        save(previewSrc);
     } else {
+        // No image (removed or never added)
         save(null); 
     }
 }
 
 // --- BUYER & CARD RENDERING ---
+// --- BUYER & CARD RENDERING UPDATED ---
 function renderBuyerCards(container, showPreOrders, isCompact = false, excludeVendor = null) {
     if(!container) return;
     container.innerHTML = '';
     const vendors = {};
     
+    // 1. Group Products by Vendor
     products.forEach(p => {
         if(!p.active) return;
         if(p.isPreOrder !== showPreOrders) return;
@@ -918,7 +1330,9 @@ function renderBuyerCards(container, showPreOrders, isCompact = false, excludeVe
 
             vendors[p.vendor] = { 
                 name: vObj.name, account: vObj.account, img: vObj.img,
-                items: [], code: p.vendor 
+                items: [], code: p.vendor,
+                // Default to legacy (Cash/Payday) if no settings exist
+                paymentMethods: vObj.paymentMethods || { cash: true, payday: true, bank: false }
             };
         }
         if(vendors[p.vendor]) vendors[p.vendor].items.push(p);
@@ -930,12 +1344,14 @@ function renderBuyerCards(container, showPreOrders, isCompact = false, excludeVe
         return;
     }
 
+    // 2. Build Cards
     vendorKeys.forEach(code => {
         const v = vendors[code];
         const card = document.createElement('div');
         card.className = 'vendor-card collapsed'; 
         if(isCompact) card.style.border = "1px solid #e4e4e7";
 
+        // Render Items
         let itemsHtml = v.items.map(i => {
             const itemImgHTML = (i.media && i.media.length > 50) 
                 ? `<img src="${i.media}" class="product-img" onclick="openLightbox('${i.media}')">`
@@ -995,10 +1411,45 @@ function renderBuyerCards(container, showPreOrders, isCompact = false, excludeVe
             </div>`;
         }).join('');
 
+        // --- UPDATED VENDOR IMAGE LOGIC ---
+        // Clicking image now calls openUserInfo instead of lightbox directly
         const hasCustomImg = (v.img && v.img.length > 50);
         const imgSrc = hasCustomImg ? v.img : DEFAULT_AVATAR;
-        const clickAction = hasCustomImg ? `onclick="event.stopPropagation(); openLightbox('${imgSrc}')"` : ''; 
-        const vendorImgHTML = `<img src="${imgSrc}" class="vendor-header-img" ${clickAction} style="${hasCustomImg ? 'cursor:pointer;' : ''}">`;
+        
+        const vendorImgHTML = `
+            <img src="${imgSrc}" class="vendor-header-img" 
+                 onclick="event.stopPropagation(); openUserInfo('${v.code}', 'vendor')" 
+                 style="cursor:pointer;" 
+                 title="View Shop Info">
+        `;
+
+        // DYNAMIC PAYMENT BUTTONS
+        let paymentButtonsHTML = '';
+        if(v.paymentMethods.cash) {
+            paymentButtonsHTML += `<button class="pay-btn" onclick="togglePayment(this, '${v.code}')">Cash Only</button>`;
+        }
+        if(v.paymentMethods.payday) {
+            paymentButtonsHTML += `<button class="pay-btn" onclick="togglePayment(this, '${v.code}')">Payday</button>`;
+        }
+        if(v.paymentMethods.bank) {
+            const detailsText = v.paymentMethods.bankDetails?.text || 'Ask Vendor';
+            const detailsQR = v.paymentMethods.bankDetails?.qr || '';
+            paymentButtonsHTML += `<button class="pay-btn" data-type="bank" 
+                onclick="togglePayment(this, '${v.code}', '${btoa(detailsText)}', '${detailsQR}')">Bank Transfer</button>`;
+        }
+
+        // HIDDEN ACTIONS & UPLOAD
+        const bankActionsHTML = `
+            <div id="bank-actions-${v.code}" class="bank-actions hidden">
+                <button class="bank-action-btn" onclick="viewBankQR('${v.code}')">📷 Show QR</button>
+                <button class="bank-action-btn" onclick="viewBankDetails('${v.code}')">📄 Details</button>
+            </div>
+            <div id="receipt-upload-${v.code}" class="receipt-upload-box hidden" onclick="triggerReceiptUpload('${v.code}')">
+                <span id="receipt-label-${v.code}" style="font-size:0.75rem; color:#555;">📎 Upload Receipt (Required)</span>
+                <img id="receipt-preview-${v.code}" class="receipt-preview-img">
+                <input type="file" id="receipt-input-${v.code}" hidden accept="image/*" onchange="previewReceipt(this, '${v.code}')">
+            </div>
+        `;
 
         card.innerHTML = `
             <div class="card-header" onclick="toggleCard(this)">
@@ -1014,13 +1465,16 @@ function renderBuyerCards(container, showPreOrders, isCompact = false, excludeVe
             <div class="card-content">${itemsHtml}</div>
             <div class="card-footer">
                 <div class="total-display"><span>Total:</span><span id="total-${v.code}">₱0</span></div>
+                
                 <div class="payment-options">
-                    <button class="pay-btn" onclick="togglePayment(this)">Cash</button>
-                    <button class="pay-btn" onclick="togglePayment(this)">Payday</button>
+                    ${paymentButtonsHTML}
                 </div>
+                
+                ${bankActionsHTML}
+
                 <div class="action-row">
                     <button class="btn-cancel-order" onclick="clearVendorCart('${v.code}')">Cancel</button>
-                    <button class="submit-btn" style="flex:2;" onclick="submitOrder('${v.code}', this, ${showPreOrders})">Submit Order</button>
+                    <button class="submit-btn" id="submit-btn-${v.code}" style="flex:2;" onclick="submitOrder('${v.code}', this, ${showPreOrders})">Submit Order</button>
                 </div>
             </div>
         `;
@@ -1068,14 +1522,150 @@ window.changeQty = function(id, chg, price, vendorCode, variant = null) {
     document.querySelectorAll(`#total-${vendorCode}`).forEach(el => el.innerText = `₱${tot.toLocaleString()}`);
 }
 
-window.togglePayment = function(btn) {
+// Global store for current bank details per vendor card interaction
+let currentBankDetails = {}; 
+
+window.togglePayment = function(btn, vCode, encodedText = '', qrSrc = '') {
+    const parent = btn.parentElement;
+    
     if(btn.classList.contains('selected')) {
+        // Deselecting
         btn.classList.remove('selected');
+        hideBankOptions(vCode);
     } else {
-        btn.parentElement.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('selected'));
+        // Selecting new
+        parent.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
+
+        if(btn.dataset.type === 'bank') {
+            // Show Bank Options
+            document.getElementById(`bank-actions-${vCode}`).classList.remove('hidden');
+            document.getElementById(`receipt-upload-${vCode}`).classList.remove('hidden');
+            
+            // Store details for the view buttons
+            currentBankDetails[vCode] = { text: atob(encodedText), qr: qrSrc };
+        } else {
+            hideBankOptions(vCode);
+        }
     }
 }
+
+function hideBankOptions(vCode) {
+    document.getElementById(`bank-actions-${vCode}`).classList.add('hidden');
+    document.getElementById(`receipt-upload-${vCode}`).classList.add('hidden');
+}
+
+window.viewBankQR = function(vCode) {
+    const data = currentBankDetails[vCode];
+    if(data && data.qr) {
+        openLightbox(data.qr, "Scan to Pay");
+    } else {
+        showToast("No QR code provided by vendor", "error");
+    }
+}
+
+window.viewBankDetails = function(vCode) {
+    const data = currentBankDetails[vCode];
+    
+    if(data && data.text) {
+        const container = document.getElementById('bankCardContainer');
+        const rawText = data.text;
+        
+        // Inject the ATM Card HTML
+        container.innerHTML = `
+            <div class="atm-card-wrapper" onclick="copyCardData('${rawText.replace(/'/g, "\\'")}', this)">
+                <div class="atm-card">
+                    <div class="copy-overlay">COPIED!</div>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div class="atm-chip"></div>
+                        <div class="atm-wifi">)))</div>
+                    </div>
+                    
+                    <div>
+                        <div class="atm-label">Details / Bank</div>
+                        <div class="atm-number">${rawText}</div>
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                        <div>
+                            <div class="atm-label">Account Name / ID</div>
+                            <div class="atm-holder"></div>
+                        </div>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" 
+                             style="height:24px; opacity:0.6; filter:brightness(100) grayscale(1);">
+                    </div>
+                </div>
+            </div>
+            <div style="text-align:center; font-size:0.8rem; color:#71717A; margin-top:15px; font-weight:500;">
+                👆 Tap card to copy details
+            </div>
+        `;
+
+        openModal('bankDetailsModal');
+    } else {
+        showToast("No details provided", "error");
+    }
+}
+
+// New Helper function for the card animation
+window.copyCardData = function(text, wrapper) {
+    navigator.clipboard.writeText(text).then(() => {
+        const card = wrapper.querySelector('.atm-card');
+        
+        // Add class to trigger CSS overlay
+        card.classList.add('copied');
+        
+        // Remove it after 1.5 seconds
+        setTimeout(() => {
+            card.classList.remove('copied');
+        }, 1500);
+        
+        // Optional: Also show standard toast
+        // showToast("Details copied!"); 
+    });
+}
+
+// Helper to actually copy text
+window.copyToClipboard = function(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Visual feedback inside the card
+        const hint = document.getElementById('copyHintText');
+        if(hint) {
+            hint.innerText = "✅ COPIED!";
+            hint.style.background = "#10B981";
+            hint.style.color = "white";
+            setTimeout(() => {
+                hint.innerText = "Click to Copy";
+                hint.style.background = "rgba(255,255,255,0.9)";
+                hint.style.color = "black";
+            }, 2000);
+        }
+        // Fallback toast
+        // showToast("Details copied to clipboard"); 
+    });
+}
+
+
+window.triggerReceiptUpload = function(vCode) {
+    document.getElementById(`receipt-input-${vCode}`).click();
+}
+
+window.previewReceipt = function(input, vCode) {
+    if(input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById(`receipt-preview-${vCode}`);
+            img.src = e.target.result;
+            img.classList.add('show');
+            document.getElementById(`receipt-label-${vCode}`).innerText = "✅ Receipt Attached";
+            document.getElementById(`receipt-label-${vCode}`).style.color = "green";
+            document.getElementById(`receipt-label-${vCode}`).style.fontWeight = "bold";
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
 
 window.clearVendorCart = function(vendorCode) {
     const vendorItems = products.filter(p => p.vendor === vendorCode).map(p => p.id);
@@ -1147,7 +1737,27 @@ window.submitOrder = async function(vCode, btn, isPreOrder) {
 
     const selectedBtn = btn.parentElement.parentElement.querySelector('.pay-btn.selected');
     if(!selectedBtn) return showToast("Select Payment Option", "error");
-    const method = selectedBtn.innerText;
+    const method = selectedBtn.innerText; // "Cash", "Payday", "Bank / GCash"
+
+    // RECEIPT CHECK
+    let receiptData = null;
+    if(selectedBtn.dataset.type === 'bank') {
+        const fileInput = document.getElementById(`receipt-input-${vCode}`);
+        if(fileInput.files && fileInput.files[0]) {
+            // Need to read it if not already read (or grab from preview src)
+            const preview = document.getElementById(`receipt-preview-${vCode}`);
+            if(preview.src && preview.src.startsWith('data:')) {
+                receiptData = preview.src;
+            } else {
+                return showToast("Processing image... try again in a sec", "error");
+            }
+        } else {
+            return showToast("⚠️ Receipt Upload Required for Bank Transfer", "error");
+        }
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Sending...";
 
     try {
         await addDoc(collection(db, "orders"), {
@@ -1157,6 +1767,7 @@ window.submitOrder = async function(vCode, btn, isPreOrder) {
             items: purchased.map(x => ({ name: x.name, qty: x.qty, price: x.price })),
             total: total,
             method: method,
+            receipt: receiptData, // Save image string
             status: "Unpaid",
             date: getShiftDate(isPreOrder),
             timestamp: new Date().toLocaleString(),
@@ -1182,22 +1793,44 @@ window.submitOrder = async function(vCode, btn, isPreOrder) {
         renderBuyerCards(document.getElementById('buyerPreOrderGrid'), true);
         
         showToast("Order Sent!");
-    } catch(e) { console.error(e); showToast("Failed to send", "error"); }
+    } catch(e) { 
+        console.error(e); 
+        showToast("Failed to send", "error"); 
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Submit Order";
+    }
 }
 
 // --- HISTORY ---
 window.openSlidePanel = function() {
     document.getElementById('slideOverlay').classList.add('open');
     document.getElementById('slidePanel').classList.add('open');
-    if(currentUser.role === 'vendor') {
+    
+    // --- ADMIN LOGIC ---
+    if(currentUser.role === 'admin') {
+        historyMode = 'reports'; // Set mode
+        document.getElementById('historyTitle').innerText = "Resolved Reports"; // Change Title
+        document.getElementById('vendorHistoryToggle').classList.add('hidden'); // Hide Sales/Purchases buttons
+        document.getElementById('historyTotalBadge').style.display = 'none'; // Hide Money Badge
+    } 
+    // --- VENDOR LOGIC ---
+    else if(currentUser.role === 'vendor') {
+        document.getElementById('historyTitle').innerText = "History";
         document.getElementById('vendorHistoryToggle').classList.remove('hidden');
+        document.getElementById('historyTotalBadge').style.display = 'block'; 
         historyMode = 'sales'; 
         updateHistoryToggleUI();
-    } else {
+    } 
+    // --- BUYER LOGIC ---
+    else {
+        document.getElementById('historyTitle').innerText = "History";
         document.getElementById('vendorHistoryToggle').classList.add('hidden');
+        document.getElementById('historyTotalBadge').style.display = 'block';
         historyMode = 'purchases';
     }
-    populateDateFilters();
+    
+    populateDateFilters(); // This triggers renderHistory()
 }
 
 window.closeSlidePanel = function() {
@@ -1244,8 +1877,52 @@ window.renderHistory = function() {
     const thead = document.getElementById('historyTableHead');
     tbody.innerHTML = '';
     
+    // Get Date Filters
     const m = parseInt(document.getElementById('filterMonth').value);
     const y = parseInt(document.getElementById('filterYear').value);
+    
+    // --- MODE: ADMIN REPORTS ---
+    if (historyMode === 'reports') {
+        thead.innerHTML = `<tr><th>Target / Reason</th><th class="text-right">Resolved</th></tr>`;
+        
+        // Filter Resolved Reports by Date (using resolvedAt)
+        const relevantReports = resolvedReports.filter(r => {
+            if(!r.resolvedAt) return false;
+            const d = new Date(r.resolvedAt);
+            return d.getMonth() === m && d.getFullYear() === y;
+        }).sort((a,b) => b.resolvedAt.localeCompare(a.resolvedAt));
+
+        if(relevantReports.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#999; padding:20px;">No resolved reports this month.</td></tr>`;
+            return;
+        }
+
+        relevantReports.forEach(r => {
+            const resolveDate = new Date(r.resolvedAt).toLocaleDateString(undefined, {month:'short', day:'numeric'});
+            const proofIcon = r.proof ? `<span onclick="event.stopPropagation(); openLightbox('${r.proof}')" style="cursor:pointer; margin-left:5px;">📸</span>` : '';
+
+            // Click row to inspect the user who was reported
+            const inspectAttr = `onclick="openUserInfo('${r.targetCode}', 'buyer')" style="cursor:pointer;"`;
+
+            tbody.innerHTML += `
+            <tr class="history-row" ${inspectAttr}>
+                <td>
+                    <div style="font-weight:700; color:#ef4444;">${r.target} ${proofIcon}</div>
+                    <div style="font-size:0.8rem; color:#18181b;">"${r.reason}"</div>
+                    <div style="font-size:0.7rem; color:#71717a;">Rep: ${r.reporter}</div>
+                </td>
+                <td class="text-right">
+                    <span style="font-size:0.7rem; background:#ecfdf5; color:#059669; padding:2px 6px; border-radius:4px; font-weight:600;">
+                        ${resolveDate}
+                    </span>
+                </td>
+            </tr>`;
+        });
+        return; // Stop here for admin
+    }
+
+    // --- EXISTING LOGIC FOR VENDORS/BUYERS ---
+    // (Keep your existing code for Sales/Purchases below)
     
     let relevantOrders = orders.filter(o => {
         const d = new Date(o.date);
@@ -1257,17 +1934,24 @@ window.renderHistory = function() {
     void totalBadge.offsetWidth; 
     totalBadge.classList.add('total-pop');
 
-    if(historyMode === 'sales' && currentUser.role === 'vendor') {
+    if(historyMode === 'sales') {
+        // ... (Existing Vendor Logic) ...
         thead.innerHTML = `<tr><th>Date/Buyer</th><th class="text-right">Amt</th></tr>`;
         relevantOrders = relevantOrders.filter(o => o.vendorCode === currentUser.code);
         let grand = 0;
         relevantOrders.forEach(o => {
             const isPaid = o.status === 'Paid';
-            const itemsStr = o.items.map(i=>`${i.qty} ${i.name}`).join(', ');
-            tbody.innerHTML += `<tr class="history-row">
+            const itemsStr = o.items.map(i => `${i.qty} ${i.name}`).join(', ');
+            const receiptIcon = o.receipt ? `<span onclick="event.stopPropagation(); openLightbox('${o.receipt}')" style="cursor:pointer; margin-left:5px;">📎</span>` : '';
+            
+            tbody.innerHTML += `
+            <tr class="history-row">
                 <td>
-                    <div style="font-weight:600">${o.buyer.name}</div>
-                    <div style="font-size:0.75rem; color:#777;">${itemsStr}</div>
+                    <div class="user-link" onclick="openUserInfo('${o.buyerCode}', 'buyer')">
+                         <span style="font-weight:600;">${o.buyer.name}</span>
+                         <span class="acc-tag">${o.buyer.account}</span>
+                    </div> ${receiptIcon}
+                    <div style="font-size:0.75rem; color:#777; margin-top:2px;">${itemsStr}</div>
                     <span class="status-badge ${isPaid ? 'bg-paid' : 'bg-unpaid'}">${o.status}</span>
                 </td>
                 <td class="text-right amount-cell">+₱${o.total}</td>
@@ -1276,20 +1960,27 @@ window.renderHistory = function() {
         });
         totalBadge.innerText = `₱${grand.toLocaleString()}`;
     } else {
+        // ... (Existing Buyer Logic) ...
         thead.innerHTML = `<tr><th>Shop/Items</th><th class="text-right">Total</th></tr>`;
         relevantOrders = relevantOrders.filter(o => o.buyerCode === currentUser.code);
         let grand = 0;
         relevantOrders.forEach(o => {
             const isPaid = o.status === 'Paid';
             if(!isPaid) grand += o.total; 
-            const itemsStr = o.items.map(i=>`${i.qty} ${i.name}`).join(', ');
+            const itemsStr = o.items.map(i => `${i.qty} ${i.name}`).join(', ');
             const statusText = isPaid ? '' : '<div style="color:#ef4444; font-size:0.7rem; font-weight:700;">TO BE PAID</div>';
+            
             const vendorObj = validVendors.find(v => v.code === o.vendorCode);
-            const vendorDisplayName = vendorObj ? vendorObj.name : o.vendorCode; 
+            const vName = vendorObj ? vendorObj.name : o.vendorCode; 
+            const vAcc = vendorObj ? vendorObj.account : 'Shop';
 
-            tbody.innerHTML += `<tr class="history-row">
+            tbody.innerHTML += `
+            <tr class="history-row">
                 <td>
-                    <span style="font-weight:700;">${vendorDisplayName}</span>
+                    <div class="user-link" onclick="openUserInfo('${o.vendorCode}', 'vendor')">
+                        <span style="font-weight:700;">${vName}</span>
+                        <span class="acc-tag">${vAcc}</span>
+                    </div>
                     <div style="font-size:0.85rem; color:#555;">${itemsStr}</div>
                     ${statusText}
                 </td>
@@ -1316,12 +2007,30 @@ function renderVendorOrders() {
         const div = document.createElement('div');
         div.style.background = "white"; div.style.padding = "12px"; div.style.borderRadius = "10px"; div.style.border = "1px solid #eee";
         const isPaid = o.status === 'Paid';
-        div.innerHTML = `
-            <div style="display:flex; justify-content:space-between; font-weight:700;">
-                <span>${o.buyer.name}</span>
-                <span>₱${o.total}</span>
+        
+        const receiptHtml = o.receipt ? `
+            <div style="margin-top:5px; background:#f9fafb; padding:4px; border-radius:4px; font-size:0.75rem; cursor:pointer; color:#2563eb;" 
+                 onclick="openLightbox('${o.receipt}', 'Receipt from ${o.buyer.name}')">
+                📎 View Receipt
             </div>
+        ` : '';
+
+        // "Conjoined Twins": Name + Account
+        // Added onclick to open User Modal
+        const buyerNameHtml = `
+            <div class="user-link" onclick="openUserInfo('${o.buyerCode}', 'buyer')">
+            <span style="font-weight:700; color:#18181b;">${o.buyer.name}</span>
+            <span class="acc-tag">${o.buyer.account}</span>
+        </div>
+        `;
+
+        div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
+            ${buyerNameHtml}
+            <span style="font-weight:800;">₱${o.total}</span>
+        </div>
             <div style="font-size:0.85rem; color:#555; margin:5px 0;">${o.items.map(i=>`${i.qty}x ${i.name}`).join(', ')}</div>
+            ${receiptHtml}
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
                 <span style="font-size:0.75rem; background:#f4f4f5; padding:2px 6px; border-radius:4px;">${o.method}</span>
                 <div style="display:flex; align-items:center;">
@@ -1334,6 +2043,72 @@ function renderVendorOrders() {
         `;
         list.appendChild(div);
     });
+}
+
+// GENERIC USER INFO CARD
+window.openUserInfo = function(userCode, userRole = 'buyer') {
+    let user;
+    if (userRole === 'vendor') {
+        user = validVendors.find(v => v.code === userCode);
+    } else {
+        user = validBuyers.find(b => b.code === userCode);
+    }
+
+    const uName = user ? user.name : "Unknown User";
+    const uAcc  = user ? user.account : "----";
+    const uImg  = (user && user.img) ? user.img : DEFAULT_AVATAR;
+    
+    let joinedText = "Legacy Member"; 
+    if (user && user.joinedAt) {
+        const date = new Date(user.joinedAt);
+        joinedText = date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    // LOGIC UPDATED: 
+    // Show Report Button ONLY if:
+    // 1. User is logged in
+    // 2. Not looking at themselves
+    // 3. AND IS NOT AN ADMIN
+    let reportBtnHtml = '';
+    if(currentUser && currentUser.code !== userCode && currentUser.role !== 'admin') {
+        reportBtnHtml = `
+            <button class="btn-report-user" onclick="openReportModal('${userCode}', '${uName}')">
+                🚩 Report User
+            </button>
+        `;
+    }
+
+    const container = document.getElementById('userCardContainer');
+    
+    container.innerHTML = `
+        <div class="profile-card-wrapper">
+            <div class="pc-header"></div>
+            <div class="pc-avatar-container">
+                <img src="${uImg}" class="pc-avatar" onclick="openLightbox('${uImg}')">
+            </div>
+            <div class="pc-body">
+                <div class="pc-name">${uName}</div>
+                <div class="pc-role-badge">${userRole} • ${uAcc}</div>
+
+                <div class="pc-info-grid">
+                    <div class="pc-row">
+                        <span class="pc-label">Status</span>
+                        <span class="pc-value" style="color:${(user && user.isMuted) ? '#ef4444' : '#10b981'}">
+                            ${(user && user.isMuted) ? 'Restricted' : 'Active'}
+                        </span>
+                    </div>
+                    <div class="member-since-row">
+                        <span>📅 Member since:</span>
+                        <strong style="color:#52525b;">${joinedText}</strong>
+                    </div>
+                </div>
+                
+                ${reportBtnHtml}
+            </div>
+        </div>
+    `;
+
+    openModal('userInfoModal');
 }
 
 window.toggleOrderStatus = async function(oid, currentStatus) {
@@ -1368,8 +2143,7 @@ window.toggleAllCards = function(containerId, shouldCollapse) {
 }
 
 window.finishDay = function() {
-    showConfirm("End Shift? This will hide all items and log you out.", async () => {
-        if (!currentUser) return;
+ showConfirm("<b>End Shift?</b><br><span style='font-size:0.9rem; opacity:0.8;'>This will hide all items and log you out.</span>", async () => {        if (!currentUser) return;
         const myActiveItems = products.filter(p => p.vendor === currentUser.code && p.active === true);
 
         if (myActiveItems.length > 0) {
@@ -1487,4 +2261,90 @@ window.viewUserHistory = function(user, role) {
     totalEl.innerText = `₱${totalVal.toLocaleString()}`;
 
     openModal('userHistoryModal');
+}
+window.openHistoryById = function(id, role) {
+    let user;
+    if(role === 'vendor') {
+        user = validVendors.find(v => v.id === id);
+    } else {
+        user = validBuyers.find(b => b.id === id);
+    }
+    
+    if(user) {
+        viewUserHistory(user, role);
+    } else {
+        showToast("User data not found", "error");
+    }
+}
+// --- REPORTING SYSTEM ---
+
+window.openReportModal = function(targetCode, targetName) {
+    // Close the profile card first so they don't overlap
+    closeModalById('userInfoModal');
+    
+    document.getElementById('reportTargetCode').value = targetCode;
+    document.getElementById('reportTargetName').value = targetName;
+    document.getElementById('reportReason').value = '';
+    document.getElementById('reportImg').value = '';
+    
+    // Reset Image Preview
+    document.getElementById('reportImgPreview').src = '';
+    document.getElementById('reportImgPreview').classList.remove('show');
+    document.getElementById('reportImgPlaceholder').style.display = 'block';
+    
+    openModal('reportModal');
+}
+
+window.previewReportImg = function(input) {
+    if(input.files && input.files[0]) {
+        const r = new FileReader();
+        r.onload = (e) => {
+            const img = document.getElementById('reportImgPreview');
+            img.src = e.target.result;
+            img.classList.add('show');
+            document.getElementById('reportImgPlaceholder').style.display = 'none';
+        };
+        r.readAsDataURL(input.files[0]);
+    }
+}
+
+window.submitReport = async function() {
+    const targetCode = document.getElementById('reportTargetCode').value;
+    const targetName = document.getElementById('reportTargetName').value;
+    const reason = document.getElementById('reportReason').value.trim();
+    
+    // Image Logic
+    const fileInput = document.getElementById('reportImg');
+    let proofImg = null;
+    
+    if(!reason) return showToast("Please provide a reason", "error");
+
+    const proceed = async (imgData) => {
+        try {
+            await addDoc(collection(db, "reports"), {
+                reporter: currentUser.name,
+                reporterCode: currentUser.code,
+                target: targetName,
+                targetCode: targetCode,
+                reason: reason,
+                proof: imgData || null,
+                timestamp: new Date().toISOString(),
+                status: 'Open'
+            });
+            
+            closeModalById('reportModal');
+            showToast("Report Sent to Admin. Thank you.");
+        } catch(e) {
+            console.error(e);
+            showToast("Error sending report", "error");
+        }
+    };
+
+    if(fileInput.files && fileInput.files[0]) {
+        const r = new FileReader();
+        r.onload = (e) => proceed(e.target.result);
+        r.readAsDataURL(fileInput.files[0]);
+    } else {
+        proceed(null);
+    }
 }

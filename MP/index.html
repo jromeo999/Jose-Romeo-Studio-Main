@@ -7,14 +7,21 @@
   <title>SOS MARKETPLACE</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <!-- EmailJS SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script type="text/javascript">
+   (function() {
+    // Initialize with your Public Key
+    emailjs.init("_vpMAL03l1qt9rrgS");
+   })();
+  </script>
  </head>
  <body>
-    <!-- 1. FLOATING BELL (Facebook Style) -->
+  <!-- 1. FLOATING BELL (Facebook Style) -->
   <div id="vendorFloatBell" class="floating-bell hidden" onclick="scrollToOrders()">
-     <span style="font-size: 1.2rem;">🔔</span>
-     <span id="floatingBadge" class="bell-badge hidden">0</span>
+   <span style="font-size: 1.2rem;">🔔</span>
+   <span id="floatingBadge" class="bell-badge hidden">0</span>
   </div>
-
   <!-- Audio Element for "Ding" Sound -->
   <audio id="orderSound" src="data:audio/mp3;base64,//uQRAAAAWMSLwUIYAAsYkXgoQwAEaYLWfkWgAI0wWs/ItAAAG1ineJRgAAA0goL17MAAApzE3j7O541f/z4c6jWv/7c4yjglruz6if/9uCaAAAAAA4EaAOAAAAA405gWFFhAAAaExld03qTkNGqMiZQBAmJYiQXmm6Ts6nGBcACAVjQIv73T4y1U5vKT2QmZSMSh9E6zLHN9GtD2vlwo7wrVe//uQZAmABfSF1/0gAAP0Quv+kAAABWGLX/SAAAVYYtf9IAAA9Af//7r3///6//7el6edaWmsf///////4cn/7clYEA5tJ5/8t//9///+sW//7c4yglru/4if/9uCaAAAAAA4EaAOAAAAA405gWFFhAAAaExld03qTkNGqMiZQBAmJYiQXmm6Ts6nGBcACAVjQIv73T4y1U5vKT2QmZSMSh9E6zLHN9GtD2vlwo7wrVe"></audio>
   <!-- Toast Container -->
@@ -23,6 +30,7 @@
   <div id="lightbox" class="lightbox" onclick="closeLightbox()">
    <span class="lightbox-close">&times;</span>
    <img id="lightbox-img" src="">
+   <div id="lightbox-text" class="lightbox-caption hidden"></div>
   </div>
   <div class="layout-wrapper">
    <!-- SIDEBAR -->
@@ -34,83 +42,94 @@
       <div class="datetime" id="clock">--:--</div>
      </div>
      <!-- Login -->
+     <!-- Login -->
      <div id="loginSection" style="margin-top: 30px;">
       <div class="input-wrapper">
        <input type="text" id="codeJson" placeholder="Access Code" autocomplete="off">
        <button onclick="handleLogin()" class="icon-btn">➜</button>
       </div>
+      <!-- NEW: FORGOT CODE LINK -->
       <div style="display:flex; gap:10px; margin-top:10px;">
        <button class="menu-btn" onclick="openRegisterModal('buyer')" style="justify-content:center; background:#27272a; border-radius:6px;">Register</button>
        <button class="menu-btn" onclick="openRegisterModal('vendor')" style="justify-content:center; background:#27272a; border-radius:6px;">Vendor</button>
       </div>
+      <div class="forgot-container">
+          <span onclick="openForgotModal()" class="forgot-link-animated">
+              Forgot Code?
+          </span>
+      </div>
      </div>
      <!-- User Controls -->
      <!-- REPLACE THE EXISTING <div id="userControls"> IN SIDEBAR WITH THIS -->
-<div id="userControls" class="hidden" style="margin-top: 30px;">
-    
-    <div class="profile-section">
-        <!-- TOP: Big Image with Remove Option -->
-        <div class="profile-img-container">
-            <div class="profile-img-wrapper" onclick="document.getElementById('profileUpload').click()">
-                <img id="sidebarProfileImg" src="">
-                <div class="edit-overlay">📷</div>
-                <input type="file" id="profileUpload" hidden accept="image/*" onchange="uploadProfilePic(this)">
-            </div>
-            <!-- Remove Image Button (Only shows if custom img exists) -->
-            <button id="btnRemoveImg" class="remove-img-btn hidden" onclick="deleteProfileImage()" title="Remove Image">×</button>
+     <div id="userControls" class="hidden" style="margin-top: 30px;">
+      <div class="profile-section">
+       <!-- TOP: Big Image with Remove Option -->
+       <div class="profile-img-container">
+        <div class="profile-img-wrapper" onclick="document.getElementById('profileUpload').click()">
+         <img id="sidebarProfileImg" src="">
+         <div class="edit-overlay">📷</div>
+         <input type="file" id="profileUpload" hidden accept="image/*" onchange="uploadProfilePic(this)">
         </div>
-
-        <!-- BOTTOM ROW: Split Left and Right -->
-        <div class="profile-info">
-            
-            <!-- LEFT: Name & Account (Display vs Edit) -->
-            <div class="info-left">
-                <!-- Display Mode -->
-                <div id="profileDisplayMode">
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <div class="user-name" id="displayUserName">Guest</div>
-                        <button class="icon-edit-pen" onclick="toggleProfileEdit(true)">✎</button>
-                    </div>
-                    <div class="user-acc" id="displayUserAcc">Account</div>
-                </div>
-
-                <!-- Edit Mode -->
-                <div id="profileEditMode" class="hidden">
-                    <input type="text" id="editNameInput" oninput="sanitizeInput(this)"  class="sidebar-input" placeholder="Name">
-                    <input type="text" id="editAccInput" class="sidebar-input" placeholder="Account">
-                    <div class="edit-actions">
-                        <button class="mini-btn confirm" onclick="saveProfileInfo()">✔</button>
-                        <button class="mini-btn cancel" onclick="toggleProfileEdit(false)">✕</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RIGHT: Access Code -->
-            <div class="access-code-display" onclick="copyAccessCode()">
-                <span class="ac-label">CODE</span>
-                <div class="ac-value-row">
-                    <span id="displayUserCode">----</span>
-                </div>
-            </div>
+        <!-- Remove Image Button (Only shows if custom img exists) -->
+        <button id="btnRemoveImg" class="remove-img-btn hidden" onclick="deleteProfileImage()" title="Remove Image">×</button>
+       </div>
+       <!-- BOTTOM ROW: Split Left and Right -->
+       <div class="profile-info">
+        <!-- LEFT: Name & Account (Display vs Edit) -->
+        <div class="info-left">
+         <!-- Display Mode -->
+         <div id="profileDisplayMode">
+          <div style="display:flex; align-items:center; gap:6px;">
+           <div class="user-name" id="displayUserName">Guest</div>
+           <button class="icon-edit-pen" onclick="toggleProfileEdit(true)">✎</button>
+          </div>
+          <div class="user-acc" id="displayUserAcc">Account</div>
+         </div>
+         <!-- Edit Mode -->
+         <div id="profileEditMode" class="hidden">
+          <input type="text" id="editNameInput" oninput="sanitizeInput(this)" class="sidebar-input" placeholder="Name">
+          <input type="text" id="editAccInput" class="sidebar-input" placeholder="Account">
+          <div class="edit-actions">
+           <button class="mini-btn confirm" onclick="saveProfileInfo()">✔</button>
+           <button class="mini-btn cancel" onclick="toggleProfileEdit(false)">✕</button>
+          </div>
+         </div>
         </div>
-    </div>
-
-    <!-- Rest of the buttons remain the same -->
-    <button class="menu-btn" onclick="openSlidePanel()">
-        <span>📜 History</span>
-    </button>
-    <div id="vendorSpecificButtons" class="hidden">
-        <button class="menu-btn danger-text" onclick="soldOut()">
-            <span>🚫 Sold Out (All)</span>
-        </button>
-    </div>
-    <button class="menu-btn" onclick="openHelpModal()" style="color: #60A5FA;">
-        <span>💡 How to Use</span>
-    </button>
-    <button class="menu-btn" onclick="logout()" style="margin-top:20px;">
-        <span>🚪 Log Out</span>
-    </button>
-</div>
+        <!-- RIGHT: Access Code -->
+        <div class="access-code-display" onclick="copyAccessCode()">
+         <span class="ac-label">CODE</span>
+         <div class="ac-value-row">
+          <span id="displayUserCode">----</span>
+         </div>
+        </div>
+       </div>
+      </div>
+      <!-- Rest of the buttons remain the same -->
+      <button class="menu-btn" onclick="openSlidePanel()">
+       <span>📜 History</span>
+      </button>
+      <!-- VENDOR ONLY BUTTONS -->
+      <div id="vendorSpecificButtons" class="hidden">
+       <button class="menu-btn" onclick="openPaymentSettings()">
+        <span>💳 Payment Settings</span>
+       </button>
+       <button class="menu-btn danger-text" onclick="soldOut()">
+        <span>🚫 Sold Out (All)</span>
+       </button>
+      </div>
+      <!-- BUYER ONLY: UPGRADE BUTTON -->
+      <div id="buyerSpecificButtons" class="hidden">
+       <button class="menu-btn" onclick="upgradeToVendor()" style="color: #FBBF24;">
+        <span>🚀 Upgrade to Vendor</span>
+       </button>
+      </div>
+      <button class="menu-btn" onclick="openHelpModal()" style="color: #60A5FA;">
+       <span>💡 How to Use</span>
+      </button>
+      <button class="menu-btn" onclick="logout()" style="margin-top:20px;">
+       <span>🚪 Log Out</span>
+      </button>
+     </div>
      <div class="sidebar-bottom-group">
       <!-- Header text (Hidden on Mobile) -->
       <h4 class="ql-header">Quick Access</h4>
@@ -220,65 +239,53 @@
        <h3>Shop Preview</h3>
        <p style="font-size:0.8rem; color:#777; margin-bottom:10px;">View and buy from other shops</p>
        <div style="display: flex; flex-direction: column; gap: 15px; height: 100%;">
-    
-    <!-- Top: Standard / Today -->
-    <div style="display: flex; flex-direction: column; overflow: hidden;">
-        <h3 style="font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; color: #333;">Standard / Today</h3>
-        <!-- Scrollable Container -->
-        <div id="vendorPreviewToday" class="buyer-grid" 
-             style="overflow-y: auto; max-height: 45vh; border: 1px solid #eee; padding: 5px; border-radius: 6px;">
+        <!-- Top: Standard / Today -->
+        <div style="display: flex; flex-direction: column; overflow: hidden;">
+         <h3 style="font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; color: #333;">Standard / Today</h3>
+         <!-- Scrollable Container -->
+         <div id="vendorPreviewToday" class="buyer-grid" style="overflow-y: auto; max-height: 45vh; border: 1px solid #eee; padding: 5px; border-radius: 6px;"></div>
         </div>
-    </div>
-
-    <!-- Bottom: Pre-Orders -->
-    <div style="display: flex; flex-direction: column; overflow: hidden;">
-        <h3 style="font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; color: #333;">Pre-Orders</h3>
-        <!-- Scrollable Container -->
-        <div id="vendorPreviewPreOrder" class="buyer-grid" 
-             style="overflow-y: auto; max-height: 45vh; background: #e2e8f0; border: 1px solid #eee; padding: 5px; border-radius: 6px;">
+        <!-- Bottom: Pre-Orders -->
+        <div style="display: flex; flex-direction: column; overflow: hidden;">
+         <h3 style="font-size: 0.9rem; font-weight: bold; margin-bottom: 5px; color: #333;">Pre-Orders</h3>
+         <!-- Scrollable Container -->
+         <div id="vendorPreviewPreOrder" class="buyer-grid" style="overflow-y: auto; max-height: 45vh; background: #e2e8f0; border: 1px solid #eee; padding: 5px; border-radius: 6px;"></div>
         </div>
-    </div>
-
-</div>
+       </div>
       </div>
      </div>
     </div>
-<!-- REPLACE EXISTING <div id="adminView"> WITH THIS -->
-<div id="adminView" class="hidden">
-    <!-- Split Container (Recycled from Buyer View) -->
-    <div class="menu-split-container">
-        
-        <!-- LEFT: VENDOR MANAGEMENT -->
-        <div class="menu-column menu-left">
-            <h3 class="section-title" style="margin-bottom: 15px;">
-                <span>🏪 Vendors</span>
-                <span style="font-size:0.7rem; color:#777; font-weight:400;">Merchant Control</span>
-            </h3>
-            <div id="adminVendorList" class="card-grid">
-                <!-- Vendor cards load here -->
-            </div>
-        </div>
-
-        <!-- RIGHT: BUYER MANAGEMENT -->
-        <div class="menu-column menu-right">
-            <h3 class="section-title" style="margin-bottom: 15px;">
-                <span>👥 Buyers</span>
-                <span style="font-size:0.7rem; color:#777; font-weight:400;">Customer Control</span>
-            </h3>
-            
-            <!-- Search Bar -->
-            <div class="input-wrapper" style="background:white; border:1px solid #ccc; margin-bottom:20px;">
-                <span style="padding-left:10px;">🔍</span>
-                <input type="text" id="adminBuyerSearch" oninput="renderAdminBuyers(this.value)" placeholder="Search Name or Team..." style="color:black;">
-            </div>
-
-            <div id="adminBuyerList" style="display:flex; flex-direction:column; gap:15px;">
-                <!-- Buyer Groups load here -->
-            </div>
-        </div>
-
+    <!-- REPLACE EXISTING <div id="adminView"> WITH THIS -->
+    <div id="adminView" class="hidden">
+     <!-- Split Container (Recycled from Buyer View) -->
+     <div class="menu-split-container">
+      <!-- LEFT: VENDOR MANAGEMENT -->
+      <div class="menu-column menu-left">
+       <h3 class="section-title" style="margin-bottom: 15px;">
+        <span>🏪 Vendors</span>
+        <span style="font-size:0.7rem; color:#777; font-weight:400;">Merchant Control</span>
+       </h3>
+       <div id="adminVendorList" class="card-grid">
+        <!-- Vendor cards load here -->
+       </div>
+      </div>
+      <!-- RIGHT: BUYER MANAGEMENT -->
+      <div class="menu-column menu-right">
+       <h3 class="section-title" style="margin-bottom: 15px;">
+        <span>👥 Buyers</span>
+        <span style="font-size:0.7rem; color:#777; font-weight:400;">Customer Control</span>
+       </h3>
+       <!-- Search Bar -->
+       <div class="input-wrapper" style="background:white; border:1px solid #ccc; margin-bottom:20px;">
+        <span style="padding-left:10px;">🔍</span>
+        <input type="text" id="adminBuyerSearch" oninput="renderAdminBuyers(this.value)" placeholder="Search Name or Team..." style="color:black;">
+       </div>
+       <div id="adminBuyerList" style="display:flex; flex-direction:column; gap:15px;">
+        <!-- Buyer Groups load here -->
+       </div>
+      </div>
+     </div>
     </div>
-</div>
     <div class="mobile-bottom-group">
      <!-- Header text (Hidden on Mobile) -->
      <h4 class="ql-header">Quick Access</h4>
@@ -351,34 +358,22 @@
    </div>
   </div>
   <!-- MODAL: ADD/EDIT PRODUCT -->
+  <!-- REPLACE EXISTING #productModal -->
   <div id="productModal" class="modal">
    <div class="modal-card">
     <div class="close-modal-x" onclick="closeModal()">×</div>
     <h3 id="modalTitle">Add Item</h3>
     <input type="hidden" id="mId">
-    <!-- NEW: TABS TO SWITCH METHOD -->
-    <div style="display:flex; gap:10px; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
-     <button id="tab-upload" class="btn" style="flex:1; background:#3b82f6; color:white; font-size:0.8rem;" onclick="switchUploadMode('file')">Upload (Small)</button>
-     <button id="tab-link" class="btn" style="flex:1; background:#f3f4f6; color:#555; font-size:0.8rem;" onclick="switchUploadMode('url')">Paste Link (GIFs)</button>
-    </div>
-    <!-- OPTION A: FILE UPLOAD (Existing) -->
-    <div id="mode-file" class="image-upload-box" onclick="document.getElementById('mFile').click()">
+    <!-- IMAGE UPLOAD (Modified: No Tabs, Added Remove Button) -->
+    <div class="image-upload-box" style="position: relative;" onclick="document.getElementById('mFile').click()">
+     <!-- Remove Button -->
+     <button id="btnRemoveProdImg" class="remove-img-btn hidden" onclick="event.stopPropagation(); removeProductImage()" style="top: -10px; right: -10px; z-index: 5;" title="Remove Image">×</button>
      <div id="uploadPlaceholder" class="upload-placeholder">
       <span style="font-size:1.5rem">📷</span>
       <br>Click to upload image
      </div>
      <img id="mPreview" class="image-preview">
      <input type="file" id="mFile" hidden accept="image/*" onchange="previewImage(this)">
-    </div>
-    <!-- OPTION B: URL INPUT (New) -->
-    <div id="mode-url" class="hidden" style="margin-bottom:15px;">
-     <div class="input-wrapper" style="background:#f9fafb; border:1px solid #e4e4e7;">
-      <input type="text" id="mUrl" placeholder="Paste GIF Link here (https://...)" style="color:black;" oninput="document.getElementById('mPreviewUrl').src=this.value; document.getElementById('mPreviewUrl').classList.add('show');">
-     </div>
-     <div style="height:150px; background:#eee; border-radius:8px; margin-top:10px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-      <img id="mPreviewUrl" style="max-width:100%; max-height:100%; display:none;" class="show">
-      <span style="color:#999; font-size:0.8rem;">Preview</span>
-     </div>
     </div>
     <!-- EXISTING INPUTS -->
     <div class="input-wrapper" style="background:#f9fafb; border:1px solid #e4e4e7; margin-bottom:10px;">
@@ -404,6 +399,18 @@
     </div>
    </div>
   </div>
+  <!-- NEW: USER INFO CARD MODAL (For Vendors to see Buyer Info) -->
+  <!-- USER INFO MODAL -->
+  <div id="userInfoModal" class="modal">
+   <!-- Removed "Customer Info" title from HTML, moved visual hierarchy to the card itself -->
+   <div class="modal-card" style="max-width: 400px; padding: 0; background: transparent; box-shadow: none; border: none;">
+    <!-- Close X for the Modal Wrapper -->
+    <div class="close-modal-x" onclick="closeModalById('userInfoModal')" style="position: absolute; right: 0; top: -50px; background:white;">×</div>
+    <div id="userCardContainer">
+     <!-- JS Injects Profile Card Here -->
+    </div>
+   </div>
+  </div>
   <!-- MODAL: REGISTER -->
   <div id="registerModal" class="modal">
    <div class="modal-card">
@@ -414,9 +421,14 @@
      <label style="font-size:0.75rem; font-weight:700;">Full Name</label>
      <input type="text" id="regName" style="width:100%; padding:10px; border:1px solid #e4e4e7; border-radius:8px; margin-top:5px;">
     </div>
-    <div style="margin-bottom:20px;">
+    <div style="margin-bottom:15px;">
      <label style="font-size:0.75rem; font-weight:700;">Account</label>
      <input type="text" id="regAccount" oninput="sanitizeInput(this)" style="width:100%; padding:10px; border:1px solid #e4e4e7; border-radius:8px; margin-top:5px;">
+    </div>
+    <!-- NEW: EMAIL INPUT (For Recovery) -->
+    <div style="margin-bottom:20px;">
+     <label style="font-size:0.75rem; font-weight:700;">Email (For Recovery)</label>
+     <input type="email" id="regEmail" placeholder="Optional but recommended" style="width:100%; padding:10px; border:1px solid #e4e4e7; border-radius:8px; margin-top:5px;">
     </div>
     <button class="btn btn-primary" style="width:100%" onclick="submitRegistration()">Register</button>
    </div>
@@ -424,12 +436,55 @@
   <!-- MODAL: CONFIRMATION (New) -->
   <div id="confirmModal" class="modal">
    <div class="modal-card" style="max-width: 320px; text-align: center;">
-    <h3 style="margin-top:0;">Are you sure?</h3>
+    <h3 style="margin-top:0;">Bank Details</h3>
     <p id="confirmMsg" style="color:#71717A; margin-bottom:24px; font-size: 0.95rem;"></p>
     <div class="btn-grid">
      <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancel</button>
      <button class="btn btn-primary" id="confirmYesBtn" onclick="executeConfirm()">Yes, Confirm</button>
     </div>
+   </div>
+  </div>
+  <!-- MODAL: PAYMENT SETTINGS (NEW) -->
+  <div id="paymentSettingsModal" class="modal">
+   <div class="modal-card">
+    <div class="close-modal-x" onclick="closeModalById('paymentSettingsModal')">×</div>
+    <h3>Payment Settings</h3>
+    <p style="font-size:0.8rem; color:#777; margin-bottom:15px;">Choose accepted methods.</p>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+     <!-- CASH -->
+     <label class="payment-option-row">
+      <input type="checkbox" id="psCash">
+      <span>💵 Cash</span>
+     </label>
+     <!-- PAYDAY -->
+     <label class="payment-option-row">
+      <input type="checkbox" id="psPayday">
+      <span>📅 Payday</span>
+     </label>
+     <!-- BANK TRANSFER -->
+     <label class="payment-option-row">
+      <input type="checkbox" id="psBank" onchange="toggleBankSettings(this.checked)">
+      <span>🏦 Bank Transfer / GCash / Maya / Atome / etc.</span>
+     </label>
+    </div>
+    <!-- HIDDEN BANK DETAILS SECTION -->
+    <div id="bankSettings" class="hidden" style="background:#f9fafb; padding:10px; border-radius:8px; border:1px solid #e4e4e7; margin-bottom:20px;">
+     <h4 style="margin:0 0 10px 0; font-size:0.85rem;">Bank Details</h4>
+     <!-- Text Input -->
+     <div class="input-wrapper" style="margin-bottom:10px;">
+      <input type="text" id="psBankText" placeholder="Acct Name & Number..." style="color:black;">
+     </div>
+     <!-- QR Image Upload -->
+     <div class="image-upload-box" style="height:100px;" onclick="document.getElementById('psQRFile').click()">
+      <div id="psQRPlaceholder" class="upload-placeholder">
+       <span style="font-size:1.2rem">📷</span>
+       <br>Upload QR Code
+      </div>
+      <img id="psQRPreview" class="image-preview">
+      <input type="file" id="psQRFile" hidden accept="image/*" onchange="previewQR(this)">
+     </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="savePaymentSettings()">Save Settings</button>
    </div>
   </div>
   <div id="helpModal" class="modal">
@@ -440,31 +495,73 @@
    </div>
   </div>
   <!-- ADD THIS AT THE BOTTOM WITH OTHER MODALS -->
-<div id="userHistoryModal" class="modal">
-    <div class="modal-card" style="max-width: 500px; height: 80vh; display: flex; flex-direction: column;">
-        <div class="close-modal-x" onclick="closeModalById('userHistoryModal')">×</div>
-        
-        <!-- Header -->
-        <div style="border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:15px;">
-            <h3 id="histModalName" style="margin:0;">User Name</h3>
-            <span id="histModalRole" style="font-size:0.75rem; color:#777; text-transform:uppercase; letter-spacing:1px;">ROLE</span>
-        </div>
-
-        <!-- Scrollable List -->
-        <div id="histModalContent" style="flex:1; overflow-y:auto; padding-right:5px;">
-            <!-- History items load here -->
-        </div>
-        
-        <!-- Footer -->
-        <div style="border-top:1px solid #eee; padding-top:15px; margin-top:10px; text-align:right;">
-             <span style="font-size:0.8rem; color:#777;">Total Volume: </span>
-             <strong id="histModalTotal" style="font-size:1.1rem; color:#18181b;">₱0</strong>
-        </div>
+  <div id="userHistoryModal" class="modal">
+   <div class="modal-card" style="max-width: 500px; height: 80vh; display: flex; flex-direction: column;">
+    <div class="close-modal-x" onclick="closeModalById('userHistoryModal')">×</div>
+    <!-- Header -->
+    <div style="border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:15px;">
+     <h3 id="histModalName" style="margin:0;">User Name</h3>
+     <span id="histModalRole" style="font-size:0.75rem; color:#777; text-transform:uppercase; letter-spacing:1px;">ROLE</span>
     </div>
-</div>
+    <!-- Scrollable List -->
+    <div id="histModalContent" style="flex:1; overflow-y:auto; padding-right:5px;">
+     <!-- History items load here -->
+    </div>
+    <!-- Footer -->
+    <div style="border-top:1px solid #eee; padding-top:15px; margin-top:10px; text-align:right;">
+     <span style="font-size:0.8rem; color:#777;">Total Volume: </span>
+     <strong id="histModalTotal" style="font-size:1.1rem; color:#18181b;">₱0</strong>
+    </div>
+   </div>
+  </div>
+  <div id="bankDetailsModal" class="modal">
+   <div class="modal-card" style="max-width: 500px; padding: 30px;">
+    <div class="close-modal-x" onclick="closeModalById('bankDetailsModal')">×</div>
+    <h3 style="margin-top:0; margin-bottom:20px; text-align:center;">Payment Details</h3>
+    <!-- This container is where JS will inject the Card -->
+    <div id="bankCardContainer"></div>
+    <button class="btn btn-secondary" style="width:100%; margin-top:20px;" onclick="closeModalById('bankDetailsModal')">Close</button>
+   </div>
+  </div>
+  <!-- REPORT USER MODAL -->
+  <div id="reportModal" class="modal">
+   <div class="modal-card">
+    <div class="close-modal-x" onclick="closeModalById('reportModal')">×</div>
+    <h3>Report User</h3>
+    <p style="font-size:0.8rem; color:#71717A; margin-bottom:15px;"> Help us keep the market safe. This will be sent to the Admin. </p>
+    <input type="hidden" id="reportTargetCode">
+    <input type="hidden" id="reportTargetName">
+    <!-- Reason -->
+    <div class="input-wrapper" style="background:#f9fafb; border:1px solid #e4e4e7; margin-bottom:10px;">
+     <textarea id="reportReason" rows="3" placeholder="Reason (e.g. No show, Rude behavior, Fake receipt)" style="width:100%; border:none; background:transparent; padding:10px; resize:none; font-family:inherit;"></textarea>
+    </div>
+    <!-- Optional Image -->
+    <div class="image-upload-box" style="height:100px; margin-bottom:20px;" onclick="document.getElementById('reportImg').click()">
+     <div id="reportImgPlaceholder" class="upload-placeholder">
+      <span style="font-size:1.2rem">📷</span>
+      <br>Attach Proof (Optional)
+     </div>
+     <img id="reportImgPreview" class="image-preview">
+     <input type="file" id="reportImg" hidden accept="image/*" onchange="previewReportImg(this)">
+    </div>
+    <div class="btn-grid">
+     <button class="btn btn-secondary" onclick="closeModalById('reportModal')">Cancel</button>
+     <button class="btn btn-primary" onclick="submitReport()">Submit Report</button>
+    </div>
+   </div>
+  </div>
+  <!-- MODAL: FORGOT CODE -->
+  <div id="forgotModal" class="modal">
+   <div class="modal-card">
+    <div class="close-modal-x" onclick="closeModalById('forgotModal')">×</div>
+    <h3>Recover Code</h3>
+    <p style="font-size:0.85rem; color:#71717A; margin-bottom:20px;"> Enter the email you used during registration. We'll send your Access Code there. </p>
+    <div class="input-wrapper" style="background:#f9fafb; border:1px solid #e4e4e7; margin-bottom:20px;">
+     <input type="email" id="recoveryEmail" placeholder="name@email.com" style="color:black;">
+    </div>
+    <button class="btn btn-primary" id="btnRecover" style="width:100%" onclick="submitRecovery()">Send Code</button>
+   </div>
+  </div>
   <script type="module" src="script.js"></script>
  </body>
-</html>
-<script type="module" src="script.js"></script>
-</body>
 </html>

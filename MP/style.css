@@ -716,3 +716,148 @@ body {
 
 /* Hide the icon to save space in this compact split view */
 .ac-icon { display: none; }
+/* --- NEW PROFILE EDIT STYLES --- */
+
+/* Image Container for positioning the X button */
+.profile-img-container {
+    position: relative;
+    width: fit-content;
+    margin: 0 auto;
+}
+
+/* The Remove Image X Button */
+.remove-img-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 28px;
+    height: 28px;
+    background: #ef4444;
+    color: white;
+    border: 2px solid #18181b;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: transform 0.2s;
+}
+.remove-img-btn:hover { transform: scale(1.1); background: #dc2626; }
+
+/* The Pencil Icon */
+.icon-edit-pen {
+    background: transparent;
+    border: none;
+    color: #71717a;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.icon-edit-pen:hover { opacity: 1; color: white; }
+
+/* Sidebar Inputs (Edit Mode) */
+.sidebar-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #52525b;
+    color: white;
+    font-family: inherit;
+    font-size: 0.9rem;
+    width: 100%;
+    padding: 2px 0;
+    margin-bottom: 4px;
+    outline: none;
+}
+.sidebar-input:focus { border-bottom-color: #3b82f6; }
+
+/* Mini Confirm/Cancel Buttons */
+.edit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+.mini-btn {
+    flex: 1;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 2px 0;
+}
+.mini-btn.confirm { background: #22c55e; color: white; }
+.mini-btn.cancel { background: #3f3f46; color: white; }
+
+/* Buyer Cancel Button */
+.btn-cancel-order {
+    background: white;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.2s;
+    flex: 1; /* Share space with submit if flexed */
+}
+.btn-cancel-order:hover { background: #fef2f2; }
+
+/* Vendor Order Delete Button */
+.btn-delete-order {
+    background: transparent;
+    border: 1px solid #fee2e2;
+    color: #ef4444;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 8px;
+}
+.btn-delete-order:hover { background: #fee2e2; }
+
+/* Layout adjustments for buttons in card footer */
+.action-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+/* Clickable Rows in Admin */
+.admin-user-row {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f4f4f5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.admin-user-row:hover {
+    background: #f0f9ff !important; /* Light blue hover */
+}
+.admin-user-row:last-child {
+    border-bottom: none;
+}
+
+/* History Modal Item */
+.hist-item {
+    background: #f9fafb;
+    border: 1px solid #e4e4e7;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.hist-date { font-size: 0.7rem; color: #71717a; margin-bottom: 2px; }
+.hist-items { font-size: 0.85rem; font-weight: 500; color: #18181b; }
+.hist-price { font-weight: 700; color: #18181b; }
+.hist-status { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }

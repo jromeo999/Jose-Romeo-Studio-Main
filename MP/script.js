@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
-    getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot 
+    getFirestore, collection, addDoc, updateDoc, deleteDoc, setDoc, doc, onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -12,7 +12,6 @@ const firebaseConfig = {
     appId: "1:428350148342:web:55792ce066b50f7594e6d7",
     measurementId: "G-8HJRB5YR2K"
 };
-// ... under firebaseConfig ...
 
 // FACEBOOK STYLE DEFAULT AVATAR (SVG Base64)
 const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRTRFNEU3Ii8+PHBhdGggZD0iTTI0IDIwLjk5M1YyNEgwdi0yLjk5NkExNC45NzcgMTQuOTc3IDAgMDExMi4wMDQgMTVjNC45MDQgMCA5LjI2IDIuMzU0IDExLjk5NiA1Ljk5M3pNMTYuMDAyIDguOTk5YTQgNCAwIDExLTggMCA0IDQgMCAwMTggMHoiIGZpbGw9IiNBMUExQUEiLz48L3N2Zz4=";
@@ -58,16 +57,22 @@ window.closeLightbox = function() {
 onSnapshot(collection(db, "vendors"), (snapshot) => {
     validVendors = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, role: 'vendor' }));
     
-    // FIX: Re-render the buyer grids immediately when vendor data (images/names) loads
+    // Re-render buyer grids when vendor data loads
     renderBuyerCards(document.getElementById('buyerTodayGrid'), false);
     renderBuyerCards(document.getElementById('buyerPreOrderGrid'), true);
     
-    // Also update Admin panel if open
     if(currentUser && currentUser.role === 'admin') renderAdminPanel();
 });
 
 onSnapshot(collection(db, "buyers"), (snapshot) => {
     validBuyers = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, role: 'buyer' }));
+    
+    // IF ADMIN IS LOGGED IN, REFRESH THE BUYER LIST INSTANTLY
+    if(currentUser && currentUser.role === 'admin') {
+        // Pass the current search value if it exists, otherwise empty string
+        const searchVal = document.getElementById('adminBuyerSearch') ? document.getElementById('adminBuyerSearch').value : '';
+        renderAdminBuyers(searchVal);
+    }
 });
 
 onSnapshot(collection(db, "products"), (snapshot) => {
@@ -77,11 +82,9 @@ onSnapshot(collection(db, "products"), (snapshot) => {
     renderBuyerCards(document.getElementById('buyerTodayGrid'), false);
     renderBuyerCards(document.getElementById('buyerPreOrderGrid'), true);
     
-    // 2. If Vendor is logged in, Update Admin View AND the new Split Previews
+    // 2. If Vendor is logged in, Update Admin View AND Split Previews
     if(currentUser && currentUser.role === 'vendor') {
         renderAdminProducts();
-        
-        // --- FIX: UPDATE BOTH PREVIEWS ---
         renderBuyerCards(document.getElementById('vendorPreviewToday'), false, true, currentUser.code); 
         renderBuyerCards(document.getElementById('vendorPreviewPreOrder'), true, true, currentUser.code); 
     }
@@ -101,7 +104,7 @@ onSnapshot(collection(db, "orders"), (snapshot) => {
     if(document.getElementById('slidePanel').classList.contains('open')) renderHistory();
 });
 
-// NEW FUNCTION: CHECK FOR ALERTS
+// --- ORDER NOTIFICATIONS ---
 function checkNewOrders() {
     if (!currentUser || currentUser.role !== 'vendor') return;
 
@@ -115,14 +118,12 @@ function checkNewOrders() {
     );
     
     const count = pendingOrders.length;
-    const badge = document.getElementById('floatingBadge'); // Targeted ID
-    const bell = document.getElementById('vendorFloatBell'); // Targeted ID
+    const badge = document.getElementById('floatingBadge');
+    const bell = document.getElementById('vendorFloatBell');
     
-    // UPDATE BADGE
     if(count > 0) {
         badge.innerText = count;
         badge.classList.remove('hidden');
-        // Optional: Shake the bell if new order
         if(count > previousPendingCount) {
              bell.style.animation = "shake-tiny 0.5s ease";
              setTimeout(()=> bell.style.animation = "", 500);
@@ -131,7 +132,6 @@ function checkNewOrders() {
         badge.classList.add('hidden');
     }
 
-    // PLAY SOUND
     if(count > previousPendingCount) {
         const audio = document.getElementById('orderSound');
         if(audio) {
@@ -143,23 +143,19 @@ function checkNewOrders() {
 
     previousPendingCount = count;
 }
-// NEW FUNCTION: SCROLL TO ORDER PANEL
+
 window.scrollToOrders = function() {
-    // If we are in vendor view, scroll to the order list
     const orderPanel = document.getElementById('orderList');
     if(orderPanel) {
-        // Smooth scroll
         orderPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Visual cue (Flash background)
         const parent = orderPanel.closest('.panel');
         if(parent) {
             parent.style.transition = "box-shadow 0.3s ease, border-color 0.3s";
-            parent.style.boxShadow = "0 0 0 4px rgba(239, 68, 68, 0.2)"; // Red glow
+            parent.style.boxShadow = "0 0 0 4px rgba(239, 68, 68, 0.2)";
             parent.style.borderColor = "#ef4444";
             setTimeout(() => {
                 parent.style.boxShadow = "none";
-                parent.style.borderColor = ""; // Reset
+                parent.style.borderColor = ""; 
             }, 1500);
         }
     }
@@ -173,6 +169,7 @@ function getShiftDate(isPreOrder = false) {
     return now.toLocaleDateString(); 
 }
 
+// --- CONFIRM MODAL ---
 let pendingConfirmAction = null;
 window.showConfirm = function(msg, action) {
     document.getElementById('confirmMsg').innerText = msg;
@@ -193,9 +190,7 @@ window.handleLogin = function() {
     const code = document.getElementById('codeJson').value.trim();
     if(code === "RESET") { location.reload(); return; }
 
-    // --- NEW: ADMIN CHECK ---
     if(code === "SOS-ADMIN") { 
-        // Hardcoded admin login for simplicity
         currentUser = { role: 'admin', name: 'Super Admin', account: 'System' };
         loginAdmin();
         return;
@@ -204,7 +199,6 @@ window.handleLogin = function() {
     let user = validVendors.find(v => v.code === code) || validBuyers.find(b => b.code === code);
     
     if(user) {
-        // --- NEW: CHECK IF VENDOR IS MUTED ---
         if(user.isMuted) {
             showToast("Account Suspended by Admin", "error");
             return;
@@ -214,6 +208,7 @@ window.handleLogin = function() {
         showToast("Invalid Access Code", "error");
     }
 }
+
 function loginAdmin() {
     document.getElementById('codeJson').value = '';
     document.getElementById('loginSection').classList.add('hidden');
@@ -221,77 +216,11 @@ function loginAdmin() {
     document.getElementById('displayUserName').innerText = "Administrator";
     document.getElementById('displayUserAcc').innerText = "Super User";
     
-    // Show Admin View
     document.getElementById('buyerView').classList.add('hidden');
     document.getElementById('vendorView').classList.add('hidden');
     document.getElementById('adminView').classList.remove('hidden');
     
     renderAdminPanel();
-}
-
-window.renderAdminPanel = function() {
-    const container = document.getElementById('adminVendorList');
-    container.innerHTML = '';
-    
-    if(validVendors.length === 0) {
-        container.innerHTML = '<div style="color:#999">No vendors registered.</div>';
-        return;
-    }
-
-    validVendors.forEach(v => {
-        const isMuted = v.isMuted || false;
-        
-        const card = document.createElement('div');
-        card.className = 'vendor-card';
-        card.style.padding = '20px';
-        
-        // --- CHANGE HERE: Use DEFAULT_AVATAR instead of placeholder ---
-        const img = v.img || DEFAULT_AVATAR; 
-        
-        card.innerHTML = `
-            <div style="display:flex; gap:15px; align-items:center; margin-bottom:15px;">
-                <img src="${img}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:1px solid #eee;">
-                <div>
-                    <div style="font-weight:700; font-size:1rem;">${v.name}</div>
-                    <div style="font-size:0.8rem; color:#777;">Code: ${v.code}</div>
-                </div>
-                ${isMuted ? '<span style="margin-left:auto; background:#fee2e2; color:#991b1b; padding:4px 8px; border-radius:6px; font-size:0.7rem; font-weight:bold;">SUSPENDED</span>' : ''}
-            </div>
-            
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <button onclick="toggleVendorMute('${v.id}', ${isMuted})" class="btn" style="background:${isMuted ? '#dcfce7' : '#f3f4f6'}; color:${isMuted ? '#166534' : 'black'}; border:1px solid #ddd;">
-                    ${isMuted ? '✅ Unmute' : '🚫 Mute'}
-                </button>
-                <button onclick="deleteVendor('${v.id}', '${v.name}')" class="btn" style="background:#fee2e2; color:#991b1b; border:1px solid #fecaca;">
-                    🗑️ Delete
-                </button>
-            </div>
-        `;
-        container.appendChild(card);
-    });
-}
-window.toggleVendorMute = async function(id, currentStatus) {
-    try {
-        await updateDoc(doc(db, "vendors", id), { isMuted: !currentStatus });
-        showToast(currentStatus ? "Vendor Activated" : "Vendor Muted");
-        // The onSnapshot listener will auto-update the UI
-        if(currentUser.role === 'admin') setTimeout(renderAdminPanel, 200); 
-    } catch(e) {
-        showToast("Error updating status", "error");
-    }
-}
-
-window.deleteVendor = function(id, name) {
-    // Uses your existing confirmation modal
-    showConfirm(`Delete shop "${name}"? This cannot be undone.`, async () => {
-        try {
-            await deleteDoc(doc(db, "vendors", id));
-            showToast("Vendor Deleted");
-            if(currentUser.role === 'admin') setTimeout(renderAdminPanel, 200);
-        } catch(e) {
-            showToast("Error deleting", "error");
-        }
-    });
 }
 
 function loginUser(user) {
@@ -301,28 +230,41 @@ function loginUser(user) {
     
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('userControls').classList.remove('hidden');
+    
+    // Populate Display Info
     document.getElementById('displayUserName').innerText = user.name;
     document.getElementById('displayUserAcc').innerText = user.account;
     
+    // Populate Edit Inputs
+    document.getElementById('editNameInput').value = user.name;
+    document.getElementById('editAccInput').value = user.account;
+    
     const displayCode = user.role === 'admin' ? 'ADMIN' : user.code;
     document.getElementById('displayUserCode').innerText = displayCode;
+    
+    // Image Logic (Show/Hide remove button)
     const profileImg = document.getElementById('sidebarProfileImg');
-    profileImg.src = user.img ? user.img : DEFAULT_AVATAR;
+    const removeBtn = document.getElementById('btnRemoveImg');
+    
+    if(user.img && user.img.length > 100) {
+        profileImg.src = user.img;
+        removeBtn.classList.remove('hidden');
+    } else {
+        profileImg.src = DEFAULT_AVATAR;
+        removeBtn.classList.add('hidden');
+    }
 
     if(user.role === 'vendor') {
         document.getElementById('vendorSpecificButtons').classList.remove('hidden');
         document.getElementById('vendorView').classList.remove('hidden');
         document.getElementById('buyerView').classList.add('hidden');
         document.getElementById('vendorFloatBell').classList.remove('hidden');
-        checkNewOrders(); // Run immediate check
+        checkNewOrders(); 
         
         renderAdminProducts();
         renderVendorOrders();
         
-        // --- FIX: RENDER BOTH PREVIEWS HERE ---
-        // 1. Render Today
         renderBuyerCards(document.getElementById('vendorPreviewToday'), false, true, currentUser.code);
-        // 2. Render Pre-Orders
         renderBuyerCards(document.getElementById('vendorPreviewPreOrder'), true, true, currentUser.code);
         
     } else {
@@ -330,7 +272,6 @@ function loginUser(user) {
         document.getElementById('vendorView').classList.add('hidden');
         document.getElementById('buyerView').classList.remove('hidden');
         document.getElementById('vendorFloatBell').classList.add('hidden');
-
     }
 }
 
@@ -339,17 +280,17 @@ window.logout = function() {
     document.getElementById('loginSection').classList.remove('hidden');
     document.getElementById('userControls').classList.add('hidden');
     
-    // Hide specialized views
     document.getElementById('vendorView').classList.add('hidden');
-    document.getElementById('adminView').classList.add('hidden'); // <--- ADDED THIS LINE
+    document.getElementById('adminView').classList.add('hidden');
     document.getElementById('vendorFloatBell').classList.add('hidden');
-
-    
-    // Show default public view (Buyer View)
     document.getElementById('buyerView').classList.remove('hidden');
+    
+    // Close Edit Mode if open
+    window.toggleProfileEdit(false);
     
     closeSlidePanel();
 }
+
 window.copyAccessCode = function() {
     const code = document.getElementById('displayUserCode').innerText;
     if(code && code !== '----') {
@@ -358,13 +299,57 @@ window.copyAccessCode = function() {
         });
     }
 }
+
+// --- PROFILE EDITING SYSTEM ---
+window.toggleProfileEdit = function(showEdit) {
+    if(showEdit) {
+        document.getElementById('profileDisplayMode').classList.add('hidden');
+        document.getElementById('profileEditMode').classList.remove('hidden');
+    } else {
+        document.getElementById('profileDisplayMode').classList.remove('hidden');
+        document.getElementById('profileEditMode').classList.add('hidden');
+        if(currentUser) {
+            document.getElementById('editNameInput').value = currentUser.name;
+            document.getElementById('editAccInput').value = currentUser.account;
+        }
+    }
+}
+
+window.saveProfileInfo = async function() {
+    if(!currentUser) return;
+    const newName = document.getElementById('editNameInput').value.trim();
+    const newAcc = document.getElementById('editAccInput').value.trim();
+
+    if(!newName || !newAcc) return showToast("Name and Account required", "error");
+
+    try {
+        const collectionName = currentUser.role === 'vendor' ? 'vendors' : 'buyers';
+        await updateDoc(doc(db, collectionName, currentUser.id), {
+            name: newName,
+            account: newAcc
+        });
+        currentUser.name = newName;
+        currentUser.account = newAcc;
+        document.getElementById('displayUserName').innerText = newName;
+        document.getElementById('displayUserAcc').innerText = newAcc;
+        toggleProfileEdit(false);
+        showToast("Profile Updated");
+    } catch(e) {
+        console.error(e);
+        showToast("Error saving profile", "error");
+    }
+}
+
 window.uploadProfilePic = function(input) {
     if(input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = async function(e) {
             const base64 = e.target.result;
             if(base64.length > 1000000) { showToast("Image too large", "error"); return; }
+            
             document.getElementById('sidebarProfileImg').src = base64;
+            document.getElementById('btnRemoveImg').classList.remove('hidden'); // Show X button
+            
             const collectionName = currentUser.role === 'vendor' ? 'vendors' : 'buyers';
             await updateDoc(doc(db, collectionName, currentUser.id), { img: base64 });
             currentUser.img = base64;
@@ -372,6 +357,248 @@ window.uploadProfilePic = function(input) {
         };
         reader.readAsDataURL(input.files[0]);
     }
+}
+
+window.deleteProfileImage = function() {
+    showConfirm("Remove profile picture?", async () => {
+        if(!currentUser) return;
+        try {
+            const collectionName = currentUser.role === 'vendor' ? 'vendors' : 'buyers';
+            await updateDoc(doc(db, collectionName, currentUser.id), { img: null });
+            
+            currentUser.img = null;
+            document.getElementById('sidebarProfileImg').src = DEFAULT_AVATAR;
+            document.getElementById('btnRemoveImg').classList.add('hidden');
+            
+            showToast("Image removed");
+        } catch(e) {
+            showToast("Error removing image", "error");
+        }
+    });
+}
+
+// --- ADMIN PANEL ---
+// --- NEW SPLIT ADMIN PANEL LOGIC ---
+
+// 1. Main Entry Point
+window.renderAdminPanel = function() {
+    renderAdminVendors();
+    renderAdminBuyers();
+}
+
+// 2. Render Vendors (Left Column)
+window.renderAdminVendors = function() {
+    const container = document.getElementById('adminVendorList');
+    if(!container) return;
+    container.innerHTML = '';
+    
+    if(validVendors.length === 0) {
+        container.innerHTML = '<div style="color:#999; text-align:center;">No vendors registered.</div>';
+        return;
+    }
+
+    // Group Vendors by Account (Category) just like Buyers
+    const grouped = {};
+    validVendors.forEach(v => {
+        const team = v.account ? v.account.toUpperCase() : 'GENERAL';
+        if(!grouped[team]) grouped[team] = [];
+        grouped[team].push(v);
+    });
+
+    const sortedTeams = Object.keys(grouped).sort();
+
+    sortedTeams.forEach(team => {
+        // Group Container
+        const groupDiv = document.createElement('div');
+        groupDiv.style.background = "white";
+        groupDiv.style.borderRadius = "10px";
+        groupDiv.style.border = "1px solid #e4e4e7";
+        groupDiv.style.overflow = "hidden";
+        groupDiv.style.marginBottom = "15px";
+
+        // Header
+        groupDiv.innerHTML = `
+            <div style="background:#f4f4f5; padding:8px 12px; font-size:0.75rem; font-weight:800; color:#555; border-bottom:1px solid #e4e4e7; display:flex; justify-content:space-between;">
+                <span>${team}</span>
+                <span>${grouped[team].length} Shop(s)</span>
+            </div>
+        `;
+
+        const listDiv = document.createElement('div');
+
+        // Render Rows
+        grouped[team].sort((a,b) => a.name.localeCompare(b.name)).forEach(v => {
+            const isMuted = v.isMuted || false;
+            const row = document.createElement('div');
+            row.className = 'admin-user-row'; // NEW CLASS
+            if(isMuted) row.style.background = "#fef2f2";
+
+            // Click Row -> Open History
+            row.onclick = () => viewUserHistory(v, 'vendor');
+
+            const img = v.img || DEFAULT_AVATAR;
+
+            row.innerHTML = `
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <img src="${img}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid #eee;">
+                    <div>
+                        <div style="font-size:0.9rem; font-weight:600; ${isMuted ? 'color:#991b1b; text-decoration:line-through;' : ''}">${v.name}</div>
+                        <div style="font-size:0.7rem; color:#bbb;">Code: ${v.code}</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button onclick="event.stopPropagation(); toggleVendorMute('${v.id}', ${isMuted})" style="cursor:pointer; border:none; background:transparent; font-size:1.1rem;" title="${isMuted ? 'Unmute' : 'Mute'}">
+                        ${isMuted ? '✅' : '⛔'}
+                    </button>
+                    <button onclick="event.stopPropagation(); deleteVendor('${v.id}', '${v.name}')" style="cursor:pointer; border:none; background:transparent; font-size:1rem;" title="Delete">
+                        🗑️
+                    </button>
+                </div>
+            `;
+            listDiv.appendChild(row);
+        });
+
+        groupDiv.appendChild(listDiv);
+        container.appendChild(groupDiv);
+    });
+}
+
+// 3. Render Buyers (Right Column - Grouped & Searchable)
+window.renderAdminBuyers = function(searchTerm = '') {
+    const container = document.getElementById('adminBuyerList');
+    if(!container) return;
+    container.innerHTML = '';
+
+    // Filter by Search
+    const term = searchTerm.toLowerCase();
+    const filtered = validBuyers.filter(b => 
+        b.name.toLowerCase().includes(term) || 
+        (b.account && b.account.toLowerCase().includes(term))
+    );
+
+    if(filtered.length === 0) {
+        container.innerHTML = '<div style="color:#999; text-align:center;">No buyers found.</div>';
+        return;
+    }
+
+    // Group by Account (Team)
+    const grouped = {};
+    filtered.forEach(b => {
+        const team = b.account ? b.account.toUpperCase() : 'NO TEAM';
+        if(!grouped[team]) grouped[team] = [];
+        grouped[team].push(b);
+    });
+
+    // Sort Teams Alphabetically
+    const sortedTeams = Object.keys(grouped).sort();
+
+    sortedTeams.forEach(team => {
+        // Create Group Header
+        const groupDiv = document.createElement('div');
+        groupDiv.style.background = "white";
+        groupDiv.style.borderRadius = "10px";
+        groupDiv.style.border = "1px solid #e4e4e7";
+        groupDiv.style.overflow = "hidden";
+        groupDiv.style.marginBottom = "15px";
+
+        // Header
+        groupDiv.innerHTML = `
+            <div style="background:#f4f4f5; padding:8px 12px; font-size:0.75rem; font-weight:800; color:#555; border-bottom:1px solid #e4e4e7; display:flex; justify-content:space-between;">
+                <span>${team}</span>
+                <span>${grouped[team].length} User(s)</span>
+            </div>
+        `;
+
+        // List of Users
+        const listDiv = document.createElement('div');
+        
+        grouped[team].sort((a,b) => a.name.localeCompare(b.name)).forEach(b => {
+            const isMuted = b.isMuted || false;
+            const row = document.createElement('div');
+            row.className = 'admin-user-row'; // Ensures hover effect and pointer cursor
+            
+            // Add Red Tint if Muted
+            if(isMuted) row.style.background = "#fef2f2";
+
+            // CLICK EVENT -> Open History
+            row.onclick = () => viewUserHistory(b, 'buyer');
+
+            // IMAGE LOGIC (New)
+            const img = b.img || DEFAULT_AVATAR;
+
+            row.innerHTML = `
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <!-- AVATAR IMAGE -->
+                    <img src="${img}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid #eee;">
+                    
+                    <!-- NAME & CODE STACKED -->
+                    <div>
+                        <div style="font-size:0.9rem; font-weight:600; ${isMuted ? 'color:#991b1b; text-decoration:line-through;' : ''}">${b.name}</div>
+                        <div style="font-size:0.7rem; color:#bbb;">Code: ${b.code}</div>
+                    </div>
+                </div>
+
+                <!-- BUTTONS -->
+                <div style="display:flex; gap:10px; align-items:center;">
+                     <button onclick="event.stopPropagation(); toggleBuyerMute('${b.id}', ${isMuted})" style="cursor:pointer; border:none; background:transparent; font-size:1.1rem;" title="${isMuted ? 'Unmute' : 'Mute'}">
+                        ${isMuted ? '✅' : '⛔'}
+                    </button>
+                    <button onclick="event.stopPropagation(); deleteBuyer('${b.id}', '${b.name}')" style="cursor:pointer; border:none; background:transparent; font-size:1rem;" title="Delete">
+                        🗑️
+                    </button>
+                </div>
+            `;
+            listDiv.appendChild(row);
+        });
+
+        groupDiv.appendChild(listDiv);
+        container.appendChild(groupDiv);
+    });
+}
+
+// 4. Buyer Actions
+window.toggleBuyerMute = async function(id, currentStatus) {
+    try {
+        await updateDoc(doc(db, "buyers", id), { isMuted: !currentStatus });
+        showToast(currentStatus ? "Buyer Active" : "Buyer Muted");
+        // Listener updates UI automatically
+    } catch(e) {
+        showToast("Error updating status", "error");
+    }
+}
+
+window.deleteBuyer = function(id, name) {
+    showConfirm(`Delete user "${name}"?`, async () => {
+        try {
+            await deleteDoc(doc(db, "buyers", id));
+            showToast("User Deleted");
+            // Listener updates UI automatically
+        } catch(e) {
+            showToast("Error deleting", "error");
+        }
+    });
+}
+
+window.toggleVendorMute = async function(id, currentStatus) {
+    try {
+        await updateDoc(doc(db, "vendors", id), { isMuted: !currentStatus });
+        showToast(currentStatus ? "Vendor Activated" : "Vendor Muted");
+        if(currentUser.role === 'admin') setTimeout(renderAdminPanel, 200); 
+    } catch(e) {
+        showToast("Error updating status", "error");
+    }
+}
+
+window.deleteVendor = function(id, name) {
+    showConfirm(`Delete shop "${name}"? This cannot be undone.`, async () => {
+        try {
+            await deleteDoc(doc(db, "vendors", id));
+            showToast("Vendor Deleted");
+            if(currentUser.role === 'admin') setTimeout(renderAdminPanel, 200);
+        } catch(e) {
+            showToast("Error deleting", "error");
+        }
+    });
 }
 
 // --- MODAL & REGISTRATION ---
@@ -390,22 +617,24 @@ window.submitRegistration = async function() {
     if(!nameInput || !account) return showToast("Fill all fields", "error");
 
     const existingUsers = role === 'vendor' ? validVendors : validBuyers;
-    const nameExists = existingUsers.some(user => user.name.toLowerCase() === nameInput.toLowerCase());
-
-    if (nameExists) return showToast("Name taken! Use another.", "error");
+    if (existingUsers.some(user => user.id === nameInput)) {
+        return showToast("Name taken! Use another.", "error");
+    }
 
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     const collectionName = role === 'vendor' ? 'vendors' : 'buyers';
     
     try {
-        await addDoc(collection(db, collectionName), { 
+        await setDoc(doc(db, collectionName, nameInput), { 
             code, name: nameInput, account, img: null 
         });
+        
         closeRegisterModal();
         document.getElementById('codeJson').value = code;
         showToast(`Registered! Code: ${code}`);
     } catch(e) { 
-        showToast("Error connecting", "error"); 
+        console.error(e);
+        showToast("Name already exists or Error connecting", "error"); 
     }
 }
 
@@ -448,12 +677,10 @@ window.renderAdminProducts = function() {
         const div = document.createElement('div');
         div.className = `inventory-item ${!p.active ? 'inactive-row' : ''}`;
         
-        // HIDE IMAGE IF NONE
         const imgHTML = (p.media && p.media.length > 50) 
             ? `<img src="${p.media}" class="item-img" onclick="event.stopPropagation(); openLightbox('${p.media}')">`
             : ''; 
 
-        // Display "Unl." if stock is null
         const stockDisplay = (p.stock === null || p.stock === undefined) ? '∞' : p.stock;
 
         div.onclick = (e) => { 
@@ -488,18 +715,15 @@ window.renderAdminProducts = function() {
 window.toggleProductActive = async function(id, current) {
     await updateDoc(doc(db, "products", id), { active: !current });
 }
-
 window.togglePreOrder = async function(id, current) {
     await updateDoc(doc(db, "products", id), { isPreOrder: !current });
 }
-
 window.deleteProduct = async function(id) {
     if(showConfirm("Delete this item permanently?")) {
         await deleteDoc(doc(db, "products", id));
         showToast("Item deleted");
     }
 }
-
 window.soldOut = async function() {
     showConfirm("Mark ALL items as Sold Out?", () => {
         products.filter(p => p.vendor === currentUser.code).forEach(async (p) => {
@@ -514,7 +738,7 @@ window.openAddModal = function() {
     document.getElementById('mId').value = '';
     document.getElementById('mName').value = '';
     document.getElementById('mPrice').value = '';
-    document.getElementById('mStock').value = ''; // Reset Stock (Blank = Unlimited)
+    document.getElementById('mStock').value = ''; 
     document.getElementById('mNote').value = ''; 
     document.getElementById('mPreview').classList.remove('show');
     document.getElementById('uploadPlaceholder').style.display = 'block';
@@ -529,12 +753,10 @@ window.openEditModal = function(id) {
     document.getElementById('mId').value = p.id;
     document.getElementById('mName').value = p.name;
     document.getElementById('mPrice').value = p.price;
-    // If null/undefined, set to empty string for "Unlimited"
     document.getElementById('mStock').value = (p.stock === null || p.stock === undefined) ? '' : p.stock;
     document.getElementById('mVariants').value = (p.variants || []).join(', ');
     document.getElementById('mNote').value = p.note || ''; 
     
-    // Check if media is valid image
     const hasImg = (p.media && p.media.length > 50);
     document.getElementById('mPreview').src = hasImg ? p.media : '';
     if(hasImg) {
@@ -553,93 +775,42 @@ window.openEditModal = function(id) {
 window.openHelpModal = function() {
     const content = document.getElementById('helpContent');
     const title = document.getElementById('helpTitle');
-
     if (!currentUser) return;
-
     if (currentUser.role === 'admin') {
-        // --- SUPER ADMIN GUIDE ---
         title.innerText = "👑 Super Admin Guide";
         content.innerHTML = `
             <div style="display:flex; flex-direction:column; gap:15px;">
                 <div style="background:#f0f9ff; padding:10px; border-radius:8px; border:1px solid #bae6fd;">
-                    <strong style="color:#0369a1;">1. Vendor Management</strong>
-                    <p style="margin:5px 0 0; font-size:0.85rem;">
-                        You have a global view of all registered shops. You can see their images, names, and access codes.
-                    </p>
+                    <strong style="color:#0369a1;">1. USERS Management</strong>
+                    <p style="margin:5px 0 0; font-size:0.85rem;">Global view of all shops.</p>
                 </div>
-                
-                <div>
-                    <strong style="color:#b91c1c;">2. Muting (Suspension)</strong>
-                    <p style="margin:5px 0 0; font-size:0.85rem;">
-                        Clicking <span style="background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px; font-size:0.75rem; border:1px solid #ddd;">🚫 Mute</span> 
-                        immediately <b>hides</b> the shop from the Buyer's marketplace.
-                        <br><br>
-                        <i>Use this for:</i> Policy violations, unpaid fees, or temporary suspensions. The data is preserved, and you can Unmute them anytime.
-                    </p>
-                </div>
-
-                <div>
-                    <strong style="color:#b91c1c;">3. Deletion</strong>
-                    <p style="margin:5px 0 0; font-size:0.85rem;">
-                        Clicking <span style="background:#fee2e2; color:#991b1b; padding:2px 6px; border-radius:4px; font-size:0.75rem; border:1px solid #fecaca;">🗑️ Delete</span> 
-                        permanently removes the user. <span style="text-decoration:underline;">This cannot be undone.</span>
-                    </p>
-                </div>
-            </div>
-        `;
+                <div><strong style="color:#b91c1c;">2. Muting</strong><p style="margin:5px 0 0; font-size:0.85rem;">Hides shop from market.</p></div>
+                <div><strong style="color:#b91c1c;">3. Deletion</strong><p style="margin:5px 0 0; font-size:0.85rem;">Permanent removal.</p></div>
+            </div>`;
      } else if (currentUser.role === 'vendor') {
-        // --- VENDOR GUIDE ---
         title.innerText = "🏪 Merchant Guide";
         content.innerHTML = `
             <ul style="padding-left:15px; margin:0 0 15px 0; display:flex; flex-direction:column; gap:8px;">
-                <li><b>Adding Items:</b> Click <i>+ Add Item</i>. Leave stock blank if not selling per piece.</li>
-                <li><b>Variants:</b> To add options (e.g., <i>Spicy, Regular</i>), type them in the Variants box separated by commas.</li>
-                <li><b>Pre-Order vs Standard:</b> Toggle the button on the item card. Pre-orders appear in the "Tomorrow" list.</li>
-                <li><b>Orders:</b> Mark orders as "Paid" when payment received.<br><span><i>*Also clears notification(s)</i></span></li>
-                <li><b>End Shift:</b> Clears your local view (data is saved in History).</li>
+                <li><b>Adding Items:</b> Click <i>+ Add Item</i>. Leave stock blank for unlimited.</li>
+                <li><b>Variants:</b> Comma separated options (e.g., Spicy, Regular).</li>
+                <li><b>Orders:</b> Mark "Paid" to clear notifications. Use Trash icon to delete orders.</li>
+                <li><b>End Shift:</b> Clears your local view (data saved in History).</li>
             </ul>
-
-            <!-- DESIGNED BOTTOM SECTION (Blue Theme) -->
             <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 15px; text-align: center; color: #1e40af;">
-                <div style="font-size: 0.85rem; font-style: italic; margin-bottom: 10px; opacity: 0.9;">
-                    * Orders cannot be cancelled once placed.
-                </div>
-                
-                <div style="border-top: 1px dashed #93c5fd; padding-top: 10px;">
-                    <strong style="font-size: 1rem; display: block; margin-bottom: 4px; color: #1e3a8a;">ℹ️ ADMIN SUPPORT</strong>
-                    <span style="font-size: 0.85rem; color: #1e3a8a;">
-                        For questions, coordinate with admin via <span style="text-decoration: underline;">Synology Chat</span>.
-                    </span>
-                </div>
-            </div>
-        `;
+                <div style="font-size: 0.85rem; font-style: italic; margin-bottom: 10px; opacity: 0.9;">* Orders cannot be cancelled once placed.</div>
+            </div>`;
     }  else {
-        // --- BUYER GUIDE ---
         title.innerText = "🛒 Buyer Guide";
         content.innerHTML = `
             <ul style="padding-left:15px; margin:0 0 15px 0; display:flex; flex-direction:column; gap:8px;">
-                <li><b>Ordering:</b> Click (+) to add items to your cart.</li>
-                <li><b>Payments:</b> Select "Cash" or "Payday" before submitting.</li>
-                <li><b>Today vs Pre-Order:</b> "Today" items are available now. "Pre-Order" items are for the next shift.</li>
-                <li><b>History:</b> Check the slide-out menu to see your past purchases.</li>          
+                <li><b>Ordering:</b> Click (+) to add items.</li>
+                <li><b>Cancel:</b> Use 'Cancel' button to clear cart for that shop.</li>
+                <li><b>History:</b> Check slide-out menu for past purchases.</li>          
             </ul>
-
-            <!-- DESIGNED BOTTOM SECTION -->
             <div style="background-color: #fff1f2; border: 1px solid #fecaca; border-radius: 8px; padding: 15px; text-align: center; color: #881337;">
-                <div style="font-size: 0.85rem; font-style: italic; margin-bottom: 10px; opacity: 0.9;">
-                    * Orders cannot be cancelled once placed.
-                </div>
-                
-                <div style="border-top: 1px dashed #fca5a5; padding-top: 10px;">
-                    <strong style="font-size: 1rem; display: block; margin-bottom: 4px; color: #991b1b;">⚠️ PAY ON TIME</strong>
-                    <span style="font-size: 0.85rem; color: #7f1d1d;">
-                        For questions, coordinate with admin via <span style="text-decoration: underline;">Synology Chat</span>.
-                    </span>
-                </div>
-            </div>
-        `;
+                <div style="font-size: 0.85rem; font-style: italic; margin-bottom: 10px; opacity: 0.9;">* Orders cannot be cancelled once placed.</div>
+            </div>`;
     }
-
     openModal('helpModal');
 }
 
@@ -666,14 +837,12 @@ window.switchUploadMode = function(mode) {
         divUrl.classList.add('hidden');
         btnUp.style.background = '#3b82f6'; btnUp.style.color = 'white';
         btnLn.style.background = '#f3f4f6'; btnLn.style.color = '#555';
-        // Clear URL input so logic knows to use file
         document.getElementById('mUrl').value = ''; 
     } else {
         divFile.classList.add('hidden');
         divUrl.classList.remove('hidden');
         btnLn.style.background = '#3b82f6'; btnLn.style.color = 'white';
         btnUp.style.background = '#f3f4f6'; btnUp.style.color = '#555';
-        // Clear File input so logic knows to use URL
         document.getElementById('mFile').value = '';
     }
 }
@@ -687,7 +856,6 @@ window.commitProduct = function() {
     const variantsStr = document.getElementById('mVariants').value;
     const variants = variantsStr ? variantsStr.split(',').map(s => s.trim()).filter(s => s) : [];
 
-    // CHECK BOTH INPUTS
     const fileInput = document.getElementById('mFile');
     const urlInput = document.getElementById('mUrl').value.trim();
 
@@ -698,16 +866,10 @@ window.commitProduct = function() {
         try {
             const data = { 
                 vendor: currentUser.code, vendorName: currentUser.name, 
-                name, 
-                price: parseInt(price),
-                stock: stock, 
-                note: note, 
-                variants: variants,
-                media: imgData || null, 
-                isPreOrder: false, 
-                active: true 
+                name, price: parseInt(price), stock: stock, 
+                note: note, variants: variants, media: imgData || null, 
+                isPreOrder: false, active: true 
             };
-            
             if(id) { 
                 delete data.vendor; delete data.vendorName; delete data.active; delete data.isPreOrder;
                 const updateData = { name, price: parseInt(price), stock: stock, note: note, variants: variants };
@@ -725,9 +887,7 @@ window.commitProduct = function() {
         }
     };
 
-    // LOGIC: IF FILE SELECTED -> USE FILE. IF URL ENTERED -> USE URL.
     if(fileInput.files && fileInput.files[0]) { 
-        // SAFETY CHECK FOR FILES
         if(fileInput.files[0].size > 700000) {
             return showToast("File too big! Use 'Paste Link' tab.", "error");
         }
@@ -735,12 +895,12 @@ window.commitProduct = function() {
         r.onload = (e) => save(e.target.result); 
         r.readAsDataURL(fileInput.files[0]); 
     } else if (urlInput) {
-        // USE THE GIF URL DIRECTLY
         save(urlInput);
     } else {
         save(null); 
     }
 }
+
 // --- BUYER & CARD RENDERING ---
 function renderBuyerCards(container, showPreOrders, isCompact = false, excludeVendor = null) {
     if(!container) return;
@@ -748,25 +908,19 @@ function renderBuyerCards(container, showPreOrders, isCompact = false, excludeVe
     const vendors = {};
     
     products.forEach(p => {
-    if(!p.active) return;
-    if(p.isPreOrder !== showPreOrders) return;
-    if(excludeVendor && p.vendor === excludeVendor) return; 
+        if(!p.active) return;
+        if(p.isPreOrder !== showPreOrders) return;
+        if(excludeVendor && p.vendor === excludeVendor) return; 
 
-    if(!vendors[p.vendor]) {
-        const vObj = validVendors.find(v => v.code === p.vendor);
-        
-        // --- MODIFIED CHECK ---
-        // If vendor doesn't exist OR IS MUTED, skip their products
-        if(!vObj || vObj.isMuted) return; 
+        if(!vendors[p.vendor]) {
+            const vObj = validVendors.find(v => v.code === p.vendor);
+            if(!vObj || vObj.isMuted) return; 
 
-        vendors[p.vendor] = { 
-            name: vObj.name, 
-            account: vObj.account, 
-            img: vObj.img,
-            items: [], 
-            code: p.vendor 
-        };
-    }
+            vendors[p.vendor] = { 
+                name: vObj.name, account: vObj.account, img: vObj.img,
+                items: [], code: p.vendor 
+            };
+        }
         if(vendors[p.vendor]) vendors[p.vendor].items.push(p);
     });
 
@@ -783,87 +937,68 @@ function renderBuyerCards(container, showPreOrders, isCompact = false, excludeVe
         if(isCompact) card.style.border = "1px solid #e4e4e7";
 
         let itemsHtml = v.items.map(i => {
-    const itemImgHTML = (i.media && i.media.length > 50) 
-        ? `<img src="${i.media}" class="product-img" onclick="openLightbox('${i.media}')">`
-        : '';
-    
-    const isUnlimited = (i.stock === null || i.stock === undefined);
-    const variants = i.variants || [];
-    
-    // --- LOGIC: Calculate Total Stock Used for this Parent Item ---
-    // We sum up all variants of this item currently in cart to check against limit
-    let totalInCartForThisItem = 0;
-    Object.keys(cart).forEach(key => {
-        if(key.startsWith(i.id)) totalInCartForThisItem += cart[key];
-    });
-
-    // --- HTML GENERATOR ---
-    let controlsHTML = '';
-
-    if (variants.length > 0) {
-        // RENDER VARIANT ROWS
-        controlsHTML = `<div class="variant-list">`;
-        variants.forEach(variant => {
-            const compositeKey = `${i.id}::${variant}`;
-            const qty = cart[compositeKey] || 0;
-            const isOOS = !isUnlimited && (totalInCartForThisItem >= i.stock);
+            const itemImgHTML = (i.media && i.media.length > 50) 
+                ? `<img src="${i.media}" class="product-img" onclick="openLightbox('${i.media}')">`
+                : '';
             
-            // Allow clicking plus if we haven't hit limit OR if we are just adding to existing count (logic handled in changeQty)
-            // Actually, simplified: Disable + if total >= stock
+            const isUnlimited = (i.stock === null || i.stock === undefined);
+            const variants = i.variants || [];
             
-            controlsHTML += `
-                <div class="variant-row">
-                    <span class="variant-name">${variant}</span>
-                    <div class="qty-controls small-controls">
-                        <button class="qty-btn" onclick="changeQty('${i.id}', -1, ${i.price}, '${v.code}', '${variant}')">-</button>
-                        <span class="qty-val" id="qty-${compositeKey}">${qty}</span>
-                        <button class="qty-btn" id="btn-plus-${compositeKey}" 
-                            ${(isOOS && qty === 0) ? 'disabled style="opacity:0.3"' : ''} 
-                            onclick="changeQty('${i.id}', 1, ${i.price}, '${v.code}', '${variant}')">+</button>
-                    </div>
+            let totalInCartForThisItem = 0;
+            Object.keys(cart).forEach(key => {
+                if(key.startsWith(i.id)) totalInCartForThisItem += cart[key];
+            });
+
+            let controlsHTML = '';
+            if (variants.length > 0) {
+                controlsHTML = `<div class="variant-list">`;
+                variants.forEach(variant => {
+                    const compositeKey = `${i.id}::${variant}`;
+                    const qty = cart[compositeKey] || 0;
+                    const isOOS = !isUnlimited && (totalInCartForThisItem >= i.stock);
+                    
+                    controlsHTML += `
+                        <div class="variant-row">
+                            <span class="variant-name">${variant}</span>
+                            <div class="qty-controls small-controls">
+                                <button class="qty-btn" onclick="changeQty('${i.id}', -1, ${i.price}, '${v.code}', '${variant}')">-</button>
+                                <span class="qty-val" id="qty-${compositeKey}">${qty}</span>
+                                <button class="qty-btn" id="btn-plus-${compositeKey}" 
+                                    ${(isOOS && qty === 0) ? 'disabled style="opacity:0.3"' : ''} 
+                                    onclick="changeQty('${i.id}', 1, ${i.price}, '${v.code}', '${variant}')">+</button>
+                            </div>
+                        </div>`;
+                });
+                controlsHTML += `</div>`;
+            } else {
+                const qty = cart[i.id] || 0;
+                const isOOS = !isUnlimited && (totalInCartForThisItem >= i.stock);
+                controlsHTML = `
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="changeQty('${i.id}',-1,${i.price},'${v.code}')">-</button>
+                        <span class="qty-val" id="qty-${i.id}">${qty}</span>
+                        <button class="qty-btn" id="btn-plus-${i.id}" ${isOOS ? 'disabled style="opacity:0.3"' : ''} onclick="changeQty('${i.id}',1,${i.price},'${v.code}')">+</button>
+                    </div>`;
+            }
+            const stockDisplay = !isUnlimited ? `<div class="stock-badge">Stock: ${i.stock}</div>` : '';
+
+            return `
+            <div class="product-item ${variants.length > 0 ? 'has-variants' : ''}">
+                ${itemImgHTML}
+                <div class="product-details">
+                    <span class="product-name">${i.name}</span>
+                    <span class="product-price">₱${i.price}</span>
+                    ${i.note ? `<div class="item-note">${i.note}</div>` : ''}
+                    ${stockDisplay}
                 </div>
-            `;
-        });
-        controlsHTML += `</div>`;
-    } else {
-        // STANDARD RENDER (No Variants)
-        const qty = cart[i.id] || 0;
-        const isOOS = !isUnlimited && (totalInCartForThisItem >= i.stock);
-        controlsHTML = `
-            <div class="qty-controls">
-                <button class="qty-btn" onclick="changeQty('${i.id}',-1,${i.price},'${v.code}')">-</button>
-                <span class="qty-val" id="qty-${i.id}">${qty}</span>
-                <button class="qty-btn" id="btn-plus-${i.id}" ${isOOS ? 'disabled style="opacity:0.3"' : ''} onclick="changeQty('${i.id}',1,${i.price},'${v.code}')">+</button>
-            </div>
-        `;
-    }
+                ${controlsHTML}
+            </div>`;
+        }).join('');
 
-    const stockDisplay = !isUnlimited ? `<div class="stock-badge">Stock: ${i.stock}</div>` : '';
-
-    return `
-    <div class="product-item ${variants.length > 0 ? 'has-variants' : ''}">
-        ${itemImgHTML}
-        <div class="product-details">
-            <span class="product-name">${i.name}</span>
-            <span class="product-price">₱${i.price}</span>
-            ${i.note ? `<div class="item-note">${i.note}</div>` : ''}
-            ${stockDisplay}
-        </div>
-        ${controlsHTML}
-    </div>
-`}).join('');
-
-        // VENDOR IMAGE HIDING LOGIC
         const hasCustomImg = (v.img && v.img.length > 50);
-const imgSrc = hasCustomImg ? v.img : DEFAULT_AVATAR;
-
-// 2. Add onclick ONLY if custom. CRITICAL: event.stopPropagation() prevents the card from closing.
-const clickAction = hasCustomImg 
-    ? `onclick="event.stopPropagation(); openLightbox('${imgSrc}')"` 
-    : ''; // Don't lightbox the default grey avatar
-
-// 3. Build the HTML
-const vendorImgHTML = `<img src="${imgSrc}" class="vendor-header-img" ${clickAction} style="${hasCustomImg ? 'cursor:pointer;' : ''}">`;
+        const imgSrc = hasCustomImg ? v.img : DEFAULT_AVATAR;
+        const clickAction = hasCustomImg ? `onclick="event.stopPropagation(); openLightbox('${imgSrc}')"` : ''; 
+        const vendorImgHTML = `<img src="${imgSrc}" class="vendor-header-img" ${clickAction} style="${hasCustomImg ? 'cursor:pointer;' : ''}">`;
 
         card.innerHTML = `
             <div class="card-header" onclick="toggleCard(this)">
@@ -883,7 +1018,10 @@ const vendorImgHTML = `<img src="${imgSrc}" class="vendor-header-img" ${clickAct
                     <button class="pay-btn" onclick="togglePayment(this)">Cash</button>
                     <button class="pay-btn" onclick="togglePayment(this)">Payday</button>
                 </div>
-                <button class="submit-btn" onclick="submitOrder('${v.code}', this, ${showPreOrders})">Submit Order</button>
+                <div class="action-row">
+                    <button class="btn-cancel-order" onclick="clearVendorCart('${v.code}')">Cancel</button>
+                    <button class="submit-btn" style="flex:2;" onclick="submitOrder('${v.code}', this, ${showPreOrders})">Submit Order</button>
+                </div>
             </div>
         `;
         container.appendChild(card);
@@ -895,24 +1033,17 @@ window.toggleCard = function(header) {
 }
 
 window.changeQty = function(id, chg, price, vendorCode, variant = null) {
-    // Construct Key: if variant exists, use "id::variant", else just "id"
     const cartKey = variant ? `${id}::${variant}` : id;
-
     if (!cart[cartKey]) cart[cartKey] = 0;
 
-    // --- SHARED STOCK CHECK ---
-    // We must find the Base Product to check the Total Stock
     const product = products.find(x => x.id === id);
-    
     if (product && chg > 0) {
         const isUnlimited = (product.stock === null || product.stock === undefined);
         if (!isUnlimited) {
-            // Count total items in cart that belong to this product ID
             let currentTotalUsage = 0;
             Object.keys(cart).forEach(k => {
                 if (k.startsWith(id)) currentTotalUsage += cart[k];
             });
-
             if (currentTotalUsage >= product.stock) {
                 showToast("Max stock reached", "error");
                 return;
@@ -923,24 +1054,15 @@ window.changeQty = function(id, chg, price, vendorCode, variant = null) {
     cart[cartKey] += chg;
     if (cart[cartKey] < 0) cart[cartKey] = 0;
 
-    // Update DOM
-    // Note: We use querySelectorAll because IDs must be escaped if they contain "::" but 
-    // simply using getElementById usually fails with colons unless escaped. 
-    // Simplest way is to match the ID string directly.
     const qtySpan = document.getElementById(`qty-${cartKey}`);
     if(qtySpan) qtySpan.innerText = cart[cartKey];
 
-    // Update Vendor Total
     const vItems = products.filter(x => x.vendor === vendorCode);
     let tot = 0;
-    
-    // Calculate total based on ALL cart keys that belong to this vendor's products
     Object.keys(cart).forEach(key => {
-        const pId = key.split('::')[0]; // Extract ID part
+        const pId = key.split('::')[0]; 
         const prod = vItems.find(p => p.id === pId);
-        if(prod) {
-            tot += (prod.price * cart[key]);
-        }
+        if(prod) tot += (prod.price * cart[key]);
     });
     
     document.querySelectorAll(`#total-${vendorCode}`).forEach(el => el.innerText = `₱${tot.toLocaleString()}`);
@@ -955,14 +1077,39 @@ window.togglePayment = function(btn) {
     }
 }
 
+window.clearVendorCart = function(vendorCode) {
+    const vendorItems = products.filter(p => p.vendor === vendorCode).map(p => p.id);
+    let clearedCount = 0;
+    Object.keys(cart).forEach(key => {
+        const pId = key.split('::')[0];
+        if(vendorItems.includes(pId)) {
+            delete cart[key];
+            clearedCount++;
+        }
+    });
+
+    if(clearedCount > 0) {
+        showToast("Cart cleared for this shop");
+        renderBuyerCards(document.getElementById('buyerTodayGrid'), false);
+        renderBuyerCards(document.getElementById('buyerPreOrderGrid'), true);
+        if(currentUser && currentUser.role === 'vendor') {
+             renderBuyerCards(document.getElementById('vendorPreviewToday'), false, true, currentUser.code); 
+             renderBuyerCards(document.getElementById('vendorPreviewPreOrder'), true, true, currentUser.code); 
+        }
+    }
+}
+
 window.submitOrder = async function(vCode, btn, isPreOrder) {
     if(!currentUser) return showToast("Please Login first", "error");
 
+    if(currentUser.isMuted) {
+        return showToast("⛔ Account Muted. Contact Admin.", "error");
+    }
+    // --------------------------------
     const vItems = products.filter(p => p.vendor === vCode);
     const purchased = [];
     let total = 0;
     
-    // New Logic: Iterate keys in Cart that match this vendor
     const relevantKeys = Object.keys(cart).filter(k => {
         const pId = k.split('::')[0];
         return vItems.some(v => v.id === pId) && cart[k] > 0;
@@ -970,10 +1117,7 @@ window.submitOrder = async function(vCode, btn, isPreOrder) {
 
     if(relevantKeys.length === 0) return showToast("Cart is empty", "error");
 
-    // STOCK VALIDATION LOOP
-    // We group by Product ID to ensure shared stock isn't exceeded
-    const usageMap = {}; // { pid: totalQty }
-    
+    const usageMap = {}; 
     for(let key of relevantKeys) {
         const pId = key.split('::')[0];
         if(!usageMap[pId]) usageMap[pId] = 0;
@@ -988,27 +1132,20 @@ window.submitOrder = async function(vCode, btn, isPreOrder) {
         }
     }
 
-    // BUILD PURCHASE ARRAY
     for(let key of relevantKeys) {
         const [pId, variant] = key.split('::');
         const product = products.find(p => p.id === pId);
         const qty = cart[key];
-        
-        // Format Name: "Adobo" or "Adobo (Spicy)"
         const finalName = variant ? `${product.name} (${variant})` : product.name;
         
         purchased.push({ 
-            name: finalName, 
-            qty: qty, 
-            price: product.price, 
-            id: pId, // We track parent ID for stock subtraction
-            originalStock: product.stock 
+            name: finalName, qty: qty, price: product.price, 
+            id: pId, originalStock: product.stock 
         });
-        
         total += (product.price * qty);
     }
 
-    const selectedBtn = btn.parentElement.querySelector('.pay-btn.selected');
+    const selectedBtn = btn.parentElement.parentElement.querySelector('.pay-btn.selected');
     if(!selectedBtn) return showToast("Select Payment Option", "error");
     const method = selectedBtn.innerText;
 
@@ -1026,8 +1163,6 @@ window.submitOrder = async function(vCode, btn, isPreOrder) {
             type: isPreOrder ? "Pre-Order" : "Standard"
         });
 
-        // SUBTRACT STOCK (Aggregated per parent product)
-        // We use 'usageMap' calculated earlier
         for(let pId in usageMap) {
             const product = products.find(p => p.id === pId);
             if (product.stock !== null && product.stock !== undefined) {
@@ -1041,12 +1176,8 @@ window.submitOrder = async function(vCode, btn, isPreOrder) {
             }
         }
 
-        // RESET CART
         relevantKeys.forEach(k => delete cart[k]);
-        
-        // Reset DOM totals
         document.querySelectorAll(`#total-${vCode}`).forEach(el => el.innerText = `₱0`);
-        // We trigger a re-render or just let the user see the reset via UI
         renderBuyerCards(document.getElementById('buyerTodayGrid'), false);
         renderBuyerCards(document.getElementById('buyerPreOrderGrid'), true);
         
@@ -1054,12 +1185,10 @@ window.submitOrder = async function(vCode, btn, isPreOrder) {
     } catch(e) { console.error(e); showToast("Failed to send", "error"); }
 }
 
-
-// ... Rest of the file (history, etc) ...
+// --- HISTORY ---
 window.openSlidePanel = function() {
     document.getElementById('slideOverlay').classList.add('open');
     document.getElementById('slidePanel').classList.add('open');
-    
     if(currentUser.role === 'vendor') {
         document.getElementById('vendorHistoryToggle').classList.remove('hidden');
         historyMode = 'sales'; 
@@ -1097,7 +1226,6 @@ function updateHistoryToggleUI() {
 function populateDateFilters() {
     const mSelect = document.getElementById('filterMonth');
     const ySelect = document.getElementById('filterYear');
-    
     if(mSelect.options.length === 0) {
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         months.forEach((m, i) => mSelect.add(new Option(m, i)));
@@ -1114,8 +1242,6 @@ function populateDateFilters() {
 window.renderHistory = function() {
     const tbody = document.getElementById('historyTableBody');
     const thead = document.getElementById('historyTableHead');
-    
-    // Clear current content
     tbody.innerHTML = '';
     
     const m = parseInt(document.getElementById('filterMonth').value);
@@ -1126,21 +1252,18 @@ window.renderHistory = function() {
         return d.getMonth() === m && d.getFullYear() === y;
     });
 
-    // Animation Reset (unchanged)
     const totalBadge = document.getElementById('historyTotalBadge');
     totalBadge.classList.remove('total-pop'); 
     void totalBadge.offsetWidth; 
     totalBadge.classList.add('total-pop');
 
     if(historyMode === 'sales' && currentUser.role === 'vendor') {
-        // ... (Keep existing Vendor Sales logic unchanged) ...
         thead.innerHTML = `<tr><th>Date/Buyer</th><th class="text-right">Amt</th></tr>`;
         relevantOrders = relevantOrders.filter(o => o.vendorCode === currentUser.code);
         let grand = 0;
         relevantOrders.forEach(o => {
             const isPaid = o.status === 'Paid';
             const itemsStr = o.items.map(i=>`${i.qty} ${i.name}`).join(', ');
-            
             tbody.innerHTML += `<tr class="history-row">
                 <td>
                     <div style="font-weight:600">${o.buyer.name}</div>
@@ -1152,26 +1275,20 @@ window.renderHistory = function() {
             grand += o.total;
         });
         totalBadge.innerText = `₱${grand.toLocaleString()}`;
-
     } else {
-        // --- UPDATED BUYER PURCHASES LOGIC ---
         thead.innerHTML = `<tr><th>Shop/Items</th><th class="text-right">Total</th></tr>`;
         relevantOrders = relevantOrders.filter(o => o.buyerCode === currentUser.code);
         let grand = 0;
         relevantOrders.forEach(o => {
             const isPaid = o.status === 'Paid';
             if(!isPaid) grand += o.total; 
-            
             const itemsStr = o.items.map(i=>`${i.qty} ${i.name}`).join(', ');
             const statusText = isPaid ? '' : '<div style="color:#ef4444; font-size:0.7rem; font-weight:700;">TO BE PAID</div>';
-            
-            // LOOKUP VENDOR NAME HERE
             const vendorObj = validVendors.find(v => v.code === o.vendorCode);
-            const vendorDisplayName = vendorObj ? vendorObj.name : o.vendorCode; // Fallback to code if name not found
+            const vendorDisplayName = vendorObj ? vendorObj.name : o.vendorCode; 
 
             tbody.innerHTML += `<tr class="history-row">
                 <td>
-                    <!-- Display Name instead of Code -->
                     <span style="font-weight:700;">${vendorDisplayName}</span>
                     <div style="font-size:0.85rem; color:#555;">${itemsStr}</div>
                     ${statusText}
@@ -1183,6 +1300,7 @@ window.renderHistory = function() {
     }
 }
 
+// --- VENDOR ORDERS ---
 function renderVendorOrders() {
     const list = document.getElementById('orderList');
     list.innerHTML = '';
@@ -1206,9 +1324,12 @@ function renderVendorOrders() {
             <div style="font-size:0.85rem; color:#555; margin:5px 0;">${o.items.map(i=>`${i.qty}x ${i.name}`).join(', ')}</div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
                 <span style="font-size:0.75rem; background:#f4f4f5; padding:2px 6px; border-radius:4px;">${o.method}</span>
-                <button onclick="toggleOrderStatus('${o.id}', '${o.status}')" class="btn ${isPaid?'btn-secondary':'btn-primary'}" style="padding:4px 10px; font-size:0.75rem;">
-                    ${isPaid ? 'Mark Unpaid' : 'Mark Paid'}
-                </button>
+                <div style="display:flex; align-items:center;">
+                    <button onclick="toggleOrderStatus('${o.id}', '${o.status}')" class="btn ${isPaid?'btn-secondary':'btn-primary'}" style="padding:4px 10px; font-size:0.75rem;">
+                        ${isPaid ? 'Mark Unpaid' : 'Mark Paid'}
+                    </button>
+                    <button onclick="deleteOrder('${o.id}')" class="btn-delete-order" title="Delete Order">🗑️</button>
+                </div>
             </div>
         `;
         list.appendChild(div);
@@ -1219,13 +1340,24 @@ window.toggleOrderStatus = async function(oid, currentStatus) {
     const newStatus = currentStatus === 'Paid' ? 'Unpaid' : 'Paid';
     await updateDoc(doc(db, "orders", oid), { status: newStatus });
 }
-// --- BULK TOGGLE SYSTEM ---
+
+window.deleteOrder = function(orderId) {
+    showConfirm("Delete this order record permanently?", async () => {
+        try {
+            await deleteDoc(doc(db, "orders", orderId));
+            showToast("Order Deleted");
+        } catch(e) {
+            console.error(e);
+            showToast("Error deleting order", "error");
+        }
+    });
+}
+
+// --- BULK TOGGLE & SYSTEM ---
 window.toggleAllCards = function(containerId, shouldCollapse) {
     const container = document.getElementById(containerId);
     if(!container) return;
-    
     const cards = container.querySelectorAll('.vendor-card');
-    
     cards.forEach(card => {
         if(shouldCollapse) {
             card.classList.add('collapsed');
@@ -1233,48 +1365,126 @@ window.toggleAllCards = function(containerId, shouldCollapse) {
             card.classList.remove('collapsed');
         }
     });
-
-    // Optional: Show a small toast to confirm action
-    // showToast(shouldCollapse ? "All Collapsed" : "All Expanded", "success");
 }
 
 window.finishDay = function() {
     showConfirm("End Shift? This will hide all items and log you out.", async () => {
-        
         if (!currentUser) return;
-
-        // 1. Identify items to turn off (My active items)
-        const myActiveItems = products.filter(p => 
-            p.vendor === currentUser.code && p.active === true
-        );
+        const myActiveItems = products.filter(p => p.vendor === currentUser.code && p.active === true);
 
         if (myActiveItems.length > 0) {
             showToast(`Closing shop... (${myActiveItems.length} items)`, "info");
-
             try {
-                // 2. Batch update: Turn off all items in parallel
                 const updatePromises = myActiveItems.map(p => 
                     updateDoc(doc(db, "products", p.id), { active: false })
                 );
-                
-                // Wait for database to finish
                 await Promise.all(updatePromises);
-                
             } catch (e) {
                 console.error(e);
                 showToast("Error closing shop", "error");
-                return; // Stop if error
+                return;
             }
         }
-
-        // 3. Success Feedback & Logout
         showToast("Shift Ended. Good job! 🌙");
-        
-        setTimeout(() => {
-            logout();
-        }, 1500); // Small delay so they see the success message
+        setTimeout(() => { logout(); }, 1500);
     });
 }
 setInterval(() => { 
     document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); 
 }, 1000);
+
+// --- INPUT SANITIZER (PREVENTS SPECIAL CHARS) ---
+window.sanitizeInput = function(input) {
+    // 1. Regex Explanation:
+    // ^ = NOT
+    // a-z, A-Z = Letters
+    // 0-9 = Numbers
+    // \s = Spaces
+    // \- = Hyphens (for names like Mary-Ann)
+    // _ = Underscores
+    
+    // 2. Logic: If the char is NOT one of those, replace it with nothing.
+    const cleanValue = input.value.replace(/[^a-zA-Z0-9\s\-_]/g, '');
+    
+    // 3. Update the input only if it changed (prevents cursor jumping)
+    if (input.value !== cleanValue) {
+        input.value = cleanValue;
+        
+        // Optional: Warn the user (uncomment if you want a toast popup)
+        // showToast("Special characters not allowed", "error");
+    }
+}
+
+window.viewUserHistory = function(user, role) {
+    const modal = document.getElementById('userHistoryModal');
+    const content = document.getElementById('histModalContent');
+    const totalEl = document.getElementById('histModalTotal');
+    
+    document.getElementById('histModalName').innerText = user.name;
+    document.getElementById('histModalRole').innerText = `${role} • ${user.account}`;
+
+    content.innerHTML = '';
+    
+    // Filter Orders
+    // If role is vendor, find orders where vendorCode matches
+    // If role is buyer, find orders where buyerCode matches (comparing Codes, not IDs)
+    const userOrders = orders.filter(o => {
+        if (role === 'vendor') return o.vendorCode === user.code;
+        return o.buyerCode === user.code;
+    }).sort((a,b) => b.timestamp.localeCompare(a.timestamp)); // Newest first
+
+    if(userOrders.length === 0) {
+        content.innerHTML = '<div style="text-align:center; padding:30px; color:#aaa;">No history found.</div>';
+        totalEl.innerText = '₱0';
+        openModal('userHistoryModal');
+        return;
+    }
+
+    let grandTotal = 0;
+
+    userOrders.forEach(o => {
+        const isPaid = o.status === 'Paid';
+        const dateStr = new Date(o.timestamp).toLocaleString(undefined, { 
+    month: 'short', 
+    day: 'numeric', 
+    hour: 'numeric', 
+    minute: '2-digit' 
+});
+        // If viewing as Vendor, show who Bought it. If Buyer, show who sold it.
+        const counterparty = role === 'vendor' ? `Buyer: ${o.buyer.name}` : `Shop: ${validVendors.find(v=>v.code===o.vendorCode)?.name || o.vendorCode}`;
+        
+        const itemsStr = o.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+        
+        if(isPaid) grandTotal += o.total; // Only sum paid? Or all? Usually Sales Volume includes all. 
+        // Let's sum ALL for volume, or just Paid. Let's do ALL for now.
+        // grandTotal += o.total; 
+        
+        // Actually, for history, usually we track realized sales (Paid). 
+        if(role === 'vendor' && isPaid) grandTotal += o.total;
+        if(role === 'buyer' && !isPaid) grandTotal += o.total; // For buyers, show "Debt"? Or Total Spent?
+        // Let's stick to simple "Total Value" of all orders listed
+        // grandTotal += o.total;
+
+        const div = document.createElement('div');
+        div.className = 'hist-item';
+        div.innerHTML = `
+            <div style="flex:1;">
+                <div class="hist-date">${dateStr} • ${counterparty}</div>
+                <div class="hist-items">${itemsStr}</div>
+            </div>
+            <div style="text-align:right;">
+                <div class="hist-price">₱${o.total}</div>
+                <span class="hist-status" style="background:${isPaid ? '#dcfce7' : '#fee2e2'}; color:${isPaid ? '#166534' : '#991b1b'};">
+                    ${o.status}
+                </span>
+            </div>
+        `;
+        content.appendChild(div);
+    });
+
+    // Calculate Total based on the list
+    const totalVal = userOrders.reduce((sum, o) => sum + o.total, 0);
+    totalEl.innerText = `₱${totalVal.toLocaleString()}`;
+
+    openModal('userHistoryModal');
+}

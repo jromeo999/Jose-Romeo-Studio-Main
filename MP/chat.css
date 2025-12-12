@@ -1,0 +1,128 @@
+/* --- CHAT SYSTEM (v3: Black Theme & Bulk Actions) --- */
+
+/* 1. Floating Button */
+.chat-float-btn {
+    position: fixed; bottom: 25px; right: 25px;
+    width: 50px; height: 50px;
+    background: #18181b; /* Black */
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 20000 !important;
+    color: white; font-size: 1.5rem;
+    border: 2px solid white; transition: transform 0.2s;
+}
+.chat-float-btn:hover { transform: scale(1.1); background: #000; }
+
+.chat-badge {
+    position: absolute; top: -2px; right: -2px;
+    background: #ef4444; color: white;
+    font-size: 0.65rem; font-weight: 800;
+    min-width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid white;
+}
+
+/* 2. Window */
+.chat-window {
+    position: fixed; bottom: 70px; right: 30px;
+    width: 360px; height: 500px;
+    background: white; border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column;
+    z-index: 20001 !important; overflow: hidden;
+    opacity: 0; pointer-events: none; transform: translateY(20px);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid #e4e4e7;
+}
+.chat-window.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+
+/* Header */
+.chat-header {
+    background: #18181b; color: white;
+    padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+    font-weight: 600; font-size: 0.95rem;
+}
+.chat-actions { display: flex; gap: 10px; align-items: center; }
+.header-btn { cursor: pointer; opacity: 0.8; font-size: 0.85rem; transition: 0.2s; }
+.header-btn:hover { opacity: 1; color: #fff; }
+
+/* Inbox Items */
+.inbox-item {
+    padding: 12px; border-bottom: 1px solid #f4f4f5; cursor: pointer;
+    display: flex; align-items: center; gap: 12px; background: white; transition: 0.2s;
+}
+.inbox-item:hover { background: #f9fafb; }
+.inbox-item.unread { background: #eff6ff; border-left: 3px solid #2563EB; }
+
+/* Checkbox (Hidden by default) */
+.select-chk { display: none; width: 18px; height: 18px; accent-color: #18181b; }
+.selection-mode .select-chk { display: block; }
+
+/* Avatar */
+.inbox-avatar {
+    width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+    border: 1px solid #eee; background: #eee;
+}
+
+/* Texts */
+.inbox-info { flex: 1; overflow: hidden; }
+.inbox-top { display: flex; justify-content: space-between; align-items: baseline; }
+.inbox-name { font-weight: 700; font-size: 0.9rem; color: #18181b; }
+.inbox-acc { font-size: 0.7rem; color: #71717a; margin-left: 4px; font-weight: 400; }
+.inbox-preview { 
+    font-size: 0.8rem; color: #71717a; 
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+    margin-top: 2px; 
+}
+.unread .inbox-preview { font-weight: 600; color: #18181b; }
+.inbox-time { font-size: 0.65rem; color: #a1a1aa; }
+
+/* Selection Footer */
+.bulk-actions {
+    background: #f4f4f5; padding: 10px 16px; border-top: 1px solid #e4e4e7;
+    display: none; justify-content: space-between; align-items: center;
+}
+.selection-mode .bulk-actions { display: flex; }
+.btn-del-chat { 
+    background: #ef4444; color: white; border: none; 
+    padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; 
+}
+
+/* Chat Messages */
+.chat-messages { flex: 1; background: #fff; overflow-y: auto; display: flex; flex-direction: column; }
+.chat-view-container { flex: 1; background: #f4f4f5; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+
+.msg {
+    max-width: 80%; padding: 8px 12px; border-radius: 12px;
+    font-size: 0.9rem; line-height: 1.4; word-wrap: break-word;
+}
+.msg.me { align-self: flex-end; background: #18181b; color: white; border-bottom-right-radius: 2px; }
+.msg.them { align-self: flex-start; background: white; color: #18181b; border: 1px solid #e4e4e7; border-bottom-left-radius: 2px; }
+
+/* Input */
+.chat-input-area { padding: 10px; background: white; border-top: 1px solid #e4e4e7; display: flex; gap: 8px; }
+.chat-input { flex: 1; border: 1px solid #e4e4e7; border-radius: 20px; padding: 10px 14px; outline: none; }
+.chat-send-btn { background: #18181b; color: white; border: none; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; }
+
+/* Utilities */
+.hidden { display: none !important; }
+@media (max-width: 600px) {
+    .chat-window { bottom: 0; right: 0; width: 100%; height: 85vh; border-radius: 0; border-top-left-radius: 16px; border-top-right-radius: 16px; }
+    .chat-float-btn { bottom: 30px; }
+}
+/* Add or Ensure this is in chat.css */
+
+.msg-time {
+    display: block;          /* Forces it to a new line inside the bubble */
+    font-size: 0.65rem;      /* Very small text */
+    margin-top: 4px;         /* Space between text and time */
+    text-align: right;       /* Align to right */
+    opacity: 0.6;            /* Faded look */
+    font-weight: 400;
+}
+
+/* Optional: Make time slightly lighter on black bubbles for contrast */
+.msg.me .msg-time {
+    color: #e4e4e7;
+}

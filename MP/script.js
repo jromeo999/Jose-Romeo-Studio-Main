@@ -17,6 +17,8 @@ const firebaseConfig = {
 const DEFAULT_AVATAR = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjRTRFNEU3Ii8+PHBhdGggZD0iTTI0IDIwLjk5M1YyNEgwdi0yLjk5NkExNC45NzcgMTQuOTc3IDAgMDExMi4wMDQgMTVjNC45MDQgMCA5LjI2IDIuMzU0IDExLjk5NiA1Ljk5M3pNMTYuMDAyIDguOTk5YTQgNCAwIDExLTggMCA0IDQgMCAwMTggMHoiIGZpbGw9IiNBMUExQUEiLz48L3N2Zz4=";
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+window.db = db; 
+window.appGlobal = { currentUser: null }; 
 
 // GLOBAL STATE
 let currentUser = null; 
@@ -133,7 +135,7 @@ window.submitRecovery = async function() {
 // --- LISTENERS ---
 onSnapshot(collection(db, "vendors"), (snapshot) => {
     validVendors = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, role: 'vendor' }));
-    
+    window.appGlobal.validVendors = validVendors;
     // Re-render buyer grids when vendor data loads
     renderBuyerCards(document.getElementById('buyerTodayGrid'), false);
     renderBuyerCards(document.getElementById('buyerPreOrderGrid'), true);
@@ -143,7 +145,7 @@ onSnapshot(collection(db, "vendors"), (snapshot) => {
 
 onSnapshot(collection(db, "buyers"), (snapshot) => {
     validBuyers = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id, role: 'buyer' }));
-    
+    window.appGlobal.validBuyers = validBuyers;
     // IF ADMIN IS LOGGED IN, REFRESH THE BUYER LIST INSTANTLY
     if(currentUser && currentUser.role === 'admin') {
         const searchVal = document.getElementById('adminBuyerSearch') ? document.getElementById('adminBuyerSearch').value : '';
@@ -394,9 +396,10 @@ window.loginAdmin = async function() {
 
 function loginUser(user) {
     currentUser = user;
+    window.appGlobal.currentUser = user;
+    if(window.startChatListener) window.startChatListener();
     previousPendingCount = 0;
-    document.getElementById('codeJson').value = '';
-    
+    document.getElementById('codeJson').value = ''; 
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('userControls').classList.remove('hidden');
     
@@ -443,6 +446,12 @@ function loginUser(user) {
         document.getElementById('vendorView').classList.add('hidden');
         document.getElementById('buyerView').classList.remove('hidden');
         document.getElementById('vendorFloatBell').classList.add('hidden');
+    }
+    if (window.startChatListener) {
+        console.log("Triggering Listener from script.js..."); 
+        window.startChatListener();
+    } else {
+        console.error("startChatListener NOT found in window!");
     }
 }
 
@@ -1446,7 +1455,7 @@ function renderBuyerCards(container, showPreOrders, isCompact = false, excludeVe
             paymentButtonsHTML += `<button class="pay-btn" data-type="bank" 
                 onclick="togglePayment(this, '${v.code}', '${btoa(detailsText)}', '${detailsQR}')">Bank Transfer</button>`;
         }
-
+        
         // HIDDEN ACTIONS & UPLOAD
         const bankActionsHTML = `
             <div id="bank-actions-${v.code}" class="bank-actions hidden">
@@ -2072,6 +2081,7 @@ function renderVendorOrders() {
 // GENERIC USER INFO CARD
 window.openUserInfo = function(userCode, userRole = 'buyer') {
     let user;
+    // 1. Find the User Data
     if (userRole === 'vendor') {
         user = validVendors.find(v => v.code === userCode);
     } else {
@@ -2088,22 +2098,34 @@ window.openUserInfo = function(userCode, userRole = 'buyer') {
         joinedText = date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
-    // LOGIC UPDATED: 
-    // Show Report Button ONLY if:
-    // 1. User is logged in
-    // 2. Not looking at themselves
-    // 3. AND IS NOT AN ADMIN
-    let reportBtnHtml = '';
-    if(currentUser && currentUser.code !== userCode && currentUser.role !== 'admin') {
-        reportBtnHtml = `
-            <button class="btn-report-user" onclick="openReportModal('${userCode}', '${uName}')">
-                🚩 Report User
+    // 2. LOGIC: Action Buttons (Chat & Report)
+    let actionButtons = '';
+    
+    // Only show buttons if logged in AND not looking at myself
+    if(currentUser && currentUser.code !== userCode) {
+        
+        // A. CHAT BUTTON (Primary Action)
+        // We close the modal ('userInfoModal') immediately so the Chat Window can take focus
+        actionButtons += `
+            <button onclick="closeModalById('userInfoModal'); openChat('${userCode}', '${uName}')" 
+                style="width:100%; background:#2563EB; color:white; border:none; padding:12px; border-radius:12px; font-weight:700; margin-top:20px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 6px rgba(37,99,235,0.2);">
+                💬 Send Message
             </button>
         `;
+
+        // B. REPORT BUTTON (Secondary Action - Only if not Admin)
+        if(currentUser.role !== 'admin') {
+            actionButtons += `
+                <button class="btn-report-user" onclick="openReportModal('${userCode}', '${uName}')" style="margin-top:10px;">
+                    🚩 Report User
+                </button>
+            `;
+        }
     }
 
     const container = document.getElementById('userCardContainer');
     
+    // 3. RENDER CARD
     container.innerHTML = `
         <div class="profile-card-wrapper">
             <div class="pc-header"></div>
@@ -2127,7 +2149,7 @@ window.openUserInfo = function(userCode, userRole = 'buyer') {
                     </div>
                 </div>
                 
-                ${reportBtnHtml}
+                ${actionButtons}
             </div>
         </div>
     `;

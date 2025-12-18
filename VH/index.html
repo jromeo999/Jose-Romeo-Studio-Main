@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    <title>SOS Vibe Hub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- GLOBAL AUDIO ENGINE (Hidden) -->
+    <audio id="audio-engine" preload="none"></audio>
+
+    <!-- TOAST & OVERLAYS -->
+    <div id="toast-container"></div>
+    <input type="file" id="upload-avatar" hidden accept="image/*" onchange="handleProfileUpload(event, 'avatar')">
+    <input type="file" id="upload-cover" hidden accept="image/*" onchange="handleProfileUpload(event, 'cover')">
+
+    <!-- LIGHTBOX -->
+    <div id="lightbox" class="lightbox hidden">
+        <button class="lightbox-close">&times;</button>
+        <div class="lightbox-content"><img id="lightbox-img" src=""></div>
+    </div>
+
+    <!-- USER PROFILE MODAL (The "Quick View") -->
+    <div id="user-modal" class="modal-overlay hidden">
+        <div class="modal-box large glass-modal">
+            <button class="modal-close-btn" onclick="closeModal('user-modal')">&times;</button>
+            <div class="profile-card no-shadow">
+                <div class="cover-photo" id="modal-cover"></div>
+                <div class="profile-info">
+                    <div class="avatar-wrapper"><img id="modal-avatar" class="avatar-lg"></div>
+                    <h3 id="modal-name">Name</h3>
+                    <p id="modal-title" class="text-muted">Title</p>
+                    <button id="modal-connect-btn" class="btn btn-outline btn-sm" style="margin-top:10px;">Connect</button>
+                </div>
+            </div>
+            <div class="separator"></div>
+            <div id="modal-posts" class="feed-scrollable"></div>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div class="app-container">
+
+        <!-- GUEST LANDING -->
+        <section id="view-guest" class="view">
+            <header class="guest-header">
+    <a href="#" onclick="if(window.firebaseApp && window.currentUser){ router('home'); return false; } else { window.location.reload(); return false; }" class="brand">
+        <img src="assets/icon.png" alt="Brand Logo">
+        <div class="brand-logo">VIBE.</div>
+    </a>
+    <button class="btn btn-primary" onclick="openModal('login-modal')">Access</button>
+</header>
+            <div class="guest-hero">
+                <h1>Minimal. Social. Audio.</h1>
+                <p>Build your network. Stream the archives.</p>
+                <button class="btn btn-outline" onclick="openModal('register-modal')">Create Account</button>
+            </div>
+        </section>
+
+        <!-- USER INTERFACE -->
+        <section id="view-user" class="view hidden">
+            
+            <!-- Desktop Header -->
+            <!-- Desktop Header -->
+<header class="user-header sticky-header">
+    <a href="#" onclick="router('home'); return false;" class="brand">
+        <img src="assets/icon.png" alt="Brand Logo">
+        <div class="brand-logo">VIBE.</div>
+    </a>
+    
+    <nav class="desktop-nav">
+        <!-- HOME ICON -->
+     <button class="nav-btn active" data-target="home" onclick="router('home')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        </button>
+        <button class="nav-btn" data-target="network" onclick="router('network')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg>
+        </button>
+        <button class="nav-btn" data-target="music" onclick="router('music')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+        </button>
+        <button class="nav-btn" data-target="dms" onclick="router('dms')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </button>
+
+        <!-- Notification Bell -->
+        <div class="dropdown" style="height: 100%; display: flex; align-items: center;">
+            <button class="nav-btn" onclick="toggleDropdown('notif-dropdown'); markNotifsRead()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                <span id="notif-badge" class="badge hidden"></span>
+            </button>
+            <div id="notif-dropdown" class="dropdown-content notif-content hidden" style="top: 60px;">
+                <div id="notif-list"></div>
+            </div>
+        </div>
+
+        <!-- Profile Dropdown -->
+        <div class="dropdown" style="height: 100%; display: flex; align-items: center;">
+            <img id="nav-profile-img" src="" class="avatar-sm" onclick="toggleDropdown('nav-dropdown')">
+            <div id="nav-dropdown" class="dropdown-content hidden" style="top: 60px;">
+                <a onclick="router('settings')">Settings</a>
+                <a onclick="logout()" class="danger-text">Log Out</a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+            <main class="main-grid">
+    
+    <!-- ==========================================
+         COLUMN 1: LEFT SIDEBAR (Profile)
+         ========================================== -->
+    <aside class="col-left sticky-col">
+        <div class="card profile-card">
+            <div class="cover-photo-wrapper" id="draggable-cover" onclick="handleCoverClick(event)">
+                <div class="cover-photo" id="side-cover-photo"></div>
+                <div class="cover-controls" id="std-controls">
+                    <button class="control-icon-btn" onclick="triggerProfileUpload('cover', event)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></button>
+                    <button class="control-icon-btn" onclick="toggleCoverMenu(event)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button>
+                </div>
+                <div class="reposition-controls hidden" id="repo-controls">
+                    <div class="repo-text">Drag to adjust</div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-sm btn-secondary" style="background:rgba(0,0,0,0.6); color:white;" onclick="cancelReposition(event)">Cancel</button>
+                        <button class="btn btn-sm btn-primary" onclick="saveReposition(event)">Save</button>
+                    </div>
+                </div>
+                <div id="cover-menu" class="dropdown-content hidden" style="top: 40px; right: 10px; width: 150px;">
+                    <a onclick="startReposition(event)">Reposition</a>
+                    <a onclick="removeCover()" class="danger-text">Remove Photo</a>
+                </div>
+            </div>
+
+            <div class="profile-info">
+                <div class="avatar-wrapper" onclick="handleAvatarClick(event)">
+                    <img id="side-profile-img" src="" class="avatar-lg">
+                    <div class="edit-icon circle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div>
+                </div>
+                <h3 id="side-profile-name" class="profile-name-large">...</h3>
+                <p id="side-profile-account" class="profile-title-small">...</p>
+                <div class="vibe-circle-box">
+                    <span class="vibe-label">Vibe Circle</span>
+                    <span class="stat-num vibe-count" id="side-connections">0</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ==========================================
+         COLUMN 2: CENTER CONTENT (Feed, Music, etc)
+         ========================================== -->
+    <section id="content-area" class="col-center">
+        
+        <!-- HOME PAGE -->
+        <div id="page-home" class="sub-view">
+            <div class="card create-post">
+                <textarea id="post-input" placeholder="Share your frequency..."></textarea>
+                <div class="post-actions">
+                    <button class="icon-btn" onclick="triggerFileInput()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="createPost()">Post</button>
+                </div>
+                <input type="file" id="post-file" hidden onchange="handleFileSelect(event)">
+                <div id="preview-area"></div>
+            </div>
+            <div class="separator"></div>
+            <div id="feed-container"></div>
+        </div>
+
+        <!-- NETWORK PAGE (Updated with Discover) -->
+        <div id="page-network" class="sub-view hidden">
+            <div class="card">
+                <div class="flex-between">
+                    <h3>Manage Vibes</h3>
+                    <div class="stats-pill">Pending: <span id="pending-count">0</span></div>
+                </div>
+            </div>
+            <div id="pending-list" class="vertical-list"></div>
+            <div class="separator"></div>
+            <div class="card"><h3>My Circle (<span id="net-count">0</span>)</h3></div>
+            <div id="my-network-list" class="vertical-list"></div>
+            <div class="separator"></div>
+            <div class="card">
+                <h3>Discover</h3>
+                <p class="text-muted">People you should vibe with.</p>
+            </div>
+            <div id="network-suggestions-list" class="vertical-list" style="padding-bottom: 20px;"></div>
+        </div>
+
+        <!-- MUSIC PAGE (Fixing the layout issue) -->
+        <div id="page-music" class="sub-view hidden">
+            <div class="music-tabs">
+                <button id="tab-search" class="tab-btn active" onclick="switchMusicTab('search')">Search Archive</button>
+                <button id="tab-library" class="tab-btn" onclick="switchMusicTab('library')">My Playlist</button>
+            </div>
+
+            <div id="view-music-search">
+                <div class="card search-music">
+                    <div class="input-with-icon">
+                        <input type="text" id="music-search-input" placeholder="Search Genre, Artist, or Vibe...">
+                    </div>
+                    <button class="btn btn-primary" onclick="searchMusic()" style="width:100%">Find Vibes</button>
+                </div>
+                <div id="music-results" class="music-grid"></div>
+            </div>
+
+            <div id="view-music-library" class="hidden">
+                <div class="card">
+                    <h3>My Collection</h3>
+                    <p class="text-muted">Your saved tracks.</p>
+                </div>
+                <div id="library-list" class="vertical-list"></div>
+            </div>
+        </div>
+        <div id="floating-player" class="player-bar hidden">
+    <!-- 1. Spinning Art -->
+    <div class="track-art">
+    <img id="player-art-img" src="" class="hidden" onerror="this.classList.add('hidden'); document.getElementById('player-art-fallback').classList.remove('hidden');">
+    <span id="player-art-fallback">🎵</span>
+</div>
+    
+    <!-- 2. Info Area -->
+    <div class="track-info" style="display:block; overflow:hidden;">
+        <!-- MARQUEE CONTAINER -->
+        <div class="track-title-container">
+            <div id="player-title" class="track-title">Select a Track</div>
+        </div>
+        
+        <!-- ARTIST & TIME ROW -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+            <div id="player-artist" class="track-artist">Unknown</div>
+            <div id="player-time">0:00 / 0:00</div> <!-- NEW TIME DISPLAY -->
+        </div>
+    </div>
+
+    <!-- 3. Controls -->
+    <div class="player-controls">
+        <button class="control-btn" onclick="playPrev()">⏮</button>
+        <button class="play-btn" onclick="togglePlay()">
+            <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <svg id="pause-icon" class="hidden" width="20" height="20" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        </button>
+        <button class="control-btn" onclick="playNext()">⏭</button>
+    </div>
+</div>
+
+
+        <!-- DMs PAGE -->
+        <div id="page-dms" class="sub-view hidden">
+            <div class="dm-wrapper card">
+                <div class="dm-header-top">
+                    <div class="input-with-icon" style="flex:1; margin:0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" placeholder="Search DMs..." style="margin:0; border:none; padding:8px 0;">
+                    </div>
+                    <button class="icon-btn" onclick="showNewMsgModal()" title="New Message">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                </div>
+                <div class="dm-body">
+                    <div class="dm-sidebar">
+                        <div id="dm-list" class="dm-users-list"></div>
+                    </div>
+                    <div class="dm-chat-area">
+                        <div id="chat-header" class="chat-header hidden">
+                            <img id="chat-img" class="avatar-sm"> <span id="chat-name">User</span>
+                        </div>
+                        <div id="chat-messages" class="chat-messages">
+                            <div class="empty-state">Select a conversation</div>
+                        </div>
+                        <div id="chat-input-area" class="chat-input-area hidden">
+                            <button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
+                            <input type="text" id="msg-input" placeholder="Message...">
+                            <button class="btn btn-primary btn-sm" onclick="sendMessage()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS PAGE -->
+        <div id="page-settings" class="sub-view hidden">
+            <div class="card">
+                <h3>Settings</h3>
+                <div class="flex-between" style="margin-bottom: 20px;">
+                    <span>Dark Mode</span>
+                    <button class="btn btn-outline btn-sm" onclick="toggleDarkMode()">Toggle</button>
+                </div>
+                <div class="input-group">
+                    <label>Update Access Code</label>
+                    <input type="password" id="set-pass" placeholder="New Code">
+                </div>
+                <button class="btn btn-primary" onclick="saveSettings()">Update</button>
+                <hr class="separator">
+                <div class="action-stack">
+                    <button class="btn btn-secondary mobile-only-btn" onclick="logout()">Log Out</button>
+                    <button class="btn btn-outline" onclick="deactivateAccount()">Deactivate Account</button>
+                    <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+                </div>
+            </div>
+        </div>
+
+    </section> <!-- END OF COL-CENTER -->
+
+    <!-- ==========================================
+         COLUMN 3: RIGHT SIDEBAR (Suggestions)
+         ========================================== -->
+    <aside class="col-right sticky-col">
+        <div class="card">
+            <h3>Vibe Network</h3>
+            <div id="suggestions-list" class="user-list-vertical"></div>
+        </div>
+    </aside>
+
+</main>
+            <!-- MOBILE NAV -->
+            <nav class="mobile-nav">
+    <button onclick="router('home')" data-target="home">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    </button>
+    <button onclick="router('network')" data-target="network">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg>
+    </button>
+    <button onclick="router('music')" data-target="music">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+    </button>
+    <button onclick="router('dms')" data-target="dms">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    </button>
+    <!-- CHANGED: Now calls openUserModal with current ID -->
+    <button onclick="return router('settings');">
+        <img id="mobile-nav-img" src="" class="avatar-xs">
+    </button>
+</nav>
+
+        </section>
+    </div>
+
+    <!-- AUTH MODALS -->
+    <div id="login-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2>Vibe Back In.</h2>
+            <input type="text" id="login-user" placeholder="Username">
+            <input type="password" id="login-pass" placeholder="Access Code">
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('login-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="login()">Enter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="register-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2>New Vibe.</h2>
+            <input type="text" id="reg-name" placeholder="Full Name">
+            <input type="text" id="reg-title" placeholder="Account Title (e.g. Artist)">
+            <input type="text" id="reg-user" placeholder="Username (Unique ID)">
+            <input type="password" id="reg-pass" placeholder="Access Code">
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('register-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="register()">Join</button>
+            </div>
+        </div>
+    </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+    import { 
+        getFirestore, collection, doc, addDoc, setDoc, updateDoc, 
+        arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, increment, deleteDoc 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { 
+        getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+        signOut, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDQJYhC0oYI2o0xb-jGpT-jvfN47NBtj64",
+        authDomain: "the-marketplace-41cac.firebaseapp.com",
+        projectId: "the-marketplace-41cac",
+        storageBucket: "the-marketplace-41cac.firebasestorage.app",
+        messagingSenderId: "186606367622",
+        appId: "1:186606367622:web:9b47c174b1c72443463207",
+        measurementId: "G-PP05V63NY9"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const dbFS = getFirestore(app); 
+    const auth = getAuth(app);
+
+    // --- EXPOSE TO SCRIPT.JS ---
+    window.firebaseApp = { 
+        dbFS, 
+        auth, 
+        collection, 
+        doc, 
+        addDoc, 
+        setDoc, 
+        updateDoc, 
+        arrayUnion, 
+        arrayRemove, 
+        onSnapshot, // <--- THIS WAS MISSING
+        query, 
+        where, 
+        orderBy, 
+        increment, 
+        deleteDoc, 
+        createUserWithEmailAndPassword, 
+        signInWithEmailAndPassword, 
+        signOut 
+    };
+</script>
+<script type="module" src="script.js"></script>
+</body>
+</html>

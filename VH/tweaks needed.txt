@@ -1,0 +1,2185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    <title>SOS Vibe Hub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- GLOBAL AUDIO ENGINE (Hidden) -->
+    <audio id="audio-engine" preload="none"></audio>
+
+    <!-- TOAST & OVERLAYS -->
+    <div id="toast-container"></div>
+    <input type="file" id="upload-avatar" hidden accept="image/*" onchange="handleProfileUpload(event, 'avatar')">
+    <input type="file" id="upload-cover" hidden accept="image/*" onchange="handleProfileUpload(event, 'cover')">
+
+    <!-- LIGHTBOX -->
+    <div id="lightbox" class="lightbox hidden">
+        <button class="lightbox-close">&times;</button>
+        <div class="lightbox-content"><img id="lightbox-img" src=""></div>
+    </div>
+
+    <!-- USER PROFILE MODAL (The "Quick View") -->
+    <div id="user-modal" class="modal-overlay hidden">
+        <div class="modal-box large glass-modal">
+            <button class="modal-close-btn" onclick="closeModal('user-modal')">&times;</button>
+            <div class="profile-card no-shadow">
+                <div class="cover-photo" id="modal-cover"></div>
+                <div class="profile-info">
+                    <div class="avatar-wrapper"><img id="modal-avatar" class="avatar-lg"></div>
+                    <h3 id="modal-name">Name</h3>
+                    <p id="modal-title" class="text-muted">Title</p>
+                    <button id="modal-connect-btn" class="btn btn-outline btn-sm" style="margin-top:10px;">Connect</button>
+                </div>
+            </div>
+            <div class="separator"></div>
+            <div id="modal-posts" class="feed-scrollable"></div>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div class="app-container">
+
+        <!-- GUEST LANDING -->
+        <section id="view-guest" class="view">
+            <header class="guest-header">
+                <a href="index.html" class="brand">
+  <img src="assets/icon.png" alt="Brand Logo">
+  <div class="brand-logo">VIBE.</div>
+</a>
+                <button class="btn btn-primary" onclick="openModal('login-modal')">Access</button>
+            </header>
+            <div class="guest-hero">
+                <h1>Minimal. Social. Audio.</h1>
+                <p>Build your network. Stream the archives.</p>
+                <button class="btn btn-outline" onclick="openModal('register-modal')">Create Account</button>
+            </div>
+        </section>
+
+        <!-- USER INTERFACE -->
+        <section id="view-user" class="view hidden">
+            
+            <!-- Desktop Header -->
+            <!-- Desktop Header -->
+<header class="user-header sticky-header">
+    <a href="index.html" class="brand">
+  <img src="assets/icon.png" alt="Brand Logo">
+  <div class="brand-logo">VIBE.</div>
+</a>
+    
+    <nav class="desktop-nav">
+        <!-- HOME ICON -->
+        <button class="nav-btn active" data-target="home" onclick="router('home')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        </button>
+        
+        <!-- NETWORK ICON -->
+        <button class="nav-btn" data-target="network" onclick="router('network')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg>
+        </button>
+        
+        <!-- MUSIC ICON -->
+        <button class="nav-btn" data-target="music" onclick="router('music')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+        </button>
+        
+        <!-- DMs ICON -->
+        <button class="nav-btn" data-target="dms" onclick="router('dms')">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </button>
+
+        <!-- NOTIFICATIONS (Bell) -->
+        <div class="dropdown" style="height: 100%; display: flex; align-items: center;">
+            <button class="nav-btn" onclick="toggleDropdown('notif-dropdown'); markNotifsRead()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                <span id="notif-badge" class="badge hidden"></span>
+            </button>
+            <div id="notif-dropdown" class="dropdown-content notif-content hidden" style="top: 60px;">
+                <div id="notif-list"></div>
+            </div>
+        </div>
+
+        <!-- PROFILE DROPDOWN -->
+        <div class="dropdown" style="height: 100%; display: flex; align-items: center;">
+            <img id="nav-profile-img" src="" class="avatar-sm" onclick="toggleDropdown('nav-dropdown')">
+            <div id="nav-dropdown" class="dropdown-content hidden" style="top: 60px;">
+                <a onclick="router('settings')">Settings</a>
+                <a onclick="logout()" class="danger-text">Log Out</a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+            <main class="main-grid">
+    
+    <!-- ==========================================
+         COLUMN 1: LEFT SIDEBAR (Profile)
+         ========================================== -->
+    <aside class="col-left sticky-col">
+        <div class="card profile-card">
+            <div class="cover-photo-wrapper" id="draggable-cover" onclick="handleCoverClick(event)">
+                <div class="cover-photo" id="side-cover-photo"></div>
+                <div class="cover-controls" id="std-controls">
+                    <button class="control-icon-btn" onclick="triggerProfileUpload('cover', event)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></button>
+                    <button class="control-icon-btn" onclick="toggleCoverMenu(event)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button>
+                </div>
+                <div class="reposition-controls hidden" id="repo-controls">
+                    <div class="repo-text">Drag to adjust</div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-sm btn-secondary" style="background:rgba(0,0,0,0.6); color:white;" onclick="cancelReposition(event)">Cancel</button>
+                        <button class="btn btn-sm btn-primary" onclick="saveReposition(event)">Save</button>
+                    </div>
+                </div>
+                <div id="cover-menu" class="dropdown-content hidden" style="top: 40px; right: 10px; width: 150px;">
+                    <a onclick="startReposition(event)">Reposition</a>
+                    <a onclick="removeCover()" class="danger-text">Remove Photo</a>
+                </div>
+            </div>
+
+            <div class="profile-info">
+                <div class="avatar-wrapper" onclick="handleAvatarClick(event)">
+                    <img id="side-profile-img" src="" class="avatar-lg">
+                    <div class="edit-icon circle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></div>
+                </div>
+                <h3 id="side-profile-name" class="profile-name-large">...</h3>
+                <p id="side-profile-account" class="profile-title-small">...</p>
+                <div class="vibe-circle-box">
+                    <span class="vibe-label">Vibe Circle</span>
+                    <span class="stat-num vibe-count" id="side-connections">0</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ==========================================
+         COLUMN 2: CENTER CONTENT (Feed, Music, etc)
+         ========================================== -->
+    <section id="content-area" class="col-center">
+        
+        <!-- HOME PAGE -->
+        <div id="page-home" class="sub-view">
+            <div class="card create-post">
+                <textarea id="post-input" placeholder="Share your frequency..."></textarea>
+                <div class="post-actions">
+                    <button class="icon-btn" onclick="triggerFileInput()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="createPost()">Post</button>
+                </div>
+                <input type="file" id="post-file" hidden onchange="handleFileSelect(event)">
+                <div id="preview-area"></div>
+            </div>
+            <div class="separator"></div>
+            <div id="feed-container"></div>
+        </div>
+
+        <!-- NETWORK PAGE (Updated with Discover) -->
+        <div id="page-network" class="sub-view hidden">
+            <div class="card">
+                <div class="flex-between">
+                    <h3>Manage Vibes</h3>
+                    <div class="stats-pill">Pending: <span id="pending-count">0</span></div>
+                </div>
+            </div>
+            <div id="pending-list" class="vertical-list"></div>
+            <div class="separator"></div>
+            <div class="card"><h3>My Circle (<span id="net-count">0</span>)</h3></div>
+            <div id="my-network-list" class="vertical-list"></div>
+            <div class="separator"></div>
+            <div class="card">
+                <h3>Discover</h3>
+                <p class="text-muted">People you should vibe with.</p>
+            </div>
+            <div id="network-suggestions-list" class="vertical-list" style="padding-bottom: 20px;"></div>
+        </div>
+
+        <!-- MUSIC PAGE (Fixing the layout issue) -->
+        <div id="page-music" class="sub-view hidden">
+            <div class="music-tabs">
+                <button id="tab-search" class="tab-btn active" onclick="switchMusicTab('search')">Search Archive</button>
+                <button id="tab-library" class="tab-btn" onclick="switchMusicTab('library')">My Playlist</button>
+            </div>
+
+            <div id="view-music-search">
+                <div class="card search-music">
+                    <div class="input-with-icon">
+                        <input type="text" id="music-search-input" placeholder="Search Genre, Artist, or Vibe...">
+                    </div>
+                    <button class="btn btn-primary" onclick="searchMusic()" style="width:100%">Find Vibes</button>
+                </div>
+                <div id="music-results" class="music-grid"></div>
+            </div>
+
+            <div id="view-music-library" class="hidden">
+                <div class="card">
+                    <h3>My Collection</h3>
+                    <p class="text-muted">Your saved tracks.</p>
+                </div>
+                <div id="library-list" class="vertical-list"></div>
+            </div>
+        </div>
+        <div id="floating-player" class="player-bar hidden">
+    <!-- 1. Spinning Art -->
+    <div class="track-art">
+    <img id="player-art-img" src="" class="hidden" onerror="this.classList.add('hidden'); document.getElementById('player-art-fallback').classList.remove('hidden');">
+    <span id="player-art-fallback">🎵</span>
+</div>
+    
+    <!-- 2. Info Area -->
+    <div class="track-info" style="display:block; overflow:hidden;">
+        <!-- MARQUEE CONTAINER -->
+        <div class="track-title-container">
+            <div id="player-title" class="track-title">Select a Track</div>
+        </div>
+        
+        <!-- ARTIST & TIME ROW -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+            <div id="player-artist" class="track-artist">Unknown</div>
+            <div id="player-time">0:00 / 0:00</div> <!-- NEW TIME DISPLAY -->
+        </div>
+    </div>
+
+    <!-- 3. Controls -->
+    <div class="player-controls">
+        <button class="control-btn" onclick="playPrev()">⏮</button>
+        <button class="play-btn" onclick="togglePlay()">
+            <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <svg id="pause-icon" class="hidden" width="20" height="20" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        </button>
+        <button class="control-btn" onclick="playNext()">⏭</button>
+    </div>
+</div>
+
+
+        <!-- DMs PAGE -->
+        <div id="page-dms" class="sub-view hidden">
+            <div class="dm-wrapper card">
+                <div class="dm-header-top">
+                    <div class="input-with-icon" style="flex:1; margin:0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" placeholder="Search DMs..." style="margin:0; border:none; padding:8px 0;">
+                    </div>
+                    <button class="icon-btn" onclick="showNewMsgModal()" title="New Message">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                </div>
+                <div class="dm-body">
+                    <div class="dm-sidebar">
+                        <div id="dm-list" class="dm-users-list"></div>
+                    </div>
+                    <div class="dm-chat-area">
+                        <div id="chat-header" class="chat-header hidden">
+                            <img id="chat-img" class="avatar-sm"> <span id="chat-name">User</span>
+                        </div>
+                        <div id="chat-messages" class="chat-messages">
+                            <div class="empty-state">Select a conversation</div>
+                        </div>
+                        <div id="chat-input-area" class="chat-input-area hidden">
+                            <button class="icon-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></button>
+                            <input type="text" id="msg-input" placeholder="Message...">
+                            <button class="btn btn-primary btn-sm" onclick="sendMessage()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETTINGS PAGE -->
+        <div id="page-settings" class="sub-view hidden">
+            <div class="card">
+                <h3>Settings</h3>
+                <div class="flex-between" style="margin-bottom: 20px;">
+                    <span>Dark Mode</span>
+                    <button class="btn btn-outline btn-sm" onclick="toggleDarkMode()">Toggle</button>
+                </div>
+                <div class="input-group">
+                    <label>Update Access Code</label>
+                    <input type="password" id="set-pass" placeholder="New Code">
+                </div>
+                <button class="btn btn-primary" onclick="saveSettings()">Update</button>
+                <hr class="separator">
+                <div class="action-stack">
+                    <button class="btn btn-secondary mobile-only-btn" onclick="logout()">Log Out</button>
+                    <button class="btn btn-outline" onclick="deactivateAccount()">Deactivate Account</button>
+                    <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+                </div>
+            </div>
+        </div>
+
+    </section> <!-- END OF COL-CENTER -->
+
+    <!-- ==========================================
+         COLUMN 3: RIGHT SIDEBAR (Suggestions)
+         ========================================== -->
+    <aside class="col-right sticky-col">
+        <div class="card">
+            <h3>Vibe Network</h3>
+            <div id="suggestions-list" class="user-list-vertical"></div>
+        </div>
+    </aside>
+
+</main>
+            <!-- MOBILE NAV -->
+            <nav class="mobile-nav">
+    <button onclick="router('home')" data-target="home">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    </button>
+    <button onclick="router('network')" data-target="network">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path></svg>
+    </button>
+    <button onclick="router('music')" data-target="music">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+    </button>
+    <button onclick="router('dms')" data-target="dms">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    </button>
+    <button onclick="router('settings')">
+        <img id="mobile-nav-img" src="" class="avatar-xs">
+    </button>
+</nav>
+
+        </section>
+    </div>
+
+    <!-- AUTH MODALS -->
+    <div id="login-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2>Vibe Back In.</h2>
+            <input type="text" id="login-user" placeholder="Username">
+            <input type="password" id="login-pass" placeholder="Access Code">
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('login-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="login()">Enter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="register-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2>New Vibe.</h2>
+            <input type="text" id="reg-name" placeholder="Full Name">
+            <input type="text" id="reg-title" placeholder="Account Title (e.g. Artist)">
+            <input type="text" id="reg-user" placeholder="Username (Unique ID)">
+            <input type="password" id="reg-pass" placeholder="Access Code">
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('register-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="register()">Join</button>
+            </div>
+        </div>
+    </div>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+    import { 
+        getFirestore, collection, doc, addDoc, setDoc, updateDoc, 
+        arrayUnion, arrayRemove, onSnapshot, query, where, orderBy, increment, deleteDoc 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { 
+        getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+        signOut, onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDQJYhC0oYI2o0xb-jGpT-jvfN47NBtj64",
+        authDomain: "the-marketplace-41cac.firebaseapp.com",
+        projectId: "the-marketplace-41cac",
+        storageBucket: "the-marketplace-41cac.firebasestorage.app",
+        messagingSenderId: "186606367622",
+        appId: "1:186606367622:web:9b47c174b1c72443463207",
+        measurementId: "G-PP05V63NY9"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const dbFS = getFirestore(app); 
+    const auth = getAuth(app);
+
+    // --- EXPOSE TO SCRIPT.JS ---
+    window.firebaseApp = { 
+        dbFS, 
+        auth, 
+        collection, 
+        doc, 
+        addDoc, 
+        setDoc, 
+        updateDoc, 
+        arrayUnion, 
+        arrayRemove, 
+        onSnapshot, // <--- THIS WAS MISSING
+        query, 
+        where, 
+        orderBy, 
+        increment, 
+        deleteDoc, 
+        createUserWithEmailAndPassword, 
+        signInWithEmailAndPassword, 
+        signOut 
+    };
+</script>
+<script type="module" src="script.js"></script>
+</body>
+</html>
+
+/* =========================================
+   FIREBASE IMPORTS (From window object)
+   ========================================= */
+const { 
+    dbFS, auth, collection, doc, addDoc, setDoc, updateDoc, 
+    arrayUnion, arrayRemove, query, where, orderBy, increment, deleteDoc, onSnapshot,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut 
+} = window.firebaseApp;
+
+/* =========================================
+   STATE MANAGEMENT
+   ========================================= */
+let db = { users: [], posts: [], connections: [], messages: [], notifications: [], playlists: [] };
+let currentUser = null;
+let activeChat = null;
+let listeners = []; // Track active listeners to unsubscribe on logout
+
+/* =========================================
+   INITIALIZATION
+   ========================================= */
+function init() {
+    console.log("🔄 Initializing Vibe (Cloud Mode)...");
+
+    // 1. Auth State Listener
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            console.log("✅ Logged in as:", user.email); // Will show username@vibe.internal
+            
+            // Get User Profile from Firestore
+            const userRef = doc(dbFS, "users", user.uid);
+            const unsubUser = onSnapshot(userRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    currentUser = { id: user.uid, ...docSnap.data() };
+                    // User is found, load the rest of the app
+                    showView('view-user');
+                    setupRealtimeListeners();
+                    loadHome();
+                } else {
+                    // Auth exists but DB data is missing (rare edge case)
+                    console.warn("Profile missing. Logging out.");
+                    logout();
+                }
+            });
+            listeners.push(unsubUser);
+        } else {
+            console.log("No active session.");
+            currentUser = null;
+            showView('view-guest');
+            // Clean up listeners
+            listeners.forEach(unsub => unsub());
+            listeners = [];
+        }
+    });
+
+    // 2. Audio Listener
+    const audio = document.getElementById('audio-engine');
+    if(audio) audio.addEventListener('timeupdate', updateTimeDisplay);
+    
+    // 3. Dark Mode
+    if(localStorage.getItem('vibeDarkMode') === 'true') document.body.classList.add('dark-mode');
+    
+    // 4. Init Music State
+    if(typeof initMusicDB === 'function') initMusicDB();
+}
+
+/* =========================================
+   REALTIME DB SYNC
+   ========================================= */
+function setupRealtimeListeners() {
+    // 1. Users Sync
+    listeners.push(onSnapshot(collection(dbFS, "users"), (snap) => {
+        db.users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if(currentUser) refreshView();
+    }));
+
+    // 2. Posts Sync (Newest First)
+    const qPosts = query(collection(dbFS, "posts"), orderBy("timestamp", "desc"));
+    listeners.push(onSnapshot(qPosts, (snap) => {
+        db.posts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if(currentUser) refreshView();
+    }));
+
+    // 3. Connections Sync
+    listeners.push(onSnapshot(collection(dbFS, "connections"), (snap) => {
+        db.connections = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if(currentUser) refreshView();
+    }));
+
+    // 4. Messages Sync
+    const qMsgs = query(collection(dbFS, "messages"), orderBy("ts", "asc"));
+    listeners.push(onSnapshot(qMsgs, (snap) => {
+        db.messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if(activeChat) renderMessages();
+    }));
+
+    // 5. Notifications Sync
+    const qNotifs = query(collection(dbFS, "notifications"), orderBy("timestamp", "desc"));
+    listeners.push(onSnapshot(qNotifs, (snap) => {
+        db.notifications = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderNotifs();
+    }));
+    
+    // 6. Playlists Sync
+    listeners.push(onSnapshot(collection(dbFS, `users/${currentUser.id}/playlists`), (snap) => {
+        db.playlists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderLibrary();
+    }));
+}
+
+/* =========================================
+   AUTH (USERNAME & ACCESS CODE)
+   ========================================= */
+async function register() {
+    const n = document.getElementById('reg-name').value;
+    const t = document.getElementById('reg-title').value;
+    const u = document.getElementById('reg-user').value.trim(); // Username
+    const p = document.getElementById('reg-pass').value; // Access Code
+    
+    if(!n || !u || !p) return showToast('Fill all fields');
+    if(p.length < 6) return showToast('Access Code must be 6+ chars');
+
+    // GHOST EMAIL STRATEGY: 
+    // We attach a fake domain so Firebase handles the security, 
+    // but you never store or ask for a real email.
+    const ghostEmail = `${u}@vibe.internal`.toLowerCase();
+
+    try {
+        // 1. Create secure auth record
+        const userCred = await createUserWithEmailAndPassword(auth, ghostEmail, p);
+        const uid = userCred.user.uid;
+
+        // 2. Create public profile in Database
+        const newUser = { 
+            name: n, 
+            title: t, 
+            username: u, 
+            avatar: '', 
+            cover: '',
+            coverPosY: 50
+        };
+        
+        await setDoc(doc(dbFS, "users", uid), newUser);
+        
+        // 3. Init Playlist
+        await addDoc(collection(dbFS, `users/${uid}/playlists`), {
+            name: 'My Vibes', tracks: [], isOpen: true, timestamp: Date.now()
+        });
+
+        closeModal('register-modal');
+        showToast("Account Created! Logging in...");
+    } catch (error) {
+        console.error("Reg Error:", error);
+        if(error.code === 'auth/email-already-in-use') showToast("Username taken");
+        else showToast("Error: " + error.message);
+    }
+}
+
+async function login() {
+    const u = document.getElementById('login-user').value.trim();
+    const p = document.getElementById('login-pass').value;
+    
+    // Convert Username back to Ghost Email to log in
+    const ghostEmail = `${u}@vibe.internal`.toLowerCase();
+
+    try {
+        await signInWithEmailAndPassword(auth, ghostEmail, p);
+        closeModal('login-modal');
+        showToast("Welcome Back");
+    } catch (error) {
+        console.error("Login Error:", error);
+        showToast("Invalid Username or Access Code");
+    }
+}
+
+function logout() {
+    signOut(auth).then(() => window.location.reload());
+}
+
+async function deleteAccount() {
+    if(confirm('Delete account? This is permanent.')) {
+        try {
+            await deleteDoc(doc(dbFS, "users", currentUser.id));
+            const user = auth.currentUser;
+            await user.delete();
+            window.location.reload();
+        } catch(e) {
+            showToast("Error: " + e.message);
+        }
+    }
+}
+
+function deactivateAccount() {
+    if(confirm('Log out of session?')) logout();
+}
+
+/* =========================================
+   IMAGE HANDLING (Base64)
+   ========================================= */
+function compressImage(file, callback) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 500; 
+            const scaleSize = MAX_WIDTH / img.width;
+            canvas.width = MAX_WIDTH;
+            canvas.height = img.height * scaleSize;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            callback(dataUrl);
+        };
+    };
+}
+
+function triggerProfileUpload(type, event) { 
+    if(event) event.stopPropagation();
+    document.getElementById(`upload-${type}`).click(); 
+}
+
+function handleProfileUpload(e, type) {
+    const f = e.target.files[0];
+    if(!f) return;
+
+    compressImage(f, async (compressedData) => {
+        const updates = {};
+        if(type === 'avatar') updates.avatar = compressedData;
+        if(type === 'cover') updates.cover = compressedData;
+        
+        try {
+            await updateDoc(doc(dbFS, "users", currentUser.id), updates);
+            showToast("Image Uploaded");
+        } catch(err) {
+            showToast("Upload failed");
+        }
+    });
+}
+
+/* =========================================
+   UI & ROUTING
+   ========================================= */
+function showView(id) {
+    document.querySelectorAll('.view').forEach(e => e.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+}
+
+function router(page) {
+    document.querySelectorAll('.dropdown-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.sub-view').forEach(e => e.classList.add('hidden'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.nav-btn[data-target="${page}"]`)?.classList.add('active');
+    
+    document.getElementById(`page-${page}`).classList.remove('hidden');
+    
+    if(page === 'home') { renderFeed(); renderSuggestions(); }
+    if(page === 'network') { renderNetwork(); renderSuggestions(); } 
+    if(page === 'dms') renderDMs();
+    if(page === 'settings') document.getElementById('set-pass').value = ''; // Don't show pass
+    
+    updateProfileUI();
+}
+
+function loadHome() { router('home'); renderNotifs(); updateProfileUI(); }
+
+function refreshView() {
+    if(!document.getElementById('page-home').classList.contains('hidden')) renderFeed();
+    if(!document.getElementById('page-network').classList.contains('hidden')) renderNetwork();
+    if(!document.getElementById('page-dms').classList.contains('hidden')) renderDMs();
+    renderNotifs();
+    updateProfileUI();
+}
+
+function updateProfileUI() {
+    if(!currentUser) return;
+    
+    document.getElementById('side-profile-name').innerText = currentUser.name;
+    document.getElementById('side-profile-account').innerText = currentUser.title || currentUser.username;
+    
+    const ava = currentUser.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23e5e7eb'/%3E%3C/svg%3E";
+    
+    ['side-profile-img', 'nav-profile-img', 'mobile-nav-img'].forEach(id => {
+        if(document.getElementById(id)) document.getElementById(id).src = ava;
+    });
+    
+    if(currentUser.cover) {
+        document.getElementById('side-cover-photo').style.backgroundImage = `url(${currentUser.cover})`;
+        document.getElementById('side-cover-photo').style.backgroundPosition = `center ${currentUser.coverPosY || 50}%`;
+    } else {
+        document.getElementById('side-cover-photo').style.backgroundImage = '';
+    }
+    
+    const count = db.connections.filter(c => c.status === 'accepted' && (c.from === currentUser.id || c.to === currentUser.id)).length;
+    ['side-connections', 'net-count'].forEach(id => {
+        if(document.getElementById(id)) document.getElementById(id).innerText = count;
+    });
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('vibeDarkMode', document.body.classList.contains('dark-mode'));
+}
+
+async function saveSettings() {
+    showToast('Settings Saved (Code change requires re-login)');
+}
+
+/* =========================================
+   FEED & POSTS
+   ========================================= */
+function renderFeed(filterMe = false) {
+    const c = filterMe ? document.getElementById('my-posts-container') : document.getElementById('feed-container');
+    if(!c) return;
+    c.innerHTML = '';
+    
+    let posts = db.posts;
+    if(filterMe) posts = posts.filter(p => p.userId === currentUser.id);
+    
+    posts.forEach(post => {
+        const u = db.users.find(x => x.id === post.userId) || {name:'Unknown', avatar:'', username:'?'};
+        const isLiked = post.likedBy && post.likedBy.includes(currentUser.id);
+        const heartFill = isLiked ? 'var(--primary)' : 'none';
+        
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+            <div class="feed-header">
+                <img src="${u.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23e5e7eb'/%3E%3C/svg%3E"}" class="avatar-sm" style="cursor:pointer" onclick="openUserModal('${u.id}')">
+                <div>
+                    <div style="font-weight:bold; cursor:pointer" onclick="openUserModal('${u.id}')">${u.name}</div>
+                    <div class="text-muted">${u.title || '@'+u.username}</div>
+                </div>
+            </div>
+            <div class="feed-content">${post.content}</div>
+            <div class="feed-img-grid">
+                ${post.imgs.map(src => `<img src="${src}" onclick="openLbox('${src}')">`).join('')}
+            </div>
+            <div class="feed-actions">
+                <div class="action-item" onclick="likePost('${post.id}', '${post.userId}')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="${heartFill}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    <span style="${isLiked ? 'color:var(--primary); font-weight:bold;' : ''}">${post.likes}</span>
+                </div>
+                <div class="action-item" onclick="document.getElementById('c-${post.id}').classList.toggle('hidden')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    ${post.comments ? post.comments.length : 0}
+                </div>
+            </div>
+            <div id="c-${post.id}" class="hidden">
+                ${(post.comments || []).map(cm => `<div class="comment-bubble"><b>${cm.user}</b> ${cm.text} <span class="reply-btn" onclick="replyTo('${post.id}', '${cm.user}')">Reply</span></div>`).join('')}
+                <div class="comment-input-area">
+                    <input id="inp-${post.id}" placeholder="Vibe back...">
+                    <button class="btn btn-sm btn-primary" onclick="addComment('${post.id}')">Send</button>
+                </div>
+            </div>
+        `;
+        c.appendChild(div);
+    });
+}
+
+async function createPost() {
+    const t = document.getElementById('post-input').value;
+    if(!t && tempImgs.length===0) return;
+    
+    try {
+        await addDoc(collection(dbFS, "posts"), {
+            userId: currentUser.id, 
+            content: t, 
+            imgs: tempImgs, 
+            likes: 0, 
+            likedBy: [],
+            comments: [], 
+            timestamp: Date.now() 
+        });
+        document.getElementById('post-input').value = '';
+        document.getElementById('preview-area').innerHTML = ''; 
+        tempImgs = [];
+    } catch(e) { showToast("Post failed"); }
+}
+
+async function likePost(postId, postOwnerId) {
+    const p = db.posts.find(x => x.id === postId);
+    if (!p) return;
+    const isLiked = p.likedBy && p.likedBy.includes(currentUser.id);
+    const postRef = doc(dbFS, "posts", postId);
+
+    if (isLiked) {
+        await updateDoc(postRef, { likes: increment(-1), likedBy: arrayRemove(currentUser.id) });
+    } else {
+        await updateDoc(postRef, { likes: increment(1), likedBy: arrayUnion(currentUser.id) });
+        if(postOwnerId !== currentUser.id) notify(postOwnerId, 'liked your vibe.');
+    }
+}
+
+async function addComment(postId) {
+    const t = document.getElementById(`inp-${postId}`).value;
+    if(t) { 
+        await updateDoc(doc(dbFS, "posts", postId), {
+            comments: arrayUnion({user: currentUser.name, text: t})
+        });
+    }
+}
+
+function replyTo(postId, username) {
+    const input = document.getElementById(`inp-${postId}`);
+    input.value = `@${username} `;
+    input.focus();
+}
+
+let tempImgs = [];
+function handleFileSelect(e){ 
+    const r = new FileReader(); 
+    r.onload=v=>{
+        compressImage(e.target.files[0], (res) => {
+            tempImgs.push(res); 
+            document.getElementById('preview-area').innerHTML+='<img src="'+res+'" style="height:40px">';
+        });
+    }; 
+    r.readAsDataURL(e.target.files[0]); 
+}
+function triggerFileInput(){document.getElementById('post-file').click()}
+
+/* =========================================
+   USER MODAL & NETWORK
+   ========================================= */
+function openUserModal(uid) {
+    uid = String(uid);
+    if(uid === currentUser.id) return router('settings');
+    const u = db.users.find(x => x.id === uid);
+    if(!u) return;
+
+    document.getElementById('user-modal').classList.remove('hidden');
+    document.getElementById('modal-avatar').src = u.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23e5e7eb'/%3E%3C/svg%3E";
+    document.getElementById('modal-cover').style.backgroundImage = u.cover ? `url(${u.cover})` : 'linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%)';
+    document.getElementById('modal-name').innerText = u.name;
+    document.getElementById('modal-title').innerText = u.title || '@'+u.username;
+    
+    const btn = document.getElementById('modal-connect-btn');
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    const status = getConnStatus(uid);
+    
+    if (status === 'Connected') {
+        newBtn.innerText = 'Connected';
+        newBtn.className = 'btn btn-outline btn-sm';
+    } else if (status === 'Pending') {
+        newBtn.innerText = 'Cancel Request';
+        newBtn.className = 'btn btn-secondary btn-sm';
+        newBtn.onclick = () => { connect(uid); closeModal('user-modal'); };
+    } else {
+        newBtn.innerText = 'Connect';
+        newBtn.className = 'btn btn-primary btn-sm';
+        newBtn.onclick = () => { connect(uid); closeModal('user-modal'); };
+    }
+
+    const c = document.getElementById('modal-posts'); 
+    c.innerHTML = '';
+    db.posts.filter(p => p.userId === uid).sort((a,b) => b.timestamp - a.timestamp).forEach(p => {
+        c.innerHTML += `<div class="card" style="margin-bottom:15px;padding:15px;">
+            <div class="text-muted" style="font-size:11px;">${new Date(p.timestamp).toLocaleDateString()}</div>
+            <div>${p.content}</div>
+            ${p.imgs.length ? `<div style="margin-top:10px;"><img src="${p.imgs[0]}" style="height:100px;border-radius:8px;"></div>` : ''}
+        </div>`;
+    });
+}
+
+function getConnStatus(uid) {
+    const c = db.connections.find(x => (x.from === currentUser.id && x.to === uid) || (x.from === uid && x.to === currentUser.id));
+    if(!c) return 'none';
+    if(c.status === 'accepted') return 'Connected';
+    return 'Pending';
+}
+
+async function connect(id) {
+    const existing = db.connections.find(x => (x.from === currentUser.id && x.to === id) && x.status === 'pending');
+    if (existing) {
+        await deleteDoc(doc(dbFS, "connections", existing.id));
+        showToast("Request Cancelled");
+    } else {
+        await addDoc(collection(dbFS, "connections"), { from: currentUser.id, to: id, status: 'pending' });
+        notify(id, 'Request Sent');
+        showToast('Request Sent');
+    }
+}
+
+async function accept(fromId) {
+    const c = db.connections.find(x => x.from === fromId && x.to === currentUser.id);
+    if(c) await updateDoc(doc(dbFS, "connections", c.id), { status: 'accepted' });
+}
+
+function renderNetwork() {
+    const pList = document.getElementById('pending-list'); pList.innerHTML = '';
+    db.connections.filter(c => c.to === currentUser.id && c.status === 'pending').forEach(c => {
+        const u = db.users.find(x => x.id === c.from);
+        if(u) pList.innerHTML += `<div class="card flex-between">
+            <div style="display:flex;gap:10px;align-items:center;" onclick="openUserModal('${u.id}')">
+                <img src="${u.avatar}" class="avatar-sm"> <span>${u.name}</span>
+            </div> 
+            <button class="btn btn-sm btn-primary" onclick="accept('${c.from}')">Accept</button>
+        </div>`;
+    });
+    document.getElementById('pending-count').innerText = pList.childElementCount;
+
+    const mList = document.getElementById('my-network-list'); mList.innerHTML = '';
+    db.connections.filter(c => c.status === 'accepted' && (c.from === currentUser.id || c.to === currentUser.id)).forEach(c => {
+        const uid = c.from === currentUser.id ? c.to : c.from;
+        const u = db.users.find(x => x.id === uid);
+        if(u) mList.innerHTML += `<div class="flex-between" style="padding:10px; border-bottom:1px solid var(--border)">
+            <div style="display:flex;gap:10px;align-items:center;" onclick="openUserModal('${u.id}')">
+                <img src="${u.avatar}" class="avatar-sm"> ${u.name}
+            </div>
+            <button class="icon-btn" onclick="openChat('${uid}', '${u.name}', '${u.avatar || ''}')">💬</button>
+        </div>`;
+    });
+}
+
+function renderSuggestions() {
+    const sidebarList = document.getElementById('suggestions-list');
+    const networkTabList = document.getElementById('network-suggestions-list');
+    if(sidebarList) sidebarList.innerHTML = '';
+    if(networkTabList) networkTabList.innerHTML = '';
+
+    const candidates = db.users.filter(u => u.id !== currentUser.id && getConnStatus(u.id) !== 'Connected');
+    if(candidates.length === 0) return;
+
+    candidates.forEach(u => {
+        const status = getConnStatus(u.id);
+        const btnText = status === 'Pending' ? 'Cancel' : '+';
+        const html = `
+        <div class="flex-between" style="margin-bottom:12px; padding: 5px 0;">
+            <div style="display:flex; gap:10px; align-items:center; cursor:pointer" onclick="openUserModal('${u.id}')">
+                <img src="${u.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23e5e7eb'/%3E%3C/svg%3E"}" class="avatar-sm"> 
+                <div><div style="font-size:13px; font-weight:bold">${u.name}</div></div>
+            </div>
+            <button class="icon-btn" style="border:1px solid var(--border);" onclick="connect('${u.id}')">${btnText}</button>
+        </div>`;
+        if(sidebarList) sidebarList.innerHTML += html;
+        if(networkTabList) networkTabList.innerHTML += `<div class="card" style="margin-bottom:10px;">${html}</div>`;
+    });
+}
+
+/* =========================================
+   MESSAGING
+   ========================================= */
+function renderDMs() {
+    const l = document.getElementById('dm-list'); l.innerHTML = '';
+    const conns = db.connections.filter(c => c.status === 'accepted' && (c.from === currentUser.id || c.to === currentUser.id));
+    conns.forEach(c => {
+        const uid = c.from === currentUser.id ? c.to : c.from;
+        const u = db.users.find(x => x.id === uid);
+        if(u) l.innerHTML += `<div class="dm-user-row" onclick="openChat('${uid}', '${u.name}', '${u.avatar || ''}')">
+            <img src="${u.avatar || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23e5e7eb'/%3E%3C/svg%3E"}" class="avatar-sm"> 
+            <div><div style="font-weight:bold">${u.name}</div></div>
+        </div>`;
+    });
+}
+
+function openChat(uid, name, ava) {
+    activeChat = uid;
+    document.getElementById('chat-header').classList.remove('hidden');
+    document.getElementById('chat-header').innerHTML = `<div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="openUserModal('${uid}')">
+        <img id="chat-img" src="${ava || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23e5e7eb'/%3E%3C/svg%3E"}" class="avatar-sm"> 
+        <span id="chat-name" style="font-weight:bold">${name}</span>
+    </div>`;
+    document.getElementById('chat-input-area').classList.remove('hidden');
+    renderMessages();
+}
+
+function renderMessages() {
+    if(!activeChat) return;
+    const c = document.getElementById('chat-messages'); c.innerHTML = '';
+    const msgs = db.messages.filter(m => (m.from === currentUser.id && m.to === activeChat) || (m.from === activeChat && m.to === currentUser.id));
+    msgs.forEach(m => c.innerHTML += `<div class="message ${m.from===currentUser.id?'msg-out':'msg-in'}">${m.text}</div>`);
+    c.scrollTop = c.scrollHeight;
+}
+
+async function sendMessage() {
+    const t = document.getElementById('msg-input').value;
+    if(t && activeChat) {
+        await addDoc(collection(dbFS, "messages"), { from: currentUser.id, to: activeChat, text: t, ts: Date.now() });
+        document.getElementById('msg-input').value = ''; 
+    }
+}
+function showNewMsgModal() { showToast('Select a user from the left list'); }
+
+/* =========================================
+   MUSIC & PLAYLISTS
+   ========================================= */
+let musicQueue = [];
+let queueIndex = 0;
+if (!db.playlist) db.playlist = [];
+function initMusicDB() {
+    // If old 'db.playlist' exists, convert it to the new 'db.playlists' format
+    if (db.playlist && Array.isArray(db.playlist)) {
+        db.playlists = [
+            { id: Date.now(), name: 'My Vibes', tracks: db.playlist, isOpen: true }
+        ];
+        delete db.playlist; // Remove old key
+        saveDB();
+    }
+    // Default initialization
+    if (!db.playlists) {
+        db.playlists = [
+            { id: Date.now(), name: 'My Vibes', tracks: [], isOpen: true }
+        ];
+    }
+}
+
+function togglePlaylist(index) {
+    db.playlists[index].isOpen = !db.playlists[index].isOpen;
+    saveDB();
+    renderLibrary();
+}
+
+function switchMusicTab(tab) {
+    document.getElementById('tab-search').classList.toggle('active', tab === 'search');
+    document.getElementById('tab-library').classList.toggle('active', tab === 'library');
+    document.getElementById('view-music-search').classList.toggle('hidden', tab !== 'search');
+    document.getElementById('view-music-library').classList.toggle('hidden', tab !== 'library');
+    if (tab === 'library') renderLibrary();
+}
+
+async function searchMusic() {
+    const q = document.getElementById('music-search-input').value;
+    const r = document.getElementById('music-results');
+    if (!q) return showToast("Type something...");
+    
+    r.innerHTML = '<div style="text-align:center; padding:20px; color:#666">Scanning the archives for studio vibes...</div>';
+    const exclusions = 'AND -collection:podcasts AND -subject:podcast AND -collection:etree AND -collection:live_music_archive AND -title:"live at"';
+    const requirements = 'AND mediatype:audio AND format:(VBR MP3)';
+    const query = `(${q}) ${requirements} ${exclusions}`;
+    const url = `https://archive.org/advancedsearch.php?q=${encodeURIComponent(query)}&fl[]=identifier,title,creator&rows=50&output=json`;
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        let docs = data.response.docs;
+        docs = docs.filter(doc => {
+            if (!doc.title) return false;
+            const wordCount = doc.title.trim().split(/\s+/).length;
+            return wordCount <= 15;
+        });
+
+        if (docs.length === 0) {
+            r.innerHTML = '<div style="text-align:center; padding:20px;">No studio clean matches found.</div>';
+            return;
+        }
+        musicQueue = docs; 
+        r.innerHTML = '';
+
+        docs.forEach((t, index) => {
+            const imgUrl = `https://archive.org/services/img/${t.identifier}`;
+            const div = document.createElement('div');
+            div.className = 'music-card';
+            div.innerHTML = `
+                <button class="add-btn" onclick="addToPlaylist(event, '${t.identifier}', '${escapeStr(t.title)}', '${escapeStr(t.creator)}')">+</button>
+                <div onclick="playFromQueue(${index})">
+                    <div class="music-art-wrapper">
+                <img src="${imgUrl}" class="music-art-img" onerror="this.style.display='none'">
+                <div class="music-art-fallback">🎵</div>
+            </div>
+                    <div style="font-weight:bold;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.title}</div>
+                    <div class="text-muted" style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.creator || 'Unknown Artist'}</div>
+                </div>
+            `;
+            r.appendChild(div);
+        });
+    } catch (e) {
+        console.error(e);
+        r.innerHTML = 'Error connecting to Archive.org';
+    }
+}
+
+async function addToPlaylist(e, id, title, creator) {
+    e.stopPropagation();
+    let targetIndex = 0;
+    if (db.playlists.length > 1) {
+        let msg = "Playlist #:\n";
+        db.playlists.forEach((p, i) => msg += `${i+1}. ${p.name}\n`);
+        const input = prompt(msg, "1");
+        if (!input) return;
+        targetIndex = parseInt(input) - 1;
+    }
+    const targetList = db.playlists[targetIndex];
+    if (targetList.tracks && targetList.tracks.find(x => x.identifier === id)) return showToast("Duplicate");
+
+    await updateDoc(doc(dbFS, `users/${currentUser.id}/playlists`, targetList.id), {
+        tracks: arrayUnion({ identifier: id, title: unescapeStr(title), creator: unescapeStr(creator) })
+    });
+    showToast(`Added to "${targetList.name}"`);
+}
+
+async function createPlaylist() {
+    const name = prompt("Playlist Name:", "New Vibes");
+    if (!name) return;
+    await addDoc(collection(dbFS, `users/${currentUser.id}/playlists`), { name: name, tracks: [], isOpen: true, timestamp: Date.now() });
+}
+function removeFromPlaylist(e, id) {
+    e.stopPropagation();
+    db.playlist = db.playlist.filter(x => x.identifier !== id);
+    saveDB();
+    renderLibrary();
+}
+
+async function deletePlaylist(e, index) {
+    e.stopPropagation();
+    const plist = db.playlists[index];
+    if(confirm(`Delete "${plist.name}"?`)) await deleteDoc(doc(dbFS, `users/${currentUser.id}/playlists`, plist.id));
+}
+function renameTrack(e, pIndex, tIndex) {
+    e.stopPropagation();
+    const currentTitle = db.playlists[pIndex].tracks[tIndex].title;
+    const newTitle = prompt("Rename track:", currentTitle);
+    
+    if (newTitle && newTitle.trim() !== "") {
+        db.playlists[pIndex].tracks[tIndex].title = newTitle.trim();
+        saveDB();
+        renderLibrary();
+    }
+}
+
+async function removeTrack(e, pIndex, tIndex) {
+    e.stopPropagation();
+    const plist = db.playlists[pIndex];
+    if(confirm("Remove track?")) await updateDoc(doc(dbFS, `users/${currentUser.id}/playlists`, plist.id), { tracks: arrayRemove(plist.tracks[tIndex]) });
+}
+
+function renderLibrary() {
+    const l = document.getElementById('library-list'); l.innerHTML = '';
+    const createBtn = document.createElement('div');
+    createBtn.className = 'btn btn-primary btn-sm full-width';
+    createBtn.style.marginBottom = '15px';
+    createBtn.innerText = '+ New Playlist';
+    createBtn.onclick = createPlaylist;
+    l.appendChild(createBtn);
+
+    db.playlists.forEach((plist, pIndex) => {
+        const group = document.createElement('div');
+        group.style.cssText = 'margin-bottom:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden';
+        group.innerHTML = `<div style="padding:12px;background:var(--bg-secondary);display:flex;justify-content:space-between;cursor:pointer" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='none'?'block':'none'">
+            <div style="font-weight:bold;">▶ ${plist.name} <span class="text-muted">(${(plist.tracks||[]).length})</span></div>
+            <button class="icon-btn danger-text" onclick="deletePlaylist(event, ${pIndex})">&times;</button>
+        </div>
+        <div class="plist-body" style="display:${plist.isOpen ? 'block' : 'none'};border-top:1px solid var(--border)">
+            ${(plist.tracks||[]).map((t, tIndex) => `<div class="lib-row">
+                <div class="lib-info" onclick="playFromLibrary(${pIndex}, ${tIndex})">
+                    <div class="avatar-xs" style="background:#333;color:white;display:flex;align-items:center;justify-content:center;font-size:10px;">MP3</div>
+                    <div><div style="font-weight:bold;font-size:13px">${t.title}</div><div class="text-muted" style="font-size:11px">${t.creator}</div></div>
+                </div>
+                <button class="icon-btn danger-text" onclick="removeTrack(event, ${pIndex}, ${tIndex})">&times;</button>
+            </div>`).join('')}
+        </div>`;
+        l.appendChild(group);
+    });
+}
+
+function playFromQueue(index) { queueIndex = index; loadTrack(musicQueue[queueIndex]); }
+function playFromLibrary(pIndex, tIndex) { musicQueue = db.playlists[pIndex].tracks; queueIndex = tIndex; loadTrack(musicQueue[queueIndex]); }
+async function loadTrack(track) {
+    if (!track) return;
+    document.getElementById('floating-player').classList.remove('hidden');
+    document.getElementById('player-title').innerText = track.title;
+    document.getElementById('player-artist').innerText = track.creator || 'Archive.org';
+    const artImg = document.getElementById('player-art-img');
+    artImg.src = `https://archive.org/services/img/${track.identifier}`;
+    
+    try {
+        const res = await fetch(`https://archive.org/metadata/${track.identifier}`);
+        const data = await res.json();
+        let file = data.files.find(f => f.name.endsWith('.mp3') && f.format === 'VBR MP3') || data.files.find(f => f.name.endsWith('.mp3'));
+        if (!file) return playNext();
+        const audio = document.getElementById('audio-engine');
+        audio.src = `https://archive.org/download/${track.identifier}/${file.name}`;
+        audio.play();
+        audio.onended = () => playNext();
+        document.getElementById('play-icon').classList.add('hidden');
+        document.getElementById('pause-icon').classList.remove('hidden');
+    } catch (e) { playNext(); }
+}
+function playNext() {
+    if (queueIndex < musicQueue.length - 1) { queueIndex++; loadTrack(musicQueue[queueIndex]); } 
+    else { queueIndex = 0; loadTrack(musicQueue[queueIndex]); }
+}
+function togglePlay() {
+    if (audio.paused) {
+        audio.play();
+        document.getElementById('play-icon').classList.add('hidden');
+        document.getElementById('pause-icon').classList.remove('hidden');
+    } else {
+        audio.pause();
+        document.getElementById('play-icon').classList.remove('hidden');
+        document.getElementById('pause-icon').classList.add('hidden');
+    }
+}
+function updateTimeDisplay() {
+    const audio = document.getElementById('audio-engine');
+    if (!audio.duration) return;
+    const min = Math.floor(audio.currentTime / 60);
+    const sec = Math.floor(audio.currentTime % 60);
+    document.getElementById('player-time').innerText = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+}
+
+/* =========================================
+   MISC & UTILS
+   ========================================= */
+async function notify(uid, txt){ await addDoc(collection(dbFS, "notifications"), { to: uid, text: txt, read: false, timestamp: Date.now() }); }
+function renderNotifs() {
+    const l = document.getElementById('notif-list'); l.innerHTML = '';
+    const n = db.notifications.filter(x => x.to === currentUser.id);
+    document.getElementById('notif-badge').classList.toggle('hidden', n.filter(x=>!x.read).length===0);
+    if(n.length === 0) l.innerHTML = '<div style="padding:10px;color:#999">No vibes yet.</div>';
+    else n.forEach(x => l.innerHTML += `<div style="padding:10px;border-bottom:1px solid #eee;font-size:13px">${x.text}</div>`);
+}
+function toggleDropdown(id) {
+    const el = document.getElementById(id);
+    const isHidden = el.classList.contains('hidden');
+    document.querySelectorAll('.dropdown-content').forEach(d => d.classList.add('hidden'));
+    if(isHidden) el.classList.remove('hidden');
+}
+function openLbox(src) { document.getElementById('lightbox').classList.remove('hidden'); document.getElementById('lightbox-img').src = src; }
+document.querySelector('.lightbox-close').onclick=()=>document.getElementById('lightbox').classList.add('hidden');
+document.getElementById('lightbox').onclick = (e) => { if (e.target.id === 'lightbox') document.getElementById('lightbox').classList.add('hidden'); };
+function closeModal(id){document.getElementById(id).classList.add('hidden')}
+function openModal(id){document.getElementById(id).classList.remove('hidden')}
+function showToast(m){const t=document.createElement('div');t.className='toast';t.innerText=m;document.getElementById('toast-container').appendChild(t);setTimeout(()=>t.remove(),3000);}
+function escapeStr(str) { if(!str) return ''; return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+function unescapeStr(str) { if(!str) return ''; return str.replace(/\\'/g, "'").replace(/&quot;/g, '"'); }
+window.onclick = function(event) { if (!event.target.closest('.dropdown')) document.querySelectorAll('.dropdown-content').forEach(el => el.classList.add('hidden')); if (event.target.classList.contains('modal-overlay')) event.target.classList.add('hidden'); };
+
+/* =========================================
+   REPOSITION COVER
+   ========================================= */
+const coverWrapper = document.getElementById('draggable-cover');
+const coverImg = document.getElementById('side-cover-photo');
+let isRepoMode = false, isDragging = false, startY = 0, dragStartPos = 50, currentPos = 50;
+
+function handleCoverClick(e) {
+    if(isRepoMode) return;
+    if(e.target.closest('.control-icon-btn') || e.target.closest('.dropdown-content') || e.target.closest('.reposition-controls')) return;
+    if(currentUser.cover) openLbox(currentUser.cover);
+}
+function startReposition(e) {
+    if(e) e.stopPropagation();
+    toggleDropdown('cover-menu'); 
+    if(!currentUser.cover) return showToast("No cover to adjust");
+    isRepoMode = true; coverWrapper.classList.add('reposition-mode'); document.getElementById('repo-controls').classList.remove('hidden');
+    currentPos = currentUser.coverPosY || 50;
+}
+async function saveReposition(e) {
+    if(e) e.stopPropagation();
+    await updateDoc(doc(dbFS, "users", currentUser.id), { coverPosY: currentPos });
+    exitRepoMode(); showToast("Position Saved");
+}
+function cancelReposition(e) {
+    if(e) e.stopPropagation();
+    coverImg.style.backgroundPosition = `center ${currentUser.coverPosY || 50}%`;
+    exitRepoMode();
+}
+function exitRepoMode() { isRepoMode = false; isDragging = false; coverWrapper.classList.remove('reposition-mode'); document.getElementById('repo-controls').classList.add('hidden'); }
+coverWrapper.addEventListener('mousedown', (e) => {
+    if(!isRepoMode || e.target.closest('button')) return;
+    isDragging = true; startY = e.clientY; dragStartPos = currentPos;
+});
+window.addEventListener('mousemove', (e) => {
+    if (!isDragging || !isRepoMode) return;
+    e.preventDefault(); 
+    let newPos = dragStartPos + ((startY - e.clientY) * 0.5);
+    if (newPos < 0) newPos = 0; if (newPos > 100) newPos = 100;
+    currentPos = newPos; coverImg.style.backgroundPosition = `center ${currentPos}%`;
+});
+window.addEventListener('mouseup', () => { isDragging = false; });
+function toggleCoverMenu(e) { e.stopPropagation(); toggleDropdown('cover-menu'); }
+function handleAvatarClick(e) { if(e.target.closest('.edit-icon') || !currentUser.avatar) triggerProfileUpload('avatar'); else openLbox(currentUser.avatar); }
+async function removeCover() { if(confirm('Remove cover?')) await updateDoc(doc(dbFS, "users", currentUser.id), { cover: '', coverPosY: 50 }); }
+
+/* =========================================
+   EXPOSE TO WINDOW (Fixes "Modal Shit")
+   ========================================= */
+window.init = init;
+window.register = register;
+window.login = login;
+window.logout = logout;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.router = router;
+window.showView = showView;
+window.loadHome = loadHome;
+window.refreshView = refreshView;
+window.toggleDarkMode = toggleDarkMode;
+window.triggerProfileUpload = triggerProfileUpload;
+window.handleProfileUpload = handleProfileUpload;
+window.saveSettings = saveSettings;
+window.renderFeed = renderFeed;
+window.createPost = createPost;
+window.likePost = likePost;
+window.addComment = addComment;
+window.replyTo = replyTo;
+window.openUserModal = openUserModal;
+window.connect = connect;
+window.accept = accept;
+window.renderNetwork = renderNetwork;
+window.removeFromPlaylist = removeFromPlaylist;
+window.togglePlaylist = togglePlaylist;
+window.switchMusicTab = switchMusicTab;
+window.searchMusic = searchMusic;
+window.loadTrack = loadTrack;
+window.renderLibrary = renderLibrary;
+window.addToPlaylist = addToPlaylist;
+window.createPlaylist = createPlaylist;
+window.deletePlaylist = deletePlaylist;
+window.renameTrack = renameTrack;
+window.removeTrack = removeTrack;
+window.playFromQueue = playFromQueue;
+window.playFromLibrary = playFromLibrary;
+window.togglePlay = togglePlay;
+window.renderDMs = renderDMs;
+window.openChat = openChat;
+window.sendMessage = sendMessage;
+window.showNewMsgModal = showNewMsgModal;
+window.handleFileSelect = handleFileSelect;
+window.triggerFileInput = triggerFileInput;
+window.openLbox = openLbox;
+window.toggleDropdown = toggleDropdown;
+window.handleCoverClick = handleCoverClick;
+window.startReposition = startReposition;
+window.saveReposition = saveReposition;
+window.cancelReposition = cancelReposition;
+window.toggleCoverMenu = toggleCoverMenu;
+window.handleAvatarClick = handleAvatarClick;
+window.removeCover = removeCover;
+window.deactivateAccount = deactivateAccount;
+window.deleteAccount = deleteAccount;
+
+// START APP
+init();
+
+/* =========================================
+   1. VARIABLES & THEME CONFIGURATION
+   ========================================= */
+:root {
+    /* --- LIGHT MODE (Default) --- */
+    --bg: #f2f2f2;
+    --card-bg: #ffffff;
+    --modal-bg: #ffffff;
+    --input-bg: #f4f4f4;
+    --glass: blur(12px);
+    
+    --primary: #000000; 
+    --primary-text: #ffffff;
+    
+    --text-main: #111111;
+    --text-muted: #666666;
+    --border: #e0e0e0;
+    
+    /* CONDENSED SPACING VARIABLES */
+    --radius: 12px;           
+    --pad-outer: 20px 30px;   
+    --card-pad: 18px;         
+    --grid-gap: 20px;         
+    
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+body.dark-mode {
+    /* --- DARK MODE OVERRIDES --- */
+    --bg: #050505;
+    --card-bg: #111111;
+    --modal-bg: #111111;
+    --input-bg: #1f1f1f;
+    --border: #222222;
+    
+    /* CRITICAL TEXT COLOR FIXES */
+    --text-main: #ffffff;    
+    --text-muted: #888888;   
+    
+    /* INVERSE BUTTONS */
+    --primary: #ffffff;      
+    --primary-text: #000000;
+    
+    --shadow-sm: 0 1px 3px rgba(255,255,255,0.05);
+    --shadow-lg: 0 20px 50px rgba(0,0,0,0.5);
+}
+body.dark-mode .invert-dark {
+    filter: invert(1);
+    /* Optional: Brightness bump ensures it looks pure white, not grey */
+    filter: invert(1) brightness(2); 
+    transition: filter 0.3s ease;
+}
+
+/* =========================================
+   2. GLOBAL RESET & UTILITIES
+   ========================================= */
+* { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+body { 
+    margin: 0; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    background: var(--bg); 
+    color: var(--text-main); 
+    font-size: 14px; 
+    line-height: 1.5;
+    padding-bottom: 80px; 
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.hidden { display: none !important; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.text-muted { color: var(--text-muted); font-size: 12px; }
+
+/* BUTTONS */
+.btn { padding: 8px 20px; border-radius: 99px; border: none; cursor: pointer; font-weight: 700; font-size: 13px; transition: 0.2s; letter-spacing: 0.3px; }
+.btn-primary { background: var(--primary); color: var(--primary-text); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.btn-primary:hover { transform: translateY(-1px); opacity: 0.9; }
+.btn-secondary { background: transparent; color: var(--text-muted); }
+.btn-outline { border: 1px solid var(--primary); color: var(--primary); background: transparent; }
+.btn-danger { background: #ef4444; color: white; }
+.btn-sm { padding: 4px 12px; font-size: 11px; }
+
+.icon-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 8px; border-radius: 50%; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+.icon-btn:hover { background: var(--input-bg); color: var(--primary); }
+
+/* INPUTS (Condensed) */
+input[type="text"], input[type="password"], textarea {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--text-main);
+    transition: 0.2s;
+    font-family: inherit;
+    margin-bottom: 10px;
+}
+input:focus, textarea:focus { background: var(--card-bg); border-color: var(--primary); box-shadow: 0 0 0 2px rgba(125, 125, 125, 0.1); }
+.input-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 12px; color: var(--text-muted); }
+
+/* =========================================
+   3. GUEST LANDING & MODALS (FIXED)
+   ========================================= */
+#view-guest {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: var(--bg);
+    position: relative;
+}
+.guest-header {
+    position: absolute;
+    top: 0; left: 0; width: 100%;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.guest-hero h1 { font-size: 42px; font-weight: 900; letter-spacing: -2px; margin-bottom: 10px; color: var(--primary); }
+.guest-hero p { font-size: 16px; color: var(--text-muted); margin-bottom: 30px; }
+
+/* MODALS */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+.modal-box { background: var(--modal-bg); padding: 32px; border-radius: 24px; width: 90%; max-width: 420px; box-shadow: var(--shadow-lg); animation: fadeUp 0.3s ease; position: relative; border: 1px solid var(--border); color: var(--text-main); }
+.modal-box h2 { margin-top: 0; font-size: 24px; font-weight: 800; color: var(--primary); margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+.modal-close-btn { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; z-index: 50; display: flex; justify-content: center; align-items: center; font-size: 18px; }
+
+/* Modal specific for Profile View */
+.modal-box.large { max-width: 500px; padding: 0; display: flex; flex-direction: column; max-height: 60vh; height: 100%; overflow: hidden; background: var(--modal-bg); }
+.modal-box.large .profile-card { margin: 0; border: none; background: transparent; box-shadow: none; border-radius: 0; padding-bottom: 4px; overflow: visible !important; flex-shrink: 0; position: relative; z-index: 10; }
+.feed-scrollable { margin-top: 80px; overflow-y: auto; padding: 24px; flex: 1; background: var(--bg); position: relative; z-index: 1; box-shadow: inset 0 10px 20px -10px rgba(0,0,0,0.1); }
+
+/* =========================================
+   4. LAYOUT GRID & HEADER
+   ========================================= */
+.app-container { padding: var(--pad-outer); min-height: 100vh; }
+
+.main-grid { 
+    display: grid; 
+    grid-template-columns: 240px 1fr 240px; 
+    gap: var(--grid-gap); 
+    align-items: start; 
+}
+/* Prevent grid blowout */
+.col-center { min-width: 0; } 
+
+.sticky-header { 
+    position: sticky; top: 0; z-index: 50; 
+    background: var(--card-bg); 
+    backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass);
+    height: 64px; 
+    padding: 0 20px; 
+    border-radius: var(--radius); 
+    display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: var(--grid-gap); 
+    border: 1px solid var(--border); 
+    box-shadow: var(--shadow-sm);
+}
+.brand-logo { font-weight: 900; font-size: 18px; color: var(--primary); cursor: pointer; letter-spacing: -0.5px; text-transform: uppercase; }
+
+/* NAV */
+.desktop-nav { display: flex; gap: 20px; align-items: center; height: 100%; }
+.nav-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 0 5px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+.nav-btn svg { width: 20px; height: 20px; stroke-width: 2px; }
+.nav-btn.active { color: var(--primary); }
+.nav-btn.active::after { content: ''; position: absolute; bottom: 0; width: 100%; height: 3px; background: var(--primary); border-radius: 3px 3px 0 0; }
+.dropdown-content { position: absolute; right: 0; top: 120%; background: var(--card-bg); width: 220px; border-radius: 16px; box-shadow: var(--shadow-lg); border: 1px solid var(--border); z-index: 50; overflow: hidden; }
+.dropdown-content a { display: block; padding: 12px 20px; text-decoration: none; color: var(--text-main); font-size: 14px; cursor: pointer; font-weight: 500; }
+.dropdown-content a:hover { background: var(--input-bg); }
+.badge { position: absolute; top: 5px; right: 5px; background: #ef4444; color: white; font-size: 9px; padding: 2px 4px; border-radius: 6px; }
+
+.card { 
+    background: var(--card-bg); 
+    border-radius: var(--radius); 
+    padding: var(--card-pad); 
+    border: 1px solid var(--border); 
+    margin-bottom: var(--grid-gap); 
+    box-shadow: var(--shadow-sm); 
+}
+.sticky-col { position: sticky; top: 85px; }
+.separator { height: 1px; background: var(--border); margin: 15px 0; }
+
+/* =========================================
+   5. PROFILE SIDEBAR (LEFT)
+   ========================================= */
+.profile-card { text-align: center; padding: 0; overflow: hidden; }
+.cover-photo-wrapper { position: relative; height: 85px; cursor: pointer; overflow: hidden; }
+.cover-photo { height: 100%; background: #333; background-size: cover; background-position: center; }
+
+/* Controls Overlay (Restored) */
+.cover-controls { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; opacity: 0; transition: 0.2s; z-index: 20; }
+.cover-photo-wrapper:hover .cover-controls { opacity: 1; }
+.control-icon-btn { background: rgba(0,0,0,0.6); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
+.reposition-controls { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; z-index: 30; backdrop-filter: blur(2px); }
+.repo-text { color: white; font-size: 11px; font-weight: bold; text-shadow: 0 1px 2px black; }
+
+.profile-info { margin-top: -36px; padding: 0 10px 18px; position: relative; z-index: 2; }
+.avatar-lg { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 3px solid var(--card-bg); background: #333; }
+.profile-name-large { margin: 8px 0 2px; font-size: 16px; font-weight: 800; }
+.profile-title-small { font-size: 12px; color: var(--text-muted); margin: 0; }
+.edit-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; opacity: 0; transition: 0.2s; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px; pointer-events: none; }
+.cover-photo-wrapper:hover .edit-icon, .avatar-wrapper:hover .edit-icon { opacity: 1; }
+
+.vibe-circle-box { background: var(--input-bg); border-radius: 8px; padding: 10px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
+.vibe-label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-muted); }
+.vibe-count { font-size: 16px; font-weight: 900; color: var(--primary); }
+
+/* =========================================
+   6. FEED & CONTENT (CENTER)
+   ========================================= */
+.create-post textarea { min-height: 60px; font-size: 14px; padding: 10px; }
+.post-actions { display: flex; justify-content: space-between; margin-top: 10px; }
+
+.feed-header { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; }
+.avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: #333; object-fit: cover; border: 1px solid var(--border); }
+.feed-content { font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+.feed-img-grid img { height: 160px; border-radius: 8px; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+.feed-actions { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; gap: 20px; }
+.action-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); cursor: pointer; font-weight: 600; }
+.action-item:hover { color: var(--primary); }
+
+/* Suggestions (Right) */
+.user-list-vertical { display: flex; flex-direction: column; gap: 10px; }
+.user-row { display: flex; align-items: center; gap: 10px; }
+.user-info h4 { margin: 0; font-size: 13px; }
+.user-info p { margin: 0; font-size: 11px; color: var(--text-muted); }
+.avatar-xs { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+
+/* =========================================
+   7. DM PAGE (SEARCH ON TOP)
+   ========================================= */
+.dm-wrapper { height: 70vh; padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Top Header */
+.dm-header-top { padding: 10px 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--card-bg); flex-shrink: 0; }
+.dm-header-top .input-with-icon { background: var(--input-bg); border-radius: 99px; height: 36px; padding: 0 12px; flex: 1; margin: 0; display: flex; align-items: center; gap: 8px; }
+.dm-header-top input { border: none; background: transparent; padding: 0; margin: 0; height: 100%; font-size: 13px; }
+
+/* Split Body */
+.dm-body { display: flex; flex: 1; overflow: hidden; }
+.dm-sidebar { width: 30%; min-width: 180px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: var(--card-bg); }
+.dm-users-list { overflow-y: auto; flex: 1; }
+.dm-user-row { padding: 10px 15px; display: flex; align-items: center; gap: 10px; cursor: pointer; border-bottom: 1px solid transparent; }
+.dm-user-row:hover { background: var(--input-bg); }
+
+/* Chat Area */
+.dm-chat-area { flex: 1; display: flex; flex-direction: column; background: var(--card-bg); }
+.chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+.message { padding: 8px 14px; border-radius: 18px; max-width: 75%; font-size: 13px; }
+.msg-in { background: var(--input-bg); align-self: flex-start; border-bottom-left-radius: 4px; color: var(--text-main); }
+.msg-out { background: var(--primary); color: var(--primary-text); align-self: flex-end; border-bottom-right-radius: 4px; }
+.chat-input-area { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+.chat-input-area input { margin: 0; }
+
+/* =========================================
+   8. MUSIC & EXTRAS
+   ========================================= */
+.music-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+.tab-btn { flex: 1; padding: 10px; border-radius: 99px; border: 1px solid var(--border); background: var(--card-bg); cursor: pointer; font-weight: 700; color: var(--text-muted); font-size: 12px; }
+.tab-btn.active { background: var(--primary); color: var(--primary-text); border-color: var(--primary); }
+
+.music-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-top: 15px; }
+.music-card { padding: 10px; text-align: center; cursor: pointer; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; position: relative; }
+.music-art { width: 100%; aspect-ratio: 1; background: #222; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; color: white; }
+.add-btn { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; opacity: 0; transition: 0.2s; z-index: 10; border: none; cursor: pointer; }
+.music-card:hover .add-btn { opacity: 1; }
+
+/* PLAYER BAR */
+.player-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; background: #000; color: white; padding: 10px 20px; border-radius: 100px; display: flex; justify-content: space-between; align-items: center; z-index: 100; box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
+.track-info { display: flex; align-items: center; gap: 12px; }
+.track-art { width: 36px; height: 36px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+/* TOAST */
+#toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 2000; }
+.toast { background: #000; color: white; padding: 10px 20px; border-radius: 30px; font-size: 13px; margin-top: 10px; font-weight: 600; }
+
+/* LIGHTBOX */
+.lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(10px); z-index: 4000; display: flex; justify-content: center; align-items: center; animation: fadeIn 0.2s ease; }
+.lightbox-content img { max-width: 90vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 0 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); object-fit: contain; }
+.lightbox-close { position: absolute; top: 30px; right: 30px; color: rgba(255,255,255,0.7); font-size: 40px; line-height: 40px; background: none; border: none; cursor: pointer; z-index: 4001; transition: 0.2s; }
+.lightbox-close:hover { color: white; transform: scale(1.1); }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* =========================================
+   9. RESPONSIVE QUERIES
+   ========================================= */
+
+/* TABLET / SMALL LAPTOP (769px - 1116px) */
+@media (min-width: 769px) and (max-width: 1116px) {
+    :root { --pad-outer: 20px 2vw; }
+    .main-grid { grid-template-columns: 210px 1fr 190px; gap: 15px; }
+    .sticky-header { padding: 0 15px; height: 60px; }
+    .desktop-nav { gap: 15px; }
+    .avatar-lg { width: 64px; height: 64px; }
+    .cover-photo-wrapper { height: 70px; }
+    .profile-info { margin-top: -32px; }
+    .feed-img-grid img { height: 130px; }
+    .music-grid { grid-template-columns: 1fr 1fr; }
+    .dm-sidebar { width: 80px; min-width: 80px; }
+    .dm-user-row span { display: none; } /* Hide names in sidebar list */
+    .dm-user-row { justify-content: center; }
+}
+
+/* MOBILE (< 768px) */
+.mobile-nav { display: none !important; }
+@media (max-width: 768px) {
+    .app-container { padding: 0 0 100px 0; background: var(--bg); }
+    .main-grid { display: block; }
+    .desktop-nav, .col-left, .col-right { display: none !important; }
+    .sticky-header { height: 50px; padding: 0 15px; justify-content: center; border: none; border-bottom: 1px solid var(--border); box-shadow: none; border-radius: 0; }
+    .brand-logo { font-size: 20px; }
+    .card { border-radius: 0; border: none; border-bottom: 1px solid var(--border); box-shadow: none; margin-bottom: 0; padding: 20px 15px; }
+    .mobile-nav { display: flex !important; justify-content: space-around; align-items: center; position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--card-bg); border-top: 1px solid var(--border); z-index: 999; backdrop-filter: blur(15px); }
+    .mobile-nav button { background: none; border: none; color: var(--text-muted); padding: 10px; }
+    .mobile-nav .active { color: var(--primary); }
+    .dm-wrapper { height: calc(100vh - 120px); }
+    /* Mobile Guest Fix */
+    .guest-header { padding: 15px 20px; }
+    .guest-hero h1 { font-size: 32px; }
+}
+/* =========================================
+   FIX: COMMENTS & INTERACTION
+   ========================================= */
+.comment-bubble { 
+    background: var(--input-bg); 
+    padding: 8px 14px; 
+    border-radius: 12px; 
+    margin-top: 8px; 
+    font-size: 13px; 
+    width: fit-content; 
+    max-width: 90%; 
+    color: var(--text-main); 
+    border: 1px solid var(--border); 
+    line-height: 1.4;
+}
+
+.reply-btn { 
+    font-size: 11px; 
+    color: var(--text-muted); 
+    cursor: pointer; 
+    margin-left: 8px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    background: none; 
+    border: none;
+    transition: color 0.2s;
+}
+
+.reply-btn:hover { 
+    color: var(--primary); 
+}
+
+.comment-input-area { 
+    display: flex; 
+    gap: 10px; 
+    margin-top: 12px; 
+    align-items: center;
+}
+
+/* Force input to sit nicely next to the send button */
+.comment-input-area input {
+    margin-bottom: 0 !important; /* Override global input margin */
+    flex: 1;
+}
+/* =========================================
+   FIXED INPUTS (Your Custom Style)
+   ========================================= */
+
+/* 1. Target specific text inputs so we don't break checkboxes/buttons */
+input[type="text"], 
+input[type="password"], 
+textarea,
+.modal-box input {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;       /* You wanted 12px */
+    padding: 10px 12px;        /* Slightly more padding for readability */
+    font-size: 14px;
+    color: var(--text-main);
+    width: 100%;
+    transition: 0.2s;
+    font-family: inherit;
+    margin-bottom: 10px;       /* CRITICAL: Prevents inputs from touching */
+    outline: none;
+}
+input {
+    background: var(--input-bg);
+    border: none;
+    border-radius: 14px;
+    padding: 6px 8
+    px;  
+    color: var(--text-main);
+}
+
+/* 2. Focus State (Combined your two conflicting blocks) */
+input:focus, textarea:focus {
+    background: var(--card-bg);
+    border-color: var(--primary);
+    /* I kept the grey shadow as it fits the Vibe theme better than blue */
+    box-shadow: 0 0 0 4px rgba(125, 125, 125, 0.1); 
+}
+
+/* 3. Fix labels in settings/forms */
+.input-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+/* =========================================
+   PLAYER BAR (The "Dynamic Island" Look)
+   ========================================= */
+.player-bar { 
+    position: fixed; 
+    bottom: 24px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    
+    /* Size & Shape */
+    width: 92%; 
+    max-width: 400px; 
+    height: 68px; 
+    border-radius: 99px; 
+    
+    /* Glass Noir Style */
+    background: rgba(15, 15, 15, 0.9); 
+    backdrop-filter: blur(16px); 
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    
+    /* Layout */
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 6px 8px 6px 8px; /* Tight padding */
+    z-index: 2000; 
+    transition: bottom 0.3s ease;
+}
+
+/* 1. The Art (Spinning Vinyl Effect) */
+.track-info { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    flex: 1; /* Takes available space */
+    overflow: hidden; /* Truncate text */
+    padding-left: 4px;
+}
+
+.track-art { 
+    width: 52px; 
+    height: 52px; 
+    border-radius: 50%; 
+    background: #1a1a1a; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+    /* Subtle Spin Animation */
+    animation: spin-vinyl 10s linear infinite;
+    flex-shrink: 0;
+}
+
+/* 2. The Text */
+.track-title { 
+    color: white; 
+    font-size: 13px; 
+    font-weight: 700; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    max-width: 160px;
+}
+
+.track-artist { 
+    color: #888; 
+    font-size: 11px; 
+    margin-top: 2px; 
+}
+
+/* 3. The Controls */
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* The Big Play Button */
+.play-btn-main, .play-btn {
+    width: 52px; 
+    height: 52px; 
+    border-radius: 50%; 
+    background: white; /* Contrast pop */
+    color: black; 
+    border: none; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    box-shadow: 0 4px 15px rgba(255,255,255,0.15);
+    transition: 0.2s;
+}
+
+.play-btn-main:hover, .play-btn:hover {
+    transform: scale(1.05);
+    background: #f0f0f0;
+}
+
+/* SVG Alignment fix for the triangle icon */
+.play-btn svg, .play-btn-main svg {
+    margin-left: 2px; 
+    fill: black;
+    stroke: black;
+}
+
+/* Secondary controls (Prev/Next) - If you have them */
+.control-btn {
+    background: transparent;
+    color: #888;
+    padding: 8px;
+    border-radius: 50%;
+}
+.control-btn:hover { color: white; background: rgba(255,255,255,0.1); }
+
+
+/* ANIMATION */
+@keyframes spin-vinyl { 100% { transform: rotate(360deg); } }
+
+/* MOBILE ADJUSTMENT (So it floats above the nav bar) */
+@media (max-width: 768px) {
+    .player-bar {
+        bottom: 85px; /* Clear the mobile nav */
+        width: 95%;
+        height: 64px;
+    }
+    .track-art { width: 48px; height: 48px; }
+    .play-btn-main, .play-btn { width: 48px; height: 48px; }
+}
+/* =========================================
+   FIXED PLAYLIST ROW (Alignment)
+   ========================================= */
+.lib-row {
+    display: flex;
+    align-items: center;       /* Vertically center everything */
+    justify-content: space-between; /* Push Text left, Buttons right */
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+}
+
+.lib-row:hover {
+    background: var(--input-bg);
+}
+
+.lib-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;                 /* Space between MP3 badge and Text */
+    flex: 1;                   /* Takes up all available middle space */
+    cursor: pointer;
+    overflow: hidden;          /* Prevents long text breaking layout */
+    margin-right: 10px;        /* Space before the buttons start */
+}
+
+.lib-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;                  /* Space between Pen and X */
+    flex-shrink: 0;            /* Prevents buttons from squishing */
+}
+
+/* Fix the MP3 Badge alignment */
+.mp3-badge {
+    width: 32px;
+    height: 32px;
+    background: #222;
+    color: #fff;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* =========================================
+   PLAYER MARQUEE & TIME
+   ========================================= */
+
+/* The Container that holds the scrolling text */
+.track-title-container {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+    mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+}
+
+/* The actual text element */
+.track-title {
+    display: inline-block;
+    padding-left: 0;
+    animation: marquee 12s linear infinite; /* 12s loop */
+}
+
+/* Pause animation on hover so you can read it */
+.player-bar:hover .track-title {
+    animation-play-state: paused;
+}
+
+@keyframes marquee {
+    0%   { transform: translateX(0); }
+    20%  { transform: translateX(0); } /* Wait a bit before starting */
+    100% { transform: translateX(-100%); } /* Move all the way left */
+}
+
+/* Time Display Styling */
+#player-time {
+    font-size: 10px;
+    color: #888;
+    font-variant-numeric: tabular-nums; /* Prevents jitter when numbers change */
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+}
+.music-art-wrapper {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #222;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.music-art-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 1;
+}
+
+.music-art-fallback {
+    font-size: 24px;
+    color: #555;
+    z-index: 0;
+}
+
+/* PLAYER BAR ART (Spinning Image) */
+.track-art {
+    /* Keep your existing dimensions/border-radius/animation */
+    /* width: 52px; height: 52px; border-radius: 50%; etc... */
+    position: relative;
+    overflow: hidden; 
+    background: #111; /* fallback bg */
+}
+
+#player-art-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+#player-art-fallback {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand img {
+  height: 1.3rem;       /* matches text height */
+  width: auto;
+}
+.brand,
+.brand:hover,
+.brand:visited,
+.brand:active {
+  text-decoration: none;
+  color: inherit;
+}
+/* =========================================
+   BUTTON HOVER EFFECTS (INTERACTIVE)
+   ========================================= */
+
+/* 1. PRIMARY BUTTONS (Access, Join, Enter) 
+   Effect: Lifts up, glows slightly, and brightens */
+.btn-primary:hover {
+    transform: translateY(-2px); 
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2); 
+    filter: brightness(1.2); /* Makes black darker or white brighter */
+}
+
+/* 2. OUTLINE BUTTONS (Create Account)
+   Effect: Fills with solid color and text turns opposite color */
+.btn-outline:hover {
+    background: var(--primary);
+    color: var(--primary-text);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: var(--primary);
+}
+
+/* 3. CANCEL / SECONDARY BUTTONS 
+   Effect: Gets a subtle background so you know it's clickable */
+.btn-secondary:hover {
+    background: var(--input-bg); /* Light grey background */
+    color: var(--text-main);     /* Darker text */
+    transform: translateY(-1px);
+}
+:focus {
+    outline: none;
+}
+
+/* 2. Create the "Vibe Ring" on Focus
+   This applies to Buttons, Inputs, and Links when Tabbing */
+.btn:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+.icon-btn:focus-visible {
+    /* Creates a "Gap" using the background color, then a "Border" using primary color */
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--primary);
+    
+    /* smooth transition */
+    transition: box-shadow 0.2s ease;
+    
+    /* Ensure it sits on top */
+    position: relative; 
+    z-index: 10;
+}
+
+/* Specific fix for the Primary (Black/White) button to make the ring visible */
+.btn-primary:focus-visible {
+    /* We make the ring slightly separated so it shows up against the black button */
+    box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--primary);
+}
+.mobile-only-btn {
+    display: none;
+}
+
+/* 2. Mobile: Show it */
+@media (max-width: 768px) {
+    .mobile-only-btn {
+        display: flex; /* Make it visible */
+        font-weight: 700;
+        width: 30%;
+        border: 1px solid var(--border); /* Adds a nice border to match the input style */
+    }
+}
+/* =========================================
+   SETTINGS BUTTON STACK (PERFECT SYMMETRY)
+   ========================================= */
+.action-stack {
+    display: flex;
+    flex-direction: column; /* Stack them vertically */
+    gap: 12px;              /* Exact spacing between every button */
+    margin-top: 20px;
+}
+
+/* Force every button inside to be full width */
+.action-stack button {
+    width: 100%;
+    justify-content: center; /* Ensures text is centered */
+    margin: 0; /* Removes any default margins that cause jitter */
+}
+body.dark-mode header img,
+body.dark-mode .guest-header img {
+    filter: invert(1);
+    transition: filter 0.3s ease;
+}
+
+
+Tweaks needed.
+Home Page
+
+TimeStamps on Posts and comments.
+Implement indention on comments to avoid confusion and specify which user that reply was meant to.
+
+Network
+Clicking Message Icon does not redirect to Chat Section.
+
+Notification
+Badge supposed to disappear when event was clicked.
+If notification was clicked its supposed to redirect to that specific event? 
+
+Img on the header also inverts color haha I was only targeting the invert color on .brand img
+
+Mobile
+Clicking own img supposed to show modal but it redirects to Settings.
+
+CSS tweaks
+User Modal Kinda weird?
+Cover Photo always on the back. Scrollable area overlaps Profile Info?
+Profile Info should Always be on top with a clear separator between the scrollable area
+
+Clicking brand while logged in Goes to Landing Page then loads HomePage haha its weird.
+
+PLEASE DONT TOUCH ANYTHING ELSE, PLEASE PLEASE PLASE

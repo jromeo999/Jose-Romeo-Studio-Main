@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml"
+href="data:image/svg+xml;utf8,
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>
+  <rect width='64' height='64' rx='12' fill='%231f2937'/>
+  <rect x='18' y='14' width='28' height='36' rx='3' fill='%23e5e7eb'/>
+  <rect x='24' y='10' width='16' height='8' rx='2' fill='%239ca3af'/>
+  <rect x='22' y='22' width='14' height='3' rx='1' fill='%236b7280'/>
+  <rect x='22' y='28' width='18' height='3' rx='1' fill='%236b7280'/>
+  <rect x='22' y='34' width='12' height='3' rx='1' fill='%236b7280'/>
+  <circle cx='44' cy='42' r='8' fill='%232563eb'/>
+  <line x1='44' y1='42' x2='44' y2='37' stroke='%23ffffff' stroke-width='2' stroke-linecap='round'/>
+  <line x1='44' y1='42' x2='48' y2='42' stroke='%23ffffff' stroke-width='2' stroke-linecap='round'/>
+</svg>">    <title>EOD Tracker System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- HIDDEN FILE INPUTS -->
+    <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="handleAvatarUpload(this)">
+    <input type="file" id="account-logo-upload" accept="image/*" style="display: none;" onchange="handleAccountLogoUpload(this)">
+    <input type="file" id="company-logo-upload" accept="image/*" style="display: none;" onchange="handleCompanyLogoUpload(this)">
+
+    <!-- ========================= MODALS ========================= -->
+
+    <!-- GENERIC NOTIFICATION MODAL -->
+    <div id="custom-modal" class="modal-overlay hidden">
+        <div class="modal-box animate-scale-in">
+            <h3 id="modal-title">Notification</h3>
+            <p id="modal-msg">Message...</p>
+            <div class="modal-actions">
+                <button id="btn-modal-cancel" class="modal-btn btn-ghost" onclick="closeModal()">Cancel</button>
+                <button id="btn-modal-confirm" class="modal-btn btn-solid">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROLE BUILDER MODAL -->
+    <div id="role-builder-modal" class="modal-overlay hidden">
+        <div class="modal-box animate-scale-in" style="max-width: 900px; width: 95%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:15px;">
+                <h3 style="margin:0;"><i class="fa-solid fa-screwdriver-wrench"></i> Role Layout Builder</h3>
+                <button class="icon-btn" onclick="closeRoleBuilder()" style="font-size:1.2rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="background:#f1f5f9; padding:10px; border-radius:4px; margin-bottom:20px; display:flex; align-items:center; gap:10px; border:1px solid #cbd5e0;">
+    <label style="color:var(--primary); font-weight:800; font-size:0.75rem; text-transform:uppercase;">EDIT EXISTING:</label>
+    
+    <!-- PREMIUM DROPDOWN: LOAD ROLE -->
+    <div id="dd-builder-load" class="custom-dd-wrapper" style="flex-grow:1;">
+        <!-- Hidden input keeps the logic working -->
+        <input type="hidden" id="builder-load-select" value="">
+        
+        <div class="custom-dd-trigger" onclick="toggleCustomDropdown('dd-builder-load')">
+            <span id="builder-load-label">-- Create New Role --</span>
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+        
+        <div id="builder-load-options" class="custom-dd-options">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+</div>
+            <div style="display:flex; gap:20px; text-align:left; height: 55vh;">
+                <div style="flex:1; display:flex; flex-direction:column; gap:15px; overflow-y:auto; padding-right:10px;">
+                    <div class="form-group">
+                        <label>Role Name</label>
+                        <input type="text" id="builder-role-name" class="custom-input" placeholder="e.g. RMA Specialist">
+                    </div>
+                    <div id="builder-fields-container" style="display:flex; flex-direction:column; gap:10px;"></div>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button class="btn-header-action" style="border:1px dashed var(--primary); color:var(--primary);" onclick="addBuilderField('text')"><i class="fa-solid fa-font"></i> Input</button>
+                        <button class="btn-header-action" style="border:1px dashed var(--primary); color:var(--primary);" onclick="addBuilderField('select')"><i class="fa-solid fa-list"></i> Dropdown</button>
+                        <button class="btn-header-action" style="border:1px dashed var(--primary); color:var(--primary);" onclick="addBuilderField('textarea')"><i class="fa-solid fa-align-left"></i> Textarea</button>
+                    </div>
+                </div>
+                <div style="flex:1; background:#f8f9fa; border:1px solid var(--border); border-radius:12px; padding:20px; display:flex; flex-direction:column; overflow: hidden;">
+                    <label style="color:var(--primary); font-size:0.7rem; font-weight:bold; margin-bottom:10px; display:block; flex-shrink: 0;">AGENT VIEW PREVIEW (INTERACTIVE)</label>
+                    <div style="overflow-y: auto; flex-grow: 1; padding-right: 5px;">
+                        <div class="input-card"> 
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-user-pen"></i> Work Log</h3>
+                            </div>
+                            <div class="card-body" id="preview-body"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions" style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
+    
+    <!-- NEW: Delete Button (Hidden by default) -->
+    <button id="btn-delete-role" class="modal-btn btn-ghost" style="display:none; color:#ef4444; border-color:#ef4444; margin-right:auto;" onclick="deleteCurrentRole()">
+        <i class="fa-solid fa-trash"></i> Delete Role
+    </button>
+
+    <button class="modal-btn btn-ghost" onclick="closeRoleBuilder()">Cancel</button>
+    <button class="modal-btn btn-solid" onclick="saveNewRole()">Save Role Profile</button>
+</div>
+        </div>
+    </div>
+
+    <!-- CHANGE CODE MODAL -->
+    <div id="change-code-modal" class="modal-overlay hidden">
+        <div class="modal-box animate-scale-in">
+            <h3>Update Access Code</h3>
+            <div class="form-group">
+                <label>New 4-Digit Code</label>
+                <input type="password" id="new-access-code" class="custom-input" maxlength="4" placeholder="••••">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-ghost" onclick="closeCodeModal()">Cancel</button>
+                <button class="modal-btn btn-solid" onclick="saveNewCode()">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOVE AGENT MODAL -->
+    <div id="move-agent-modal" class="modal-overlay hidden">
+    <div class="modal-box animate-scale-in">
+        <h3>Assign Account</h3>
+        <p>Move <span id="move-agent-name" style="color:var(--primary); font-weight:bold;"></span> to:</p>
+        
+        <div class="form-group" style="text-align: left;">
+            <label>Select Target Group</label>
+            <!-- UPDATED: Select Dropdown instead of Input -->
+            <select id="target-account-select" class="custom-select">
+                <option value="" disabled selected>Loading groups...</option>
+            </select>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 20px;">
+            <button class="modal-btn btn-ghost" onclick="closeMoveModal()">Cancel</button>
+            <button class="modal-btn btn-solid" onclick="saveAgentAccount()">Confirm</button>
+        </div>
+    </div>
+</div>
+
+    <!-- CREATE ACCOUNT MODAL -->
+    <div id="create-account-modal" class="modal-overlay hidden">
+        <div class="modal-box animate-scale-in">
+            <h3><i class="fa-solid fa-folder-plus"></i> Create New Account</h3>
+            <p>This creates a new empty account group.</p>
+            <div class="form-group">
+                <label>Account Name</label>
+                <input type="text" id="new-account-name" class="custom-input" placeholder="e.g. Wayfair, Amazon...">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-ghost" onclick="closeCreateAccountModal()">Cancel</button>
+                <button class="modal-btn btn-solid" onclick="submitNewAccount()">Create Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREATE AGENT MODAL -->
+    <div id="create-agent-modal" class="modal-overlay hidden">
+        <div class="modal-box animate-scale-in">
+            <h3><i class="fa-solid fa-user-plus"></i> Add Team Member</h3>
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="new-agent-name" class="custom-input" placeholder="e.g. John Doe">
+            </div>
+            <div class="form-group">
+    <label>Assign to Account</label>
+    <div id="dd-new-agent-acc" class="custom-dd-wrapper">
+        <!-- Hidden input keeps the ID "new-agent-account" so submit logic works -->
+        <input type="hidden" id="new-agent-account" value="">
+        
+        <div class="custom-dd-trigger" onclick="toggleCustomDropdown('dd-new-agent-acc')">
+            <span id="label-new-agent-acc">Select an Account...</span>
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+        
+        <div id="opts-new-agent-acc" class="custom-dd-options">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+</div>
+
+<!-- PREMIUM ROLE DROPDOWN -->
+<div class="form-group">
+    <label>Role</label>
+    <div id="dd-new-agent-role" class="custom-dd-wrapper">
+        <!-- Hidden input keeps the ID "new-agent-role" -->
+        <input type="hidden" id="new-agent-role" value="">
+        
+        <div class="custom-dd-trigger" onclick="toggleCustomDropdown('dd-new-agent-role')">
+            <span id="label-new-agent-role">Select a Role...</span>
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+        
+        <div id="opts-new-agent-role" class="custom-dd-options">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+</div>
+            <div class="form-group">
+                <label>Access Code (4-Digits)</label>
+                <input type="password" id="new-agent-code" class="custom-input" maxlength="4" placeholder="••••">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-ghost" onclick="closeCreateAgentModal()">Cancel</button>
+                <button class="modal-btn btn-solid" onclick="submitNewAgent()">Add Member</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOG DETAILS MODAL -->
+    <div id="log-details-modal" class="modal-overlay hidden">
+        <div class="modal-box animate-scale-in" style="text-align: left; max-width: 500px; padding: 0;">
+            <div class="card-header" style="border-radius: 24px 24px 0 0;">
+                <h3><i class="fa-solid fa-file-lines"></i> Entry Details</h3>
+            </div>
+            <div style="padding: 25px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                    <span id="modal-view-agent" style="color:var(--text-main); font-weight:bold;">Agent Name</span>
+                    <span id="modal-view-time" style="color:var(--primary); font-family:monospace; font-weight:bold;">00:00 AM</span>
+                </div>
+                <div id="modal-standard-content">
+                    <div class="form-group">
+                        <label>Type</label>
+                        <input id="modal-view-type" class="custom-input" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Reference</label>
+                        <input id="modal-view-ref" class="custom-input" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Full Details</label>
+                        <textarea id="modal-view-details" class="custom-textarea" readonly style="height:120px;"></textarea>
+                    </div>
+                </div>
+                <div id="modal-dynamic-content" class="hidden" style="display:flex; flex-direction:column; gap:10px;"></div>
+                <div class="modal-actions" style="margin-top: 15px;">
+                    <button class="modal-btn btn-solid" onclick="closeLogDetails()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================= LOGIN SCREEN ========================= -->
+    <div id="login-modal" class="animate-fade">
+        <div class="login-card">
+            <div class="brand-header">
+                <div class="brand-logo-container">
+                    <img src="logo.png" alt="Brand Logo" class="brand-logo">
+                </div>
+                <span>EOD SYSTEM</span>
+            </div>
+            <form id="login-form">
+                <input type="password" id="access-code" class="pass-input" maxlength="4" placeholder="••••" autofocus required>
+                <button type="submit" class="btn btn-login">ACCESS DASHBOARD</button>
+            </form>
+            <p id="error-msg"><i class="fa-solid fa-triangle-exclamation"></i> Invalid Access Code</p>
+        </div>
+    </div>
+
+    <!-- ================================================= -->
+    <!-- NEW MANAGER SIDEBAR LAYOUT                        -->
+    <!-- ================================================= -->
+    <div id="manager-layout" class="hidden animate-fade">
+        
+        <!-- SIDEBAR -->
+        <aside class="manager-sidebar">
+            <!-- 1. HEADER: LOGO & TIME -->
+            <div class="sidebar-header">
+                <div class="sidebar-brand clickable-brand" onclick="triggerCompanyLogoUpload()" title="Change Logo">
+                    <img id="mgr-company-logo" src="logo.png" alt="Logo">
+                    <div class="brand-edit-overlay"><i class="fa-solid fa-camera"></i></div>
+                </div>
+                
+                <div class="sidebar-datetime">
+                    <div id="mgr-clock-time">00:00 AM</div>
+                    <div id="mgr-clock-date">LOADING...</div>
+                </div>
+            </div>
+            
+            <!-- 2. MANAGER PROFILE -->
+<!-- 2. MANAGER PROFILE -->
+<div class="sidebar-profile">
+    <div style="display:flex; align-items:center; gap:10px; flex-grow:1;">
+        
+        <!-- TRIGGER ONLY ON IMAGE -->
+        <img id="mgr-user-img" src="" class="mgr-avatar hidden" onclick="triggerAvatarUpload()" style="cursor: pointer;" title="Upload Photo">
+        
+        <!-- TRIGGER ONLY ON DEFAULT ICON -->
+        <span id="mgr-default-icon" class="mgr-avatar-def" onclick="triggerAvatarUpload()" style="cursor: pointer;" title="Upload Photo">
+            <i class="fa-solid fa-user-tie"></i>
+        </span>
+
+        <!-- TEXT INFO (Clicking here does nothing now) -->
+        <div class="mgr-profile-info">
+            <span id="mgr-user-display">Manager</span>
+            <small>Account Manager</small>
+        </div>
+    </div>
+    
+    <!-- CONTROLS -->
+    <div class="sidebar-profile-controls">
+        <!-- Default View -->
+        <div id="mgr-ctrl-default" style="display:flex; gap:5px;">
+            <button class="icon-btn" onclick="startNameEdit('mgr')" title="Edit Name"><i class="fa-solid fa-pen"></i></button>
+            <button class="icon-btn" onclick="openCodeModal()" title="Change Code"><i class="fa-solid fa-key"></i></button>
+            <button class="icon-btn remove-btn" onclick="removeAvatar()" title="Remove Photo"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <!-- Edit View -->
+        <div id="mgr-ctrl-edit" class="hidden" style="display:flex; gap:5px;">
+            <button class="icon-btn" onclick="saveNameEdit('mgr')" title="Save" style="color:#10b981;"><i class="fa-solid fa-check"></i></button>
+            <button class="icon-btn" onclick="cancelNameEdit('mgr')" title="Cancel" style="color:#ef4444;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+</div>
+<div id="mobile-nav-wrapper" class="mobile-only">
+                <select id="mobile-account-select" class="sleek-select" onchange="filterManagerView(this.value)">
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+
+            <div class="sidebar-separator"></div>
+
+            <!-- 3. ACTION BUTTONS -->
+            <div class="sidebar-actions">
+                <button class="btn-sidebar-action" onclick="openRoleBuilder()">
+                    <i class="fa-solid fa-layer-group"></i> Add Role
+                </button>
+                <button class="btn-sidebar-action" onclick="openCreateAccountModal()">
+                    <i class="fa-solid fa-folder-plus"></i> New Account
+                </button>
+                <button class="btn-sidebar-action" onclick="openCreateAgentModal()">
+                    <i class="fa-solid fa-user-plus"></i> New Agent
+                </button>
+            </div>
+
+            <div class="sidebar-separator"></div>
+
+            <!-- 4. FILTERS (Month/Year) -->
+            <div class="sidebar-filters">
+                <label>Period Filter</label>
+                <div class="filter-row">
+                    <!-- Reusing existing dropdown logic with new IDs -->
+                    <div class="custom-dropdown" id="mgr-dd-month" style="width: 100%;">
+                        <div class="dropdown-trigger" onclick="toggleManagerMonthMenu()" style="justify-content: space-between;">
+                            <span id="mgr-display-month">JANUARY</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="dropdown-menu hidden" id="mgr-menu-month">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-row" style="margin-top: 8px;">
+                    <div class="custom-dropdown" id="mgr-dd-year" style="width: 100%;">
+                        <div class="dropdown-trigger" onclick="toggleManagerYearMenu()" style="justify-content: space-between;">
+                            <span id="mgr-display-year">2026</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="dropdown-menu hidden" id="mgr-menu-year">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-separator"></div>
+
+            <!-- 5. ACCOUNT NAVIGATION -->
+            <div class="sidebar-nav-section">
+                <label>ACCOUNTS</label>
+                <div id="sidebar-account-list" class="nav-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- 6. FOOTER -->
+            <div class="sidebar-footer">
+                <button onclick="logout()" class="btn-sidebar-logout">
+                    <i class="fa-solid fa-power-off"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="manager-main">
+            <!-- TOP BAR (View Day Filter only) -->
+            <div class="manager-topbar">
+                <!-- ADDED ID HERE -->
+                <div id="mgr-topbar-left" style="display:flex; align-items:center; gap:15px;">
+                    <h2 id="active-account-title" style="margin:0;"><i class="fa-solid fa-layer-group"></i> All Accounts</h2>
+                    
+                    <div style="display:flex; gap:5px; border-left:1px solid var(--border); padding-left:15px;">
+                        <button class="btn-mini-action" onclick="toggleManagerAccordions(true)" title="Expand All"><i class="fa-solid fa-angles-down"></i></button>
+                        <button class="btn-mini-action" onclick="toggleManagerAccordions(false)" title="Collapse All"><i class="fa-solid fa-angles-up"></i></button>
+                    </div>
+                </div>
+                
+                <div style="display:flex; align-items:center; gap: 15px;">
+                    <div class="mgr-counter"><span>LOGS:</span> <b id="mgr-counter-val">0</b></div>
+                    
+                    <!-- NEW QUICK PERIOD SELECTOR -->
+                    <!-- REPLACEMENT FOR mgr-quick-period SELECT -->
+<div class="day-filter-wrapper" style="border:none; padding:0; background:none;">
+    <!-- MANAGER PERIOD FILTER -->
+<div id="dd-mgr-period" class="custom-dd-wrapper" style="width: 160px;">
+    <input type="hidden" id="mgr-quick-period" value="this_month">
+    
+    <!-- SPLIT TRIGGER -->
+    <div class="split-dd-trigger">
+        <!-- Left: Reset -->
+        <div class="dd-text-btn" onclick="quickResetMonth('dd-mgr-period', 'applyManagerQuickFilter')" title="Click to reset to This Month">
+            <span id="label-mgr-period">THIS MONTH</span>
+        </div>
+        <!-- Right: Menu -->
+        <div class="dd-arrow-btn" onclick="toggleCustomDropdown('dd-mgr-period')">
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+    </div>
+    
+    <!-- OPTIONS -->
+    <div class="custom-dd-options" style="width: 160px; right:0; left:auto;">
+        <div class="custom-dd-option selected" data-val="this_month" onclick="selectCustomOption('dd-mgr-period', 'this_month', 'THIS MONTH', 'applyManagerQuickFilter')">THIS MONTH</div>
+        <div class="custom-dd-option" data-val="prev_month" onclick="selectCustomOption('dd-mgr-period', 'prev_month', 'PREV MONTH', 'applyManagerQuickFilter')">PREV MONTH</div>
+        <div class="custom-dd-option" data-val="this_year" onclick="selectCustomOption('dd-mgr-period', 'this_year', 'THIS YEAR', 'applyManagerQuickFilter')">THIS YEAR</div>
+        <div class="custom-dd-option" data-val="prev_year" onclick="selectCustomOption('dd-mgr-period', 'prev_year', 'LAST YEAR', 'applyManagerQuickFilter')">LAST YEAR</div>
+    </div>
+</div>
+</div>
+                </div>
+            </div>
+
+            <!-- GRID CONTAINER -->
+            <div id="accounts-container" class="accounts-wrapper" style="padding: 20px;">
+                <!-- Agents Render Here -->
+            </div>
+        </main>
+        <div id="trends-panel" class="slide-panel">
+            <div class="slide-header">
+                <h3 id="trends-title"><i class="fa-solid fa-chart-line"></i> Analytics</h3>
+                <button class="icon-btn" onclick="closeTrendsPanel()"><i class="fa-solid fa-xmark fa-lg"></i></button>
+            </div>
+            <div id="trends-body" class="slide-body">
+                <!-- Charts Inject Here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================= AGENT DASHBOARD ========================= -->
+    <div id="dashboard" class="dashboard-wrapper hidden animate-slide-up">
+        
+        <nav class="top-nav">
+            <!-- LEFT: LOGO + DATE/TIME WIDGET -->
+            <div class="nav-left">
+                <div class="nav-brand">
+                    <img id="header-company-logo" src="logo.png" alt="Logo" class="nav-logo-img">
+                </div>
+                <!-- READ-ONLY DATE/TIME WIDGET -->
+                
+                <img id="agent-account-logo" class="account-badge-img hidden" alt="Account Logo">
+                <div class="user-profile" onclick="triggerAvatarUpload()" title="Click to upload photo">
+                    <img id="current-user-img" src="" class="avatar-img hidden">
+                    <span id="default-user-icon" class="user-avatar"><i class="fa-solid fa-user"></i></span>
+                    
+                    <!-- NAME DISPLAY -->
+                    <span id="user-display" class="user-name" onclick="event.stopPropagation();">Loading...</span>
+                    
+                    <!-- CONTROLS -->
+                    <div class="profile-controls">
+    <!-- Default -->
+    <div id="agent-ctrl-default" style="display:flex; gap:4px;">
+        <button class="icon-btn edit-btn" onclick="event.stopPropagation(); startNameEdit('agent')" title="Edit Name"><i class="fa-solid fa-pen"></i></button>
+        <button class="icon-btn" onclick="event.stopPropagation(); openCodeModal()" title="Change Access Code" style="color:var(--primary)"><i class="fa-solid fa-key"></i></button>
+        <!-- NEW TRASH ICON -->
+        <button class="icon-btn remove-btn" onclick="event.stopPropagation(); removeAvatar()" title="Remove Photo"><i class="fa-solid fa-trash"></i></button>
+    </div>
+    <!-- Edit Mode (No change) -->
+    <div id="agent-ctrl-edit" class="hidden" style="display:flex; gap:4px;">
+        <button class="icon-btn" onclick="event.stopPropagation(); saveNameEdit('agent')" style="color:#10b981;"><i class="fa-solid fa-check"></i></button>
+        <button class="icon-btn" onclick="event.stopPropagation(); cancelNameEdit('agent')" style="color:#ef4444;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+</div>
+                </div>
+            </div>
+            <div class="datetime-display animate-fade">
+                    <span id="clock-date">LOADING...</span>
+                    <span class="dt-separator">|</span>
+                    <span id="clock-time">00:00 AM</span>
+                </div>
+            <!-- RIGHT: AGENT FILTERS + LOGOUT -->
+            <div class="nav-right">
+                <div id="agent-filters" class="header-actions">
+    <!-- REPLACEMENT FOR quick-period SELECT -->
+    <!-- AGENT PERIOD FILTER -->
+<div id="dd-agent-period" class="custom-dd-wrapper" style="width: 160px;">
+    <!-- Hidden input -->
+    <input type="hidden" id="quick-period" value="this_month">
+    
+    <!-- SPLIT TRIGGER -->
+    <div class="split-dd-trigger">
+        <!-- Left: Click to Reset to This Month -->
+        <div class="dd-text-btn" onclick="quickResetMonth('dd-agent-period', 'applyQuickFilter')" title="Click to reset to This Month">
+            <span id="label-agent-period">THIS MONTH</span>
+        </div>
+        <!-- Right: Click to Open Menu -->
+        <div class="dd-arrow-btn" onclick="toggleCustomDropdown('dd-agent-period')">
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+    </div>
+    
+    <!-- OPTIONS -->
+    <div class="custom-dd-options">
+        <div class="custom-dd-option selected" data-val="this_month" onclick="selectCustomOption('dd-agent-period', 'this_month', 'THIS MONTH', 'applyQuickFilter')">THIS MONTH</div>
+        <div class="custom-dd-option" data-val="prev_month" onclick="selectCustomOption('dd-agent-period', 'prev_month', 'PREV MONTH', 'applyQuickFilter')">PREV MONTH</div>
+        <div class="custom-dd-option" data-val="this_year" onclick="selectCustomOption('dd-agent-period', 'this_year', 'THIS YEAR', 'applyQuickFilter')">THIS YEAR</div>
+        <div class="custom-dd-option" data-val="prev_year" onclick="selectCustomOption('dd-agent-period', 'prev_year', 'LAST YEAR', 'applyQuickFilter')">LAST YEAR</div>
+    </div>
+</div>
+</div>
+                <div id="live-counter" class="session-widget">
+                    <span class="lbl">LOGS</span> 
+                    <span id="counter-val" class="val">0</span>
+                </div>
+                <button onclick="logout()" class="btn btn-logout" title="Logout">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- STANDARD VIEW -->
+        <main id="standard-view" class="main-grid animate-fade">
+            <!-- LEFT PANEL -->
+            <section class="panel-left">
+                <!-- CSR FORM -->
+                <div id="form-csr" class="input-card hidden">
+                    <div class="card-header">
+                        <h3><i class="fa-regular fa-comment-dots"></i> CSR Interaction Log</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Interaction Type</label>
+<div id="dd-csr-type" class="custom-dd-wrapper">
+    <!-- Keeps ID so submitCSREntry works -->
+    <input type="hidden" id="chat-type-select" value="Chat">
+    
+    <div class="custom-dd-trigger" onclick="toggleCustomDropdown('dd-csr-type')">
+        <span><i class="fa-regular fa-comments"></i> Chat</span>
+        <i class="fa-solid fa-chevron-down"></i>
+    </div>
+    
+    <div class="custom-dd-options">
+        <div class="custom-dd-option selected" data-val="Chat" onclick="selectCustomOption('dd-csr-type', 'Chat', 'Chat')">
+            <i class="fa-regular fa-comments"></i> Chat
+        </div>
+        <div class="custom-dd-option" data-val="Email" onclick="selectCustomOption('dd-csr-type', 'Email', 'Email')">
+            <i class="fa-regular fa-envelope"></i> Email
+        </div>
+        <div class="custom-dd-option" data-val="OPP" onclick="selectCustomOption('dd-csr-type', 'OPP', 'OPP')">
+            <i class="fa-solid fa-phone"></i> OPP
+        </div>
+        <div class="custom-dd-option" data-val="Task/Case" onclick="selectCustomOption('dd-csr-type', 'Task/Case', 'Task / Case')">
+            <i class="fa-solid fa-list-check"></i> Task / Case
+        </div>
+    </div>
+</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Reference Info</label>
+                            <input type="text" id="chat-ref" class="custom-input" placeholder="Cx Name, Order #, Task ID...">
+                        </div>
+                        <div class="form-group">
+                            <label>Details & Notes</label>
+                            <textarea id="chat-details" class="custom-textarea" placeholder="Enter details..."></textarea>
+                        </div>
+                        <button onclick="submitCSREntry()" class="btn btn-submit">
+                            <i class="fa-solid fa-paper-plane"></i> LOG ENTRY
+                        </button>
+                    </div>
+                </div>
+
+                <!-- DATA ENTRY FORM -->
+                <div id="form-data-entry" class="input-card hidden">
+    
+<!-- SECTION 1: DEPOSITS -->
+<div id="admin-view-deposits" class="admin-subview" style="padding: 20px; border-bottom: 2px dashed #cbd5e0; background: #fafbfc;">
+    
+    <!-- HEADER: Title + Day Counter -->
+    <div style="margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;">
+        
+        <!-- Left: Title -->
+        <div style="display:flex; align-items:center; gap:8px; color:var(--primary); opacity:0.9;">
+            <i class="fa-solid fa-money-bill-wave"></i> 
+            <span style="font-weight:800; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Daily Deposits</span>
+        </div>
+
+        <!-- Right: Day Counter (- 1 +) -->
+        <div class="deposit-day-counter">
+            <span style="font-size:0.65rem; color:#64748b; font-weight:700; margin-right:5px;">COVERAGE:</span>
+            <div class="counter-control">
+                <button class="btn-cnt" onclick="adjustDays(-1)"><i class="fa-solid fa-minus"></i></button>
+                <span id="dep-days-val">1</span>
+                <button class="btn-cnt" onclick="adjustDays(1)"><i class="fa-solid fa-plus"></i></button>
+            </div>
+            <span style="font-size:0.65rem; color:#64748b; font-weight:700; margin-left:2px;">DAY(S)</span>
+        </div>
+    </div>
+
+    <!-- HEADERS -->
+    <div class="deposit-header-row">
+        <div class="col-gw">Gateway</div> 
+        <div class="col-brand">DIY</div>
+        <div class="col-brand">DecksDirect</div>
+    </div>
+    
+    <!-- Paypal -->
+    <div class="deposit-row" id="row-paypal">
+        <div class="gw-label"><i class="fa-brands fa-paypal"></i> Paypal</div>
+        <div class="toggle-group" data-brand="diy">
+            <button class="toggle-btn btn-check" onclick="setDepositStatus(this, 'Done')"><i class="fa-solid fa-check"></i></button>
+            <button class="toggle-btn btn-cross" onclick="setDepositStatus(this, 'None')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="toggle-group" data-brand="dd">
+            <button class="toggle-btn btn-check" onclick="setDepositStatus(this, 'Done')"><i class="fa-solid fa-check"></i></button>
+            <button class="toggle-btn btn-cross" onclick="setDepositStatus(this, 'None')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+
+    <!-- Braintree -->
+    <div class="deposit-row" id="row-braintree">
+        <div class="gw-label"><i class="fa-solid fa-credit-card"></i> Braintree</div>
+        <div class="toggle-group" data-brand="diy">
+            <button class="toggle-btn btn-check" onclick="setDepositStatus(this, 'Done')"><i class="fa-solid fa-check"></i></button>
+            <button class="toggle-btn btn-cross" onclick="setDepositStatus(this, 'None')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="toggle-group" data-brand="dd">
+            <button class="toggle-btn btn-check" onclick="setDepositStatus(this, 'Done')"><i class="fa-solid fa-check"></i></button>
+            <button class="toggle-btn btn-cross" onclick="setDepositStatus(this, 'None')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+
+    <!-- Affirm -->
+    <div class="deposit-row" id="row-affirm">
+        <div class="gw-label"><i class="fa-solid fa-envelope"></i> Affirm</div>
+        <div class="toggle-group" data-brand="diy">
+            <button class="toggle-btn btn-check" onclick="setDepositStatus(this, 'Done')"><i class="fa-solid fa-check"></i></button>
+            <button class="toggle-btn btn-cross" onclick="setDepositStatus(this, 'None')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="toggle-group" data-brand="dd">
+            <button class="toggle-btn btn-check" onclick="setDepositStatus(this, 'Done')"><i class="fa-solid fa-check"></i></button>
+            <button class="toggle-btn btn-cross" onclick="setDepositStatus(this, 'None')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+
+    <button onclick="submitDeposits()" class="btn btn-submit" style="background:#059669; margin-top:15px;">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Submit Deposits
+    </button>
+</div>
+    <!-- BOTTOM: TASKS (Vertical Stack, Text Only) -->
+<div id="admin-view-tasks" class="admin-subview" style="padding:20px;">
+    
+    <div style="margin-bottom: 10px; display:flex; justify-content:space-between; align-items:center;">
+         <div style="display:flex; align-items:center; gap:8px; color:var(--primary); opacity:0.9;">
+            <i class="fa-solid fa-list-check"></i> 
+            <span style="font-weight:800; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Task Log</span>
+         </div>
+         <span style="font-size:0.6rem; color:#94a3b8; font-weight:600;">HOTKEYS ACTIVE</span>
+    </div>
+
+    <!-- VERTICAL SELECT LIST -->
+    <div class="quick-select-vertical">
+        <!-- Stores value for JS -->
+        <input type="hidden" id="admin-task-select" value="Invoice">
+
+        <!-- Invoice (Q) -->
+        <div class="quick-card active" onclick="selectTaskOption('Invoice')" data-val="Invoice">
+            <span class="hotkey-hint">Q</span>
+            <span class="card-label">Invoice</span>
+        </div>
+
+        <!-- Tracking (T) -->
+        <div class="quick-card" onclick="selectTaskOption('Tracking')" data-val="Tracking">
+            <span class="hotkey-hint">T</span>
+            <span class="card-label">Tracking Updates</span>
+        </div>
+
+        <!-- Statement (W) -->
+        <div class="quick-card" onclick="selectTaskOption('Statement')" data-val="Statement">
+            <span class="hotkey-hint">W</span>
+            <span class="card-label">Statements</span>
+        </div>
+
+        <!-- Others (E) -->
+        <div class="quick-card" onclick="selectTaskOption('Others')" data-val="Others">
+            <span class="hotkey-hint">E</span>
+            <span class="card-label">Others</span>
+        </div>
+    </div>
+
+    <div class="form-group" style="margin-top:20px;">
+        <label>Reference #</label>
+        <input type="text" id="admin-task-ref" class="custom-input" placeholder="Invoice #, Tracking ID...">
+    </div>
+    
+    <div class="form-group">
+        <label>Notes</label>
+        <textarea id="admin-task-details" class="custom-textarea" placeholder="Enter task details..." style="height:60px;"></textarea>
+    </div>
+    
+    <button onclick="submitDataEntryTask()" class="btn btn-submit" title="Shortcut: Alt + S">
+        <i class="fa-solid fa-paper-plane"></i> Log Task (Alt + S)
+    </button>
+</div>
+</div>
+
+                <div id="form-custom" class="input-card hidden">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-pen-to-square"></i> <span id="custom-form-title">Work Log</span></h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- JS will inject inputs here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL: LOGS -->
+            <section class="panel-right">
+                <div class="log-card">
+                    <div class="card-header">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <h3><i class="fa-solid fa-clock-rotate-left"></i> Daily Logs</h3>
+                            <button onclick="jumpToToday()" class="btn-mini-action btn-today-pulse" title="View Current Shift">
+    <i class="fa-solid fa-calendar-day"></i> TODAY
+</button>
+                            <div id="agent-expand-controls" class="hidden" style="display:flex; gap:5px;">
+                                <button class="btn-mini-action" onclick="toggleAgentAccordions(true)" title="Expand All"><i class="fa-solid fa-angles-down"></i></button>
+                                <button class="btn-mini-action" onclick="toggleAgentAccordions(false)" title="Collapse All"><i class="fa-solid fa-angles-up"></i></button>
+                            </div>
+                        </div>
+                        <div class="header-badges"><span class="badge" id="role-badge"></span></div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th width="8%">Date</th>
+                                    <th width="10%">Time</th>
+                                    <th width="10%">Type</th>
+                                    <th width="20%">Ref</th>
+                                    <th width="52%" style="text-align: right;">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div id="edit-agent-modal" class="modal-overlay hidden">
+    <div class="modal-box animate-scale-in">
+        <h3><i class="fa-solid fa-user-pen"></i> Edit Agent Details</h3>
+        <p>Reassigning role for <span id="edit-agent-name" style="color:var(--primary); font-weight:bold;"></span>.</p>
+        
+        <!-- PREMIUM ROLE DROPDOWN -->
+        <div class="form-group" style="text-align: left;">
+            <label>New Role</label>
+            <div id="dd-edit-agent-role" class="custom-dd-wrapper">
+                <input type="hidden" id="edit-agent-role-select" value="">
+                
+                <div class="custom-dd-trigger" onclick="toggleCustomDropdown('dd-edit-agent-role')">
+                    <span id="label-edit-agent-role">Select a Role...</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                
+                <div id="opts-edit-agent-role" class="custom-dd-options">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 20px;">
+            <button class="modal-btn btn-ghost" onclick="closeEditAgentModal()">Cancel</button>
+            <button class="modal-btn btn-solid" onclick="saveAgentRole()">Update Role</button>
+        </div>
+    </div>
+</div>
+    <!-- FIREBASE MODULE TYPE SCRIPT -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>

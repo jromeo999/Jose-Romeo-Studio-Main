@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tambayan Sa Carbon</title>
+    <!-- Add this line inside the <head> tag -->
+    <link rel="icon" href="logo.svg">
+    <!-- Google Fonts: Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-view">
+        <div class="login-card">
+            <div id="login-logo-text" class="logo-area">POS</div>
+            <img id="login-logo-img" src="" alt="Store Logo" class="hidden login-brand-img">
+            
+            <h2 style="color:var(--primary); margin-top:0;">Store Login</h2>
+            <form id="login-form">
+                <input type="text" id="username-input" placeholder="Username" required>
+                <input type="password" id="password-input" placeholder="Password" required>
+                <button type="submit" class="btn-primary full-width">ENTER SYSTEM</button>
+            </form>
+            <p id="login-msg"></p>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="app-view" class="hidden">
+        <header>
+            <div class="brand-container">
+                <img id="header-logo" src="" alt="Logo" class="hidden">
+                <h1 id="header-store-name">My Store</h1>
+            </div>
+            <div class="user-info">
+    <!-- User Icon SVG -->
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    
+    <span id="admin-display">User</span>
+    <span id="role-display" style="font-size:0.7rem; opacity:0.8; text-transform:uppercase; color: white;"></span>
+    <button onclick="logout()">LOGOUT</button>
+</div>
+        </header>
+
+        <nav>
+            <button onclick="switchTab('cashier')" id="nav-cashier" class="active">Cashier</button>
+            <button onclick="switchTab('inventory')" id="nav-inventory">Inventory</button>
+            <button onclick="switchTab('reports')" id="nav-reports">Sales</button>
+            <button onclick="switchTab('settings')" id="nav-settings">Settings</button>
+        </nav>
+
+        <main class="container">
+            <!-- CASHIER TAB -->
+            <div id="tab-cashier" class="tab-section">
+                <div class="cashier-layout">
+                    <div class="menu-panel">
+                        <input type="text" id="menu-search" onkeyup="renderCashier()" placeholder="Search item..." style="margin-bottom:10px; padding:10px; width:100%; border:1px solid #ddd; border-radius:8px;">
+                        <div class="filters">
+                            <button onclick="filterMenu('Meal')" class="filter-btn active-filter">Meals</button>
+                            <button onclick="filterMenu('Drinks')" class="filter-btn">Drinks</button>
+                            <button onclick="filterMenu('Snacks')" class="filter-btn">Snacks</button>
+                            <button onclick="filterMenu('Others')" class="filter-btn">Others</button>
+                        </div>
+                        <div id="menu-grid" class="grid-container">
+                            <div class="empty-state">No items found.</div>
+                        </div>
+                    </div>
+
+                    <div class="cart-panel">
+                        <div class="cart-header">
+                            <h3>Current Order</h3>
+                            <button onclick="clearCart()" class="btn-text">Clear</button>
+                        </div>
+                        <div id="cart-list" class="cart-list"></div>
+                        <div class="cart-footer">
+                            <div class="total-row">
+                                <span>Total</span>
+                                <span id="cart-total-display">₱0.00</span>
+                            </div>
+                            <button onclick="openCheckoutModal()" class="btn-gold full-width">PAY NOW</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INVENTORY TAB (Admin Only) -->
+            <div id="tab-inventory" class="tab-section hidden">
+                <div class="action-bar" style="flex-wrap: wrap; gap: 10px;">
+    <h2 style="margin:0;">Menu List</h2>
+    <input type="text" id="inventory-search" onkeyup="renderInventory()" placeholder="Search item..." style="flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 6px;">
+    <button onclick="openItemModal()" class="btn-primary" style="white-space: nowrap;">+ Add Item</button>
+</div>
+                <div class="table-wrapper">
+                    <table id="inventory-table">
+                        <thead><tr><th>Name</th><th>Price</th><th style="width:50px;"></th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- REPORTS TAB -->
+            <!-- REPORT TAB -->
+<div id="tab-reports" class="tab-section hidden">
+    <!-- Stats Grid (Remains the same) -->
+    <!-- Inside #tab-reports -->
+<div id="sales-stats" class="stats-grid admin-only">
+    <div class="stat-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <small>Today's Sales</small>
+            <!-- NEW: The Cashier Name Label -->
+            <span id="report-card-user" style="font-size: 0.7rem; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: 600; color: #475569;">
+                Loading...
+            </span>
+        </div>
+        <h2 id="report-daily">₱0.00</h2>
+    </div>
+    
+    <div class="stat-card">
+        <small>Current Month</small>
+        <h2 id="report-monthly">₱0.00</h2>
+    </div>
+</div>
+    
+    <!-- NEW: Filter Bar -->
+    <div class="action-bar" style="margin: 20px 0 10px 0; display: flex; justify-content: space-between; align-items: center;">
+        <h3>Transaction History</h3>
+        <div class="custom-select-wrapper" style="width: 180px;">
+            <select id="report-filter-date" onchange="renderReports()">
+                <option value="ALL">All Time</option>
+                <!-- Options populated by JS -->
+            </select>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table id="sales-table">
+            <thead>
+                <tr>
+                    <th>Details</th>
+                    <th style="text-align:right">Total</th>
+                    <th style="width:50px;"></th>
+                </tr>
+            </thead>
+            <!-- NEW: Table Footer for Filtered Total -->
+            <tbody></tbody>
+            <tfoot id="sales-tfoot" class="hidden">
+                <tr style="background: #f8fafc; font-weight:bold;">
+                    <td style="text-align:right;">Filtered Total:</td>
+                    <td id="filtered-total-display" style="text-align:right;">₱0.00</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+            <!-- SETTINGS TAB (Admin Only) -->
+            <div id="tab-settings" class="tab-section hidden">
+                <div class="settings-container">
+                    <!-- Manage Staff -->
+                    <div class="setting-card admin-only">
+    <h3>Manage Staff</h3>
+    <p class="small-text">Create a cashier account.</p>
+    
+    <!-- Input Fields (Existing) -->
+    <input type="text" id="new-cashier-name" placeholder="Full Name (e.g. Juan Cruz)" style="margin-bottom:10px;">
+    <input type="text" id="new-cashier-user" placeholder="Cashier Username">
+    <input type="password" id="new-cashier-pass" placeholder="Cashier Password">
+    <button onclick="createCashier()" class="btn-primary" style="margin-top:10px">Create Cashier Account</button>
+
+    <!-- NEW: Active Staff List -->
+    <div style="margin-top: 25px; padding-top: 20px; border-top: 1px dashed var(--border);">
+        <h4 style="margin: 0 0 10px 0;">Active Staff</h4>
+        <div id="staff-list" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Staff rows injected here by JS -->
+            <div style="text-align:center; color:#999; font-size:0.8rem;">Loading...</div>
+        </div>
+    </div>
+</div>
+
+                    <div class="setting-card admin-only">
+                        <h3>Branding</h3>
+                        <label>Store Name</label>
+                        <input type="text" id="setting-store-name">
+                        <label>Logo</label>
+                        <input type="file" id="setting-logo-upload" accept="image/*">
+                        <img id="logo-preview" class="hidden" style="height:60px; margin-top:10px; border:1px solid #ddd;">
+                        <button onclick="saveBranding()" class="btn-primary" style="margin-top:10px">Save Branding</button>
+                    </div>
+
+                    <div class="setting-card">
+                        <h3>My Profile</h3>
+                        <input type="text" id="setting-user" disabled style="background:#f1f5f9;">
+                        <input type="password" id="setting-pass" placeholder="New Password">
+                        <button onclick="updateProfile()" class="btn-gold" style="margin-top:10px">Update My Password</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <div id="item-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modal-title">Add Item</h3>
+            <form id="item-form">
+                <input type="hidden" id="item-id">
+                <label>Name</label>
+                <input type="text" id="item-name" required>
+                <label>Category</label>
+                <div class="custom-select-wrapper">
+                    <select id="item-category">
+                        <option value="Meal">Meal</option>
+                        <option value="Drinks">Drinks</option>
+                        <option value="Snacks">Snacks</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+                <label>Price (₱)</label>
+                <input type="number" id="item-price" step="0.01" required>
+                <div class="modal-buttons">
+                    <button type="button" onclick="closeModal()" class="btn-text">Cancel</button>
+                    <button type="submit" id="modal-submit-btn" class="btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="checkout-modal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Review Order</h3>
+        
+        <div id="checkout-summary" class="checkout-list"></div>
+        
+        <div class="checkout-total-line">
+            Total: <span id="checkout-total-amount">₱0.00</span>
+        </div>
+
+        <!-- NEW: Payment Section -->
+        <div style="background: #f1f5f9; padding: 15px; border-radius: 10px; margin: 15px 0;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-sub);">CASH RECEIVED</label>
+            
+            <!-- Inside #checkout-modal -->
+
+<!-- Cash Input Field (Same as before) -->
+<input type="number" id="checkout-cash-input" placeholder="Enter amount..." 
+       onkeyup="calculateChange()" 
+       style="font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-bottom: 10px;">
+
+<!-- NEW: Philippine Bills Grid -->
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px;">
+    <button onclick="setCash(20)" class="bill-btn">₱20</button>
+    <button onclick="setCash(50)" class="bill-btn">₱50</button>
+    <button onclick="setCash(100)" class="bill-btn">₱100</button>
+    <button onclick="setCash(200)" class="bill-btn">₱200</button>
+    <button onclick="setCash(500)" class="bill-btn">₱500</button>
+    <button onclick="setCash(1000)" class="bill-btn">₱1k</button>
+</div>
+
+<!-- NEW: Exact Amount Button -->
+<button onclick="setExact()" class="bill-btn" style="width: 100%; margin-bottom: 15px; background: #e2e8f0; border-color: #cbd5e1;">
+    EXACT AMOUNT
+</button>
+
+<!-- Change Display (Same as before) -->
+<div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
+    <span style="font-weight: 600;">CHANGE:</span>
+    <span id="checkout-change-display" style="font-size: 1.3rem; font-weight: 800; color: var(--accent);">₱0.00</span>
+</div>
+        </div>
+        <!-- END NEW SECTION -->
+
+        <div class="modal-buttons">
+            <button onclick="closeCheckoutModal()" class="btn-text">Back</button>
+            <!-- Added ID to button so we can disable it if cash is low -->
+            <button id="btn-confirm-pay" onclick="confirmPayment()" class="btn-gold">CONFIRM PAYMENT</button>
+        </div>
+    </div>
+</div>
+
+    <!-- ADMIN AUTH MODAL (FOR VOIDING) -->
+    <div id="auth-modal" class="modal hidden" style="z-index: 2005;">
+        <div class="modal-content small-modal">
+            <h3 style="color:var(--danger)">Admin Authorization</h3>
+            <p>Admin permission required to void.</p>
+            
+            <input type="text" id="auth-admin-user" placeholder="Admin Username">
+            <input type="password" id="auth-admin-pass" placeholder="Admin Password">
+            
+            <p id="auth-error" class="hidden" style="color:var(--danger); font-size:0.9rem;">Invalid Credentials</p>
+            <div class="modal-buttons">
+                <button onclick="closeAuthModal()" class="btn-text">Cancel</button>
+                <button onclick="executeVoid()" class="btn-danger">VOID SALE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div id="alert-modal" class="modal hidden" style="z-index: 2010;">
+        <div class="modal-content small-modal">
+            <div id="alert-msg">Message</div>
+            <button onclick="closeAlert()" class="btn-primary full-width" style="margin-top:15px;">OK</button>
+        </div>
+    </div>
+    <div id="confirm-modal" class="modal hidden" style="z-index: 2010;">
+    <div class="modal-content small-modal">
+        <div style="font-size: 2rem; margin-bottom: 10px;">⚠️</div>
+        <h3 id="confirm-title" style="margin-top:0; margin-bottom:10px;">Confirm</h3>
+        <div id="confirm-msg" style="color:#64748b; margin-bottom: 25px;">Are you sure?</div>
+        
+        <!-- The 'equal-split' class ensures 50/50 width -->
+        <div class="modal-buttons equal-split">
+            <button id="confirm-btn-no" onclick="closeConfirm(false)" class="btn-text">Cancel</button>
+            <button id="confirm-btn-yes" onclick="closeConfirm(true)" class="btn-danger">Confirm</button>
+        </div>
+    </div>
+</div>
+<!-- VOID REQUEST MODAL (For Cashiers) -->
+<div id="void-request-modal" class="modal hidden">
+    <div class="modal-content small-modal">
+        <h3>Request Void</h3>
+        <p class="small-text">Admin is offline. Mark this for review?</p>
+        
+        <textarea id="void-reason" rows="3" placeholder="Reason (e.g. Wrong Order, Customer Left)" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:10px; font-family:inherit; margin:10px 0;"></textarea>
+        
+        <div class="modal-buttons equal-split">
+            <button onclick="closeVoidRequest()" class="btn-text">Cancel</button>
+            <button onclick="submitVoidRequest()" class="btn-primary">Submit Request</button>
+        </div>
+    </div>
+</div>
+<!-- TRANSACTION DETAILS MODAL -->
+<div id="details-modal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Transaction Details</h3>
+        
+        <!-- Metadata (Date/Cashier) -->
+        <div id="details-meta" style="margin-bottom: 15px; font-size: 0.85rem; color: var(--text-sub); border-bottom: 1px solid var(--border); padding-bottom: 10px;"></div>
+        
+        <!-- Item List (Reusing Checkout Styles) -->
+        <div id="details-list" class="checkout-list" style="max-height: 300px; overflow-y: auto;">
+            <!-- Items injected here -->
+        </div>
+        
+        <div class="checkout-total-line" style="margin-top: 15px;">
+            Total: <span id="details-total">₱0.00</span>
+        </div>
+
+        <button onclick="closeDetailsModal()" class="btn-primary full-width" style="margin-top: 15px;">Close</button>
+    </div>
+</div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

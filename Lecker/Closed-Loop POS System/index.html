@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="icons/icon128.png">
+    <title>Lecker Kiosk</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Delius&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Style -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+       (function(){
+          emailjs.init("_vpMAL03l1qt9rrgS"); 
+       })();
+    </script>
+</head>
+<body>
+
+    <div id="toastBox" class="toast-container"></div>
+
+    <!-- LANDING PAGE -->
+    <div id="landingPage" class="landing-layer">
+        <div class="landing-content">
+            <img src="images/lecker-logo.png" alt="Lecker" class="landing-logo">
+            <h1 class="landing-text">Savor The Taste.</h1>
+            <button id="startBtn" class="pulse-btn">TAP TO ORDER</button>
+        </div>
+    </div>
+
+    <!-- MAIN KIOSK LAYOUT -->
+    <div id="kioskContainer" class="kiosk-grid hidden">
+        
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="brand-area">
+                <img src="images/lecker-logo.png" alt="Logo" ondblclick="document.getElementById('authModal').classList.remove('hidden')">
+</div>
+            <nav class="nav-menu">
+                <div class="nav-item active" data-cat="appetizers"><i class="fas fa-drumstick-bite"></i> <span>APPETIZERS</span></div>
+                <div class="nav-item" data-cat="burgers"><i class="fas fa-hamburger"></i> <span>BURGERS</span></div>
+                <div class="nav-item" data-cat="meals"><i class="fas fa-utensils"></i> <span>MEALS</span></div>
+                <div class="nav-item" data-cat="addons"><i class="fas fa-bacon"></i> <span>ADD-ONS</span></div>
+                <div class="nav-item" data-cat="drinks"><i class="fas fa-glass-whiskey"></i> <span>DRINKS</span></div>
+                <div class="nav-item hidden" id="promoTab" data-cat="promos"><i class="fas fa-tags"></i> <span>PROMOS</span></div>
+            </nav>
+            <div class="checkout-bar" id="cartBtn">
+                <div class="cart-info">
+                    <span class="cart-label">TOTAL</span>
+                    <span id="cartTotalDisplay" class="cart-price">₱0</span>
+                </div>
+                <div class="cart-icon-box">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span id="cartCountBadge" class="badge">0</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN STAGE -->
+        <main class="main-stage">
+            
+            <!-- VIEW A: IDLE -->
+            <div id="idleView" class="stage-view active-view">
+                <div class="empty-state">
+                    <i class="fas fa-arrow-left bounce-left"></i>
+                    <h2>Select a category<br>to begin</h2>
+                </div>
+            </div>
+
+            <!-- VIEW B: MENU -->
+            <!-- VIEW B: MENU -->
+<div id="menuView" class="stage-view">
+    
+    <!-- NEW HEADER BAR -->
+    <div class="view-header">
+        
+        <!-- Left: Back to Home -->
+        <button id="btnHome" class="hdr-icon-btn" onclick="returnToLanding()" title="End Session">
+            <i class="fas fa-home"></i>
+        </button>
+
+        <!-- Center: SOS & Owner Controls -->
+        <div class="header-status-group">
+    
+    <!-- 1. SOS Profile -->
+    <button class="hdr-status-pill" id="headerSosBtn" onclick="openSOSMainModal()">
+        <i class="fas fa-user-shield"></i>
+        <!-- Wrapped text in span -->
+        <span id="headerSosLabel">SOS Login</span>
+    </button>
+    
+    <!-- 2. Logout (Keep as is) -->
+    <button id="headerLogoutBtn" class="hdr-icon-btn small hidden" onclick="logoutLanding()" title="Log Out" style="border-color: #d32f2f; color: #d32f2f; margin-left: 5px;">
+        <i class="fas fa-sign-out-alt"></i>
+    </button>
+
+    <!-- 3. Owner -->
+    <button id="adminLockBtn" class="hdr-status-pill" onclick="document.getElementById('authModal').classList.remove('hidden')" title="Owner Login">
+        <i class="fas fa-lock"></i>
+        <!-- Wrapped text in span -->
+        <span>Owner</span>
+    </button>
+
+    <!-- 4. Owner Settings (Keep as is) -->
+    <button id="ownerSettingsBtn" class="hdr-icon-btn small hidden" onclick="openOwnerPortal()" title="Owner Dashboard">
+        <i class="fas fa-cog"></i>
+    </button>
+</div>
+
+<!-- Right: Reviews -->
+<div class="header-actions">
+    <!-- Read Reviews (Already icon only) -->
+    <button class="hdr-btn outline" id="btnReadReviews" title="Read Reviews">
+        <i class="fas fa-star"></i>
+    </button>
+    
+    <!-- Write Review (Added Icon + Span) -->
+    <button class="hdr-btn solid" id="btnWriteReview" title="Rate Us">
+        <i class="fas fa-pen"></i>
+        <span>Rate Us</span>
+    </button>
+        </div>
+    </div>
+
+    <!-- Grid stays the same -->
+    <div id="menuGrid" class="grid-container"></div>
+</div>
+
+            <!-- VIEW C: CHECKOUT -->
+            <div id="checkoutView" class="stage-view">
+                <button id="backToMenuBtn" class="back-btn"><i class="fas fa-arrow-left"></i> Continue Ordering</button>
+                <div class="checkout-layout">
+                    <!-- Summary -->
+                    <div class="order-summary">
+    
+    <!-- New Header with Flexbox -->
+    <div class="summary-header">
+        <h3>Your Selection</h3>
+        <button type="button" class="btn-clear-tray" onclick="clearEntireCart()">
+            <i class="fas fa-trash-alt"></i> Clear
+        </button>
+    </div>
+
+    <!-- The list container -->
+    <div id="checkoutList" class="checkout-list"></div>
+
+    <div class="grand-total-line">
+        <span>Total Amount</span>
+        <span id="finalTotal">₱0</span>
+    </div>
+</div>
+
+                    <!-- Form -->
+                    <div class="customer-form">
+            <h3>Finalize Order</h3>
+            <form id="orderForm">
+        
+        <!-- SOS TOGGLE (Hide this if already logged in as Employee) -->
+        <div class="sos-section" id="sosToggle" onclick="toggleSOSMode()">
+            <div class="sos-checkbox"><i class="fas fa-check"></i></div>
+            <span class="sos-label">SOS Employee?</span>
+        </div>
+
+        <!-- SOS EMPLOYEE CARD (Displays when logged in) -->
+        <div id="sosEmployeeCard" class="employee-card hidden" style="margin-bottom: 20px; border:1px solid var(--gold); padding:15px; border-radius:8px; background: #1a1a1a;">
+    <div style="display:flex; align-items:center; gap: 15px;">
+        
+        <!-- NEW: Avatar Image -->
+        <img id="empCheckoutAvatar" src="images/default-user.png" 
+             style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); box-shadow: 0 0 10px rgba(255,215,0,0.2);">
+
+        <!-- Text Info -->
+        <div style="flex: 1;">
+            <h4 id="empNameDisplay" style="margin:0; color:white; font-size: 1.1rem; line-height: 1.2;">Employee Name</h4>
+            
+            <!-- Meta Data (Company First) -->
+            <div id="empMetaDisplay" style="font-size:0.85rem; color:#aaa; margin-top: 3px;">
+                Company • Floor
+            </div>
+        </div>
+
+        <!-- History Button -->
+        <button type="button" class="btn-history-mini" id="btnCheckoutHistory" style="height: 30px;">
+            <i class="fas fa-history"></i>
+        </button>
+    </div>
+</div>
+
+        <!-- REGULAR CUSTOMER FIELDS (Grouped for easy hiding) -->
+        <div id="regularInfoBlock">
+            <input type="text" id="custName" placeholder="Full Name" autocomplete="off">
+            <input type="tel" id="custContact" placeholder="Contact #" autocomplete="off">
+            <!-- New: Email for invoicing -->
+            <input type="email" id="custEmail" placeholder="Email (Optional for Invoice)" autocomplete="off">
+            <div id="addressGroup">
+                <input type="text" id="custAddress" placeholder="Delivery Address" autocomplete="off">
+            </div>
+        </div>
+        
+        <!-- SOS Hidden Inputs (Data carriers) -->
+        <div id="sosGroup" class="field-hidden">
+            <input type="hidden" id="finalEmpName">
+            <input type="hidden" id="finalEmpEmail">
+            <input type="hidden" id="finalEmpFloor">
+            <input type="hidden" id="finalEmpAcct">
+        </div>
+        
+        <hr style="border:0; border-top:1px solid #333; margin: 20px 0;">
+        <p class="section-label">Mode of Payment</p>
+        
+        <!-- ... (Payment Container remains the same) ... -->
+        <div class="payment-stack" id="paymentContainer">
+            <!-- Copy your existing payment options here -->
+             <div class="pay-option field-hidden" id="optPayday" onclick="togglePayment('Payday', this)">
+                <div class="pay-row"><i class="fas fa-id-card"></i><span>Payday</span><div class="check-circle"><i class="fas fa-check"></i></div></div>
+            </div>
+            <div class="pay-option" onclick="togglePayment('Cash', this)">
+                <div class="pay-row"><i class="fas fa-money-bill-wave"></i><span>Cash</span><div class="check-circle"><i class="fas fa-check"></i></div></div>
+            </div>
+            <!-- ... Keep GCash and BPI as they were ... -->
+             <div class="pay-option" onclick="togglePayment('GCash', this)">
+                <div class="pay-row"><i class="fas fa-mobile-alt"></i><span>GCash</span><div class="check-circle"><i class="fas fa-check"></i></div></div>
+                <div class="pay-details">
+                    <p class="qr-instruction"><strong></strong></p>
+                    <img id="qrGcashDisplay"src="qr/gcash.png" onclick="openLightbox(this.src); event.stopPropagation();" alt="QR">
+                    <div class="proof-upload-area">
+                        <input type="file" id="fileGCash" class="proof-file-input" accept="image/*" hidden>
+                        <input type="hidden" id="urlGCash" class="proof-url-hidden">
+                        <button type="button" class="btn-upload-proof" onclick="triggerUpload(this); event.stopPropagation();"><i class="fas fa-camera"></i> Attach Proof of Payment</button>
+                        <span id="statusGCash" class="upload-status"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="pay-option" onclick="togglePayment('BPI', this)">
+                <div class="pay-row"><i class="fas fa-university"></i><span>BPI</span><div class="check-circle"><i class="fas fa-check"></i></div></div>
+                <div class="pay-details">
+                    <p class="qr-instruction"><strong></strong></p>
+                    <img id="qrBpiDisplay"src="qr/bpi.png" onclick="openLightbox(this.src); event.stopPropagation();" alt="QR">
+                    <div class="proof-upload-area">
+                         <input type="file" id="fileBPI" class="proof-file-input" accept="image/*" hidden>
+                        <input type="hidden" id="urlBPI" class="proof-url-hidden">
+                        <button type="button" class="btn-upload-proof" onclick="triggerUpload(this); event.stopPropagation();"><i class="fas fa-camera"></i> Attach Proof of Payment</button>
+                        <span id="statusBPI" class="upload-status"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <input type="hidden" id="selectedPaymentMethod">
+        <textarea id="custNote" placeholder="Special requests..." rows="2"></textarea>
+        <button type="submit" class="place-order-btn">PLACE ORDER</button>
+    </form>
+</div>
+                </div>
+            </div>
+
+            <!-- VIEW D: THANK YOU -->
+            <div id="thankYouView" class="stage-view">
+                <div class="success-content">
+                    <div class="success-icon"><i class="fas fa-check"></i></div>
+                    <h1>Order Placed!</h1>
+                    <p>Preparing your feast now...</p>
+                    <div class="progress-bar"><div class="progress-fill"></div></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ADMIN PANEL -->
+        <aside id="adminPanel" class="admin-panel hidden">
+            <div class="admin-header">
+                <h3>ADMIN MODE</h3>
+                <button id="adminLogout"><i class="fas fa-power-off"></i></button>
+            </div>
+            <button onclick="openOwnerPortal()" class="dashboard-link-btn" style="background:var(--gold); color:black; margin-bottom:10px;">
+        <i class="fas fa-user-cog"></i> OWNER SETTINGS
+    </button>
+            <a href="dashboard.html" class="dashboard-link-btn"><i class="fas fa-th-list"></i> OPEN DASHBOARD</a>
+            <div class="admin-scroll-content">
+                <div class="admin-section">
+                    <h4>Settings</h4>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="togglePromoVisibility">
+                        <span class="slider round"></span>
+                        <span class="toggle-label">Show Promos Tab</span>
+                    </label>
+                </div>
+                <hr class="admin-divider">
+                <div class="admin-section">
+                    <h4>Item Editor</h4>
+                    <form id="adminForm">
+                        <input type="hidden" id="editId">
+                        <input type="hidden" id="finalImgUrl">
+                        <label>Category</label>
+                        <select id="inpCat">
+                            <option value="appetizers">Appetizers</option>
+                            <option value="burgers">Burgers</option>
+                            <option value="meals">Meals</option>
+                            <option value="addons">Add-Ons</option>
+                            <option value="drinks">Drinks</option>
+                            <option value="promos">Promos/Events</option>
+                        </select>
+                        <label>Image</label>
+                        <div id="dropZone" class="upload-box">
+                            <div id="uploadPlaceholder"><i class="fas fa-cloud-upload-alt"></i><p>Upload</p></div>
+                            <img id="imgPreview" class="hidden" alt="Preview">
+                            <div id="uploadLoader" class="loader hidden"></div>
+                            <input type="file" id="fileInput" accept="image/*" hidden>
+                        </div>
+                        <label>Name</label><input type="text" id="inpName" required>
+                        <label>Price</label><input type="number" id="inpPrice" required>
+                        <label>Desc</label><textarea id="inpDesc" rows="2"></textarea>
+                        <div class="admin-actions">
+                            <button type="submit" id="saveBtn" class="btn-save">Save</button>
+                            <button type="button" id="deleteBtn" class="btn-del hidden">Delete</button>
+                            <button type="button" id="cancelBtn" class="btn-clear">Clear</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <!-- REVIEWS DRAWER -->
+        <div id="reviewsDrawer" class="public-drawer">
+            <div class="drawer-header">
+                <h3>Customer Vibes</h3>
+                <button id="closeReviewsDrawer" class="close-drawer-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="drawer-content" id="publicReviewsList"></div>
+        </div>
+    </div> 
+
+<!-- MODALS -->
+
+    <!-- Auth (Owner Login) -->
+    <div id="authModal" class="modal-overlay hidden">
+        <div class="login-box">
+            <h2>Owner Login</h2>
+            <input type="email" id="loginEmail" placeholder="Email">
+            <input type="password" id="loginPass" placeholder="Password">
+            <div class="login-actions">
+                <button id="doLoginBtn">Login</button>
+                <button id="closeAuth" class="text-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Write Review -->
+    <div id="reviewModal" class="modal-overlay hidden">
+        <div class="review-modal-box">
+            <h3>Rate Your Bite</h3>
+            <div class="star-widget">
+                <input type="radio" name="rate" id="rate-5" value="5"><label for="rate-5" class="fas fa-star"></label>
+                <input type="radio" name="rate" id="rate-4" value="4"><label for="rate-4" class="fas fa-star"></label>
+                <input type="radio" name="rate" id="rate-3" value="3"><label for="rate-3" class="fas fa-star"></label>
+                <input type="radio" name="rate" id="rate-2" value="2"><label for="rate-2" class="fas fa-star"></label>
+                <input type="radio" name="rate" id="rate-1" value="1"><label for="rate-1" class="fas fa-star"></label>
+            </div>
+            <form id="reviewForm">
+                <!-- GUEST INPUT -->
+                <input type="text" id="revName" placeholder="Name (Optional)" autocomplete="off">
+                
+                <!-- SOS USER BADGE -->
+                <div id="revLoggedInBadge" class="hidden" style="display: flex; align-items: center; gap: 10px; background: #222; padding: 10px; border-radius: 8px; border: 1px solid var(--gold); margin-bottom: 15px;">
+                    <img id="revUserImg" src="images/default-user.png" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #555;">
+                    <div style="font-size: 0.9rem; color: #ccc;">
+                        Reviewing as <span id="revLoggedInName" style="color: var(--gold); font-weight: bold;">User</span>
+                    </div>
+                </div>
+
+                <textarea id="revComment" placeholder="Comments..." rows="3" required></textarea>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel-rev" id="closeReviewModal">Cancel</button>
+                    <button type="submit" class="btn-submit-rev">Post</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SOS Employee Registration -->
+    <div id="empRegModal" class="modal-overlay hidden">
+        <div class="login-box" style="width: 350px;">
+            <h2 style="color:var(--gold);">Create Account</h2>
+            <p style="text-align:center; color:#888; margin-bottom:15px;">Create your profile.</p>
+            <form id="empRegForm">
+                <input type="text" id="regName" placeholder="Full Name" required autocomplete="off">
+                <input type="email" id="regEmail" placeholder="Email (For Recovery)" required autocomplete="off">
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="regFloor" placeholder="Floor" required style="flex:1;">
+                    <input type="text" id="regCompany" placeholder="Account" required style="flex:1;">
+                </div>
+                <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
+                <p style="font-size:0.8rem; color:var(--gold); margin-bottom:5px;">Security</p>
+                <input type="text" id="regAccessCode" placeholder="Access Code (e.g. 2468)" required 
+                       style="text-align:center; font-weight:bold; letter-spacing:2px; color:var(--gold); border-color:#555;">
+                <div class="login-actions">
+                    <button type="submit" id="btnRegSubmit">Create Profile</button>
+                    <button type="button" class="text-btn" onclick="document.getElementById('empRegModal').classList.add('hidden')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SOS Forgot ID -->
+    <div id="forgotIdModal" class="modal-overlay hidden">
+        <div class="login-box" style="width: 350px;">
+            <h2 style="color:var(--gold);">Recover ID</h2>
+            <p style="text-align:center; color:#ccc;">Enter email to receive your ID.</p>
+            <form id="forgotIdForm">
+                <input type="email" id="recoverEmail" placeholder="Registered Email" required>
+                <div class="login-actions">
+                    <button type="submit" id="btnRecoverSubmit">Send ID</button>
+                    <button type="button" class="text-btn" onclick="document.getElementById('forgotIdModal').classList.add('hidden'); document.getElementById('sosMainModal').classList.remove('hidden')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SOS Main Portal (Login & Dashboard Combined) -->
+    <div id="sosMainModal" class="modal-overlay hidden">
+        <div class="login-box" style="width: 380px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="color:var(--gold); margin:0;">Employee Portal</h2>
+                <button onclick="closeSOSMainModal()" style="background:none; border:none; color:#666; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            
+            <!-- STATE A: LOGIN -->
+            <div id="sosModalLogin">
+                <p style="color:#ccc; margin-bottom:15px; text-align:center;">Enter your Access Code</p>
+                <div class="portal-search-box" style="width:100%; margin-bottom:15px;">
+                    <input type="password" id="landingCodeInput" placeholder="Access Code" autocomplete="off" style="text-align:center; letter-spacing:3px;">
+                    <button onclick="handleLandingLogin()"><i class="fas fa-arrow-right"></i></button>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                    <span onclick="openEmpRegModal()" style="cursor:pointer; color:#888; text-decoration:underline;">Register New</span>
+                    <span onclick="openForgotIdModal()" style="cursor:pointer; color:#888;">Forgot Code?</span>
+                </div>
+            </div>
+
+            <!-- STATE B: PROFILE STATUS (Hidden by default) -->
+            <div id="sosModalStatus" class="hidden">
+                <!-- Header with Logout Icon -->
+                <div class="profile-header" style="display: flex; align-items: center; gap: 15px;">
+                    <div class="avatar-wrapper" onclick="document.getElementById('portalAvatarInput').click()">
+                        <img id="portalAvatarDisplay" src="images/default-user.png" alt="User">
+                        <div class="avatar-overlay"><i class="fas fa-camera"></i></div>
+                        <input type="file" id="portalAvatarInput" accept="image/*" hidden> 
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="landingEmpName">Loading...</h2>
+                        <div class="id-badge">ID: <span id="landingEmpIdDisplay">--</span></div>
+                    </div>
+                    <!-- Minimal Logout Button -->
+                    <button onclick="logoutLanding()" class="btn-logout-icon" title="Secure Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+
+                <!-- Fields -->
+                <div class="profile-fields">
+                    <div class="field-row">
+                        <label><i class="fas fa-building"></i></label>
+                        <input type="text" id="portalCompany" disabled placeholder="Company">
+                    </div>
+                    <div class="field-row">
+                        <label><i class="fas fa-layer-group"></i></label>
+                        <input type="text" id="portalFloor" disabled placeholder="Floor">
+                    </div>
+                    <div class="field-row">
+                        <div onclick="toggleSecret()" style="cursor:pointer; padding:10px 0;">
+                            <i id="secretIcon" class="fas fa-key"></i>
+                        </div>                    
+                        <input type="password" id="portalAccessCode" disabled placeholder="Access Code">
+                    </div>
+                </div>
+
+                <!-- Edit Actions -->
+                <div class="profile-actions">
+                    <button id="btnToggleEdit" class="action-btn outline" onclick="toggleProfileEdit()">
+                        <i class="fas fa-pen"></i> Edit Profile
+                    </button>
+                    <button id="btnSaveProfile" class="action-btn save hidden" onclick="saveProfileChanges()">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+
+                <hr class="admin-divider">
+
+                <!-- Debt & History -->
+                <div style="display:flex; gap:10px;">
+                    <div class="debt-box">
+                        <small>UNPAID BALANCE</small>
+                        <div id="landingEmpDebt">₱0</div>
+                    </div>
+                    <button onclick="openEmpHistory()" class="history-btn-large">
+                        <i class="fas fa-history"></i> History
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOS History Modal -->
+    <div id="empHistoryModal" class="modal-overlay hidden">
+        <div class="login-box" style="width: 400px; max-height: 80vh; display:flex; flex-direction:column;">
+            <div class="history-header">
+                <h3>My Transactions</h3>
+                <button class="close-hist-btn" onclick="closeHistoryModal()">&times;</button>
+            </div>
+            
+            <div class="history-list-container" id="empHistoryList"></div>
+            
+            <div class="history-footer" style="text-align: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; font-size: 0.8rem;">
+                <span style="color:#ff6b6b; font-weight:bold;">● Unpaid</span>
+                <span style="color:#444; margin: 0 8px;">|</span>
+                <span style="color:#4CAF50; font-weight:bold;">● Paid</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR -->
+    <div id="qrLightbox" class="lightbox-modal">
+        <div class="lightbox-close">&times;</div>
+        <img id="lightboxImg" class="lightbox-content" src="" alt="Full QR">
+    </div>
+    <div id="ownerPortalModal" class="modal-overlay hidden">
+    <div class="login-box" style="width: 400px; max-height:90vh; overflow-y:auto;">
+        
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 style="color:var(--gold); margin:0;">Owner Dashboard</h2>
+            <button onclick="document.getElementById('ownerPortalModal').classList.add('hidden')" 
+                    style="background:none; border:none; color:#666; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+
+        <!-- 1. STORE SETTINGS -->
+        <p class="section-label" style="color:var(--gold);">Store Controls</p>
+        <div class="field-row" style="justify-content: space-between;">
+            <span><i class="fas fa-tags"></i> Activate Promos</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="ownerPromoToggle">
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+        <!-- 2. QR MANAGEMENT (Dynamic Images) -->
+        <hr class="admin-divider">
+        <p class="section-label" style="color:var(--gold);">Payment QR Codes</p>
+        
+        <!-- GCash Upload -->
+        <div class="field-row" style="display:block; padding:15px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span><i class="fas fa-mobile-alt"></i> GCash QR</span>
+                <span id="gcashStatus" style="font-size:0.7rem; color:#666;">Current</span>
+            </div>
+            <input type="file" id="uploadGcashInput" accept="image/*" class="hidden">
+            <button class="btn-clear" style="width:100%;" onclick="document.getElementById('uploadGcashInput').click()">
+                <i class="fas fa-camera"></i> Update GCash Image
+            </button>
+        </div>
+
+        <!-- BPI Upload -->
+        <div class="field-row" style="display:block; padding:15px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span><i class="fas fa-university"></i> BPI QR</span>
+                <span id="bpiStatus" style="font-size:0.7rem; color:#666;">Current</span>
+            </div>
+            <input type="file" id="uploadBpiInput" accept="image/*" class="hidden">
+            <button class="btn-clear" style="width:100%;" onclick="document.getElementById('uploadBpiInput').click()">
+                <i class="fas fa-camera"></i> Update BPI Image
+            </button>
+        </div>
+
+        <!-- 3. SECURITY (Change Password) -->
+        <hr class="admin-divider">
+        <p class="section-label" style="color:var(--gold);">Security</p>
+        
+        <div class="field-row">
+            <label><i class="fas fa-lock"></i></label>
+            <input type="password" id="newAdminPass" placeholder="New Password" style="margin:0; border:none;">
+        </div>
+        <button id="btnUpdatePass" class="action-btn outline" style="margin-top:10px; width:100%;" onclick="updateOwnerPassword()">
+            Update Password
+        </button>
+
+        <hr class="admin-divider">
+        <button onclick="adminLogout()" class="text-btn" style="width:100%; color:#d32f2f;">Log Out</button>
+    </div>
+</div>
+<div id="customConfirmModal" class="modal-overlay hidden" style="z-index: 6000;">
+    <div class="login-box" style="width: 360px; text-align: center;">
+        
+        <!-- Animated Icon -->
+        <div class="confirm-icon-box">
+            <i class="fas fa-question-circle"></i>
+        </div>
+        
+        <!-- Header -->
+        <h2 style="color: white; margin-bottom: 10px; font-size: 1.5rem;">Are you sure?</h2>
+        
+        <!-- Dynamic Message -->
+        <p id="confirmMsg" style="color: #ccc; margin-bottom: 25px;">Please confirm this action.</p>
+        
+        <!-- Buttons -->
+        <div class="confirm-actions">
+            <button id="btnConfirmNo" class="btn-modal cancel">
+                Cancel
+            </button>
+            <button id="btnConfirmYes" class="btn-modal confirm">
+                Yes, Proceed
+            </button>
+        </div>
+
+    </div>
+</div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

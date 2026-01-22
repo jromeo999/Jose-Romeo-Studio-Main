@@ -126,3 +126,6 @@
 .msg.me .msg-time {
     color: #e4e4e7;
 }
+.force-hidden {
+    display: none !important;
+}

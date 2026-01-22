@@ -60,6 +60,7 @@ function initChatUI() {
 window.startChatListener = function() {
     const currentUser = window.appGlobal.currentUser;
     if(!currentUser) return;
+    window.updateChatProtection(); 
 
     // Reveal Button
     document.getElementById('chatBtn').classList.remove('hidden');
@@ -158,6 +159,30 @@ window.startChatListener = function() {
     }, (error) => {
         console.error("Chat Error:", error);
     });
+}
+window.updateChatProtection = function() {
+    const settings = window.appGlobal.settings || { chatEnabled: true };
+    const currentUser = window.appGlobal.currentUser;
+    const chatBtn = document.getElementById('chatBtn');
+    const chatWindow = document.getElementById('chatWindow');
+
+    if (!currentUser) return;
+
+    // Rule: If User is Admin, they can always see chat.
+    // Rule: If User is Normal, they can only see chat if chatEnabled is TRUE.
+    const isAllowed = (currentUser.role === 'admin') || settings.chatEnabled;
+
+    if (isAllowed) {
+        chatBtn.classList.remove('force-hidden');
+    } else {
+        chatBtn.classList.add('force-hidden');
+        
+        // If the window is currently open, forcibly close it
+        if(chatWindow.classList.contains('open')) {
+            window.toggleChatWindow(); 
+            window.showToast("Chat disabled by Admin", "error");
+        }
+    }
 }
 
 // 3. SELECTION MODE
@@ -315,10 +340,12 @@ window.sendMessage = async function() {
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
     if(!text || !activeChatId) return;
-
+    const settings = window.appGlobal.settings || { chatEnabled: true };
     const currentUser = window.appGlobal.currentUser;
     input.value = ''; 
-    
+    if (currentUser.role !== 'admin' && !settings.chatEnabled) {
+        return window.showToast("Chat is currently disabled", "error");
+    }
     const timestamp = new Date().toISOString();
 
     await addDoc(collection(window.db, "chats", activeChatId, "messages"), {

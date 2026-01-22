@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Monitor - Joanna's</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #2E1A47; /* Ube */
+            --preparing-bg: #3B215C;
+            --serving-bg: #4A2C70;
+            --gold: #FFD700;
+            --green: #4CAF50;
+            --white: #ffffff;
+        }
+        body { margin: 0; background: var(--bg-dark); color: var(--white); font-family: 'Poppins', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* HEADER */
+        header {
+            height: 100px; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.3); border-bottom: 4px solid var(--gold);
+            gap: 20px;
+        }
+        header img { height: 70px; }
+        header h1 { color: var(--gold); font-size: 2.5rem; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
+
+        /* MAIN SPLIT SCREEN */
+        .monitor-grid {
+            flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+            height: calc(100vh - 100px);
+        }
+
+        /* COLUMNS */
+        .column { padding: 20px; text-align: center; display: flex; flex-direction: column; }
+        .col-left { background: var(--preparing-bg); border-right: 2px solid #555; }
+        .col-right { background: var(--serving-bg); }
+
+        .col-header {
+            font-size: 2.5rem; font-weight: 900; text-transform: uppercase;
+            margin-bottom: 30px; display: inline-block; padding: 10px 40px;
+            border-radius: 50px;
+        }
+
+        /* PREPARING STYLES */
+        .col-left .col-header { color: #ccc; background: rgba(255,255,255,0.1); }
+        .prep-grid { 
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; 
+            align-content: start;
+        }
+        .prep-num {
+            font-size: 3rem; color: #aaa; font-weight: bold;
+            opacity: 0.7;
+        }
+
+        /* SERVING STYLES */
+        .col-right .col-header { color: #000; background: var(--green); box-shadow: 0 0 30px rgba(76, 175, 80, 0.6); }
+        .serve-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+            align-content: start;
+        }
+        .serve-card {
+            background: white; color: black;
+            border-radius: 15px; padding: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid var(--gold);
+        }
+        .serve-num {
+            font-size: 4rem; font-weight: 900; line-height: 1; color: var(--bg-dark);
+        }
+        .serve-label {
+            font-size: 1rem; color: #666; font-weight: bold; text-transform: uppercase; margin-top: 5px;
+        }
+
+        /* ANIMATION */
+        @keyframes popIn {
+            0% { transform: scale(0); } 100% { transform: scale(1); }
+        }
+        @keyframes flash {
+            0%, 100% { background: white; } 50% { background: var(--gold); }
+        }
+        .just-added { animation: flash 1s infinite; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="icons/brand.png" alt="Logo">
+        <h1>Order Status</h1>
+    </header>
+
+    <div class="monitor-grid">
+        <!-- LEFT: PREPARING -->
+        <div class="column col-left">
+            <div><span class="col-header">Preparing</span></div>
+            <div id="prepList" class="prep-grid">
+                <!-- Numbers inject here -->
+            </div>
+        </div>
+
+        <!-- RIGHT: NOW SERVING -->
+        <div class="column col-right">
+            <div><span class="col-header">Now Serving</span></div>
+            <div id="serveList" class="serve-grid">
+                <!-- Cards inject here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- BELL SOUND -->
+    <audio id="bellSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+
+    <script type="module" src="waiting.js"></script>
+</body>
+</html>

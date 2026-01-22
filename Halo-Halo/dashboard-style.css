@@ -1,0 +1,1247 @@
+:root {
+    /* Ube (Purple) Theme Backgrounds */
+    --bg-dark: #2E1A47;    /* Deep Ube - Main Background */
+    --sidebar: #3B215C;    /* Slightly lighter purple - Sidebar */
+    --panel: #4A2C70;      /* Milky Purple - Cards/Modals */
+    
+    /* Leche Flan Gold (Accents) */
+    --gold: #FDD835;       
+    --gold-dim: #C0A000;
+    
+    /* Kaong/Cherry Red (Alerts/Exit) */
+    --red: #FF4081;     
+    
+    /* Coconut Milk (Text) */
+    --text: #FFF8E1;       /* Creamy white */
+    --text-muted: #D1C4E9; /* Light lavender text */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; scrollbar-color: var(--gold) #1a1a1a; }
+body { background: var(--bg-dark); color: var(--text); overflow: hidden; height: 100vh; }
+
+/* SCROLLBARS */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #1a1a1a; }
+::-webkit-scrollbar-thumb { background-color: #444; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--gold); }
+
+.app-layout { display: flex; height: 100%; width: 100%; }
+
+/* --- SIDEBAR --- */
+.dash-sidebar {
+    width: 250px; background: var(--sidebar); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 20px;
+}
+.logo-area {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 40px; color: var(--gold); font-weight: bold; letter-spacing: 2px;
+}
+.logo-area img { width: 40px; }
+
+.nav-btn {
+    background: none; border: none; color: #888; text-align: left;
+    padding: 15px; width: 100%; font-size: 1rem; cursor: pointer;
+    border-radius: 8px; margin-bottom: 5px; transition: 0.2s;
+    display: flex; align-items: center; gap: 15px;
+}
+.nav-btn:hover, .nav-btn.active { background: #222; color: var(--gold); }
+.nav-btn.locked { opacity: 0.5; cursor: not-allowed; }
+.badge-soon { background: #333; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; margin-left: auto; }
+
+.sidebar-footer { margin-top: auto; }
+.back-link { display: block; color: #666; text-decoration: none; font-size: 0.9rem; margin-bottom: 15px; transition: 0.2s;}
+.back-link:hover { color: white; }
+#logoutBtn { width: 100%; background: #333; color: var(--red); border: none; padding: 10px; border-radius: 4px; cursor: pointer; }
+
+/* --- MAIN CONTENT --- */
+.dash-main { flex: 1; padding: 20px; overflow: hidden; position: relative; }
+.view-section { display: none; height: 100%; flex-direction: column; }
+.view-section.active { display: flex; animation: fadeIn 0.3s ease; }
+
+@keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+
+.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; height: 50px; flex-shrink: 0; }
+.dot.live { width: 10px; height: 10px; background: var(--red); border-radius: 50%; display: inline-block; animation: blink 1s infinite; margin-right: 8px; }
+@keyframes blink { 50% { opacity: 0.4; } }
+
+.stats-text {
+    color: #888; font-weight: bold; font-size: 1rem;
+    background: #1a1a1a; padding: 8px 15px; border-radius: 20px; border: 1px solid #333;
+}
+.stats-text span[id] { color: var(--gold); }
+.stats-text .divider { margin: 0 10px; color: #444; }
+
+.dark-select { background: #111; color: white; border: 1px solid #444; padding: 5px 10px; border-radius: 4px; }
+
+/* --- LIVE ORDERS GRID --- */
+.orders-grid.full-width {
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px; overflow-y: auto; padding-bottom: 50px;
+    height: 100%; align-content: start;
+}
+
+/* Order Card */
+.order-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+    display: flex; flex-direction: column; transition: 0.2s; position: relative;
+}
+.order-card.new { border-color: var(--gold); box-shadow: 0 0 10px rgba(255,215,0,0.1); }
+.order-card.sos { border-top: 3px solid var(--red); }
+
+.card-top { background: #252525; padding: 8px 12px; display: flex; justify-content: space-between; font-size: 0.8rem; color: #888; }
+.card-top button:hover { transform: scale(1.2); color: #ff4444 !important; }
+
+.sos-badge { background: var(--red); color: white; padding: 1px 5px; border-radius: 3px; font-weight: bold; }
+
+.card-body { padding: 12px; flex: 1; }
+.cust-name { color: var(--gold); font-weight: bold; font-size: 1rem; margin-bottom: 2px; }
+.cust-meta { font-size: 0.8rem; color: #888; margin-bottom: 10px; }
+.items-list { list-style: none; font-size: 0.9rem; }
+.items-list li { display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px dashed #333; padding-bottom: 2px;}
+
+.card-actions { padding: 10px; display: flex; gap: 5px; }
+.btn-done { width: 100%; background: var(--green); border: none; color: white; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s, transform 0.1s; }
+.btn-done:hover { transform: none; background: #388E3C; box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4); }
+.btn-done:active { transform: scale(0.98); }
+
+/* --- SALES TRI-GRID LAYOUT --- */
+.sales-tri-grid {
+    display: grid;
+    /* Col 1 (Daily), Col 2 (Payday), Col 3 (Stats) */
+    grid-template-columns: 1fr 1.3fr 220px; 
+    gap: 20px;
+    height: 100%; /* Fill remaining height */
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.tri-col {
+    display: flex; flex-direction: column;
+    height: 100%; overflow: hidden;
+    min-width: 0;
+}
+
+.col-header, .payday-header-box {
+    background: #252525; padding: 10px; border-radius: 6px 6px 0 0;
+    border: 1px solid #333; border-bottom: none;
+    margin-bottom: 0; color: #aaa; font-size: 0.85rem; text-transform: uppercase;
+}
+
+.payday-header-box { display: flex; justify-content: space-between; align-items: baseline; }
+.payday-header-box h4 { color: var(--gold); margin: 0; font-size: 0.9rem; text-transform: uppercase; }
+.payday-header-box small { color: #666; font-size: 0.75rem; }
+
+/* Table Container */
+.table-container {
+    background: var(--card); border: 1px solid var(--border); 
+    overflow-y: auto; padding: 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.table-container.full-height {
+    flex: 1; border-radius: 0 0 6px 6px; margin-top: 0;
+}
+
+/* Table Styles */
+.sales-report-table { width: 100%; border-collapse: collapse; }
+.sales-report-table th {
+    background: #252525; color: #888; font-weight: 600;
+    padding: 10px; text-align: left;
+    border-bottom: 2px solid #333;
+    position: sticky; top: 0; z-index: 2;
+    font-size: 0.85rem;
+}
+.sales-report-table td {
+    padding: 8px 10px; border-bottom: 1px solid #2a2a2a; color: #eee; font-size: 0.85rem;
+}
+.sales-report-table tbody tr:hover { background: #2a2a2a; }
+.sales-report-table tr.today-row {
+    background: rgba(255, 215, 0, 0.15) !important;
+    border-left: 4px solid var(--gold);
+}
+
+/* Today Badge */
+.sales-report-table tr.today-row td:first-child::after {
+    content: "TODAY"; font-size: 0.6rem; background: var(--gold); color: black;
+    padding: 2px 5px; border-radius: 4px; margin-left: 10px; vertical-align: middle;
+}
+.sales-report-table tr.clickable-row { cursor: pointer; transition: background 0.2s; }
+.sales-report-table tr.clickable-row:hover { background: #333; }
+
+/* Alignments */
+.text-center { text-align: center; }
+.text-right { text-align: center; }
+.sales-report-table td:first-child { color: var(--gold); font-weight: bold; }
+.sales-report-table td.text-right { font-family: monospace; font-size: 0.95rem; color: var(--green); }
+#sosHistoryBody td.text-right {text-align: left !important; }
+#sosHistoryBody th.text {margin-left: 15px !important;}
+/* Stats Column */
+.stats-col { gap: 15px; justify-content: flex-start; }
+.stat-card.compact {
+    background: rgba(59, 53, 53, 0.603); padding: 15px; border-radius: 6px; 
+    border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: flex; flex-direction: column; justify-content: center;
+    min-height: 70px;
+}
+.stat-card.compact h4 { color: #888; font-size: 0.75rem; margin-bottom: 5px; text-transform: uppercase; }
+.stat-card.compact span { font-size: 1.2rem; font-weight: bold; color: var(--gold); }
+
+/* Special Stat Cards */
+.stat-card.compact:nth-child(1) { border-left: 3px solid var(--gold); } /* Revenue */
+.stat-card.compact.pending-stat { border-left: 3px solid #000000; background: rgba(211, 47, 47, 0.05); } /* Debt */
+.stat-card.compact.pending-stat span { color: #ff6b6b; }
+
+/* Payday Action Button */
+.btn-pay-toggle {
+    background: #222; border: 1px solid var(--green); color: var(--green);
+    padding: 4px 10px; border-radius: 15px; font-size: 0.7rem; font-weight: bold;
+    cursor: pointer; transition: 0.2s;
+}
+.btn-pay-toggle:hover { background: var(--green); color: white; }
+.acct-sub { font-size: 0.75rem; color: #666; margin-top: 2px; }
+
+/* --- RIGHT DRAWER (DAILY LOG) --- */
+.drawer-trigger {
+    position: fixed; top: 50%; right: 0; transform: translateY(-50%);
+    background: var(--card); border: 1px solid var(--gold); border-right: none;
+    color: var(--gold); padding: 15px 10px; border-radius: 8px 0 0 8px;
+    cursor: pointer; z-index: 100; transition: 0.3s;
+}
+.drawer-trigger:hover { padding-right: 15px; background: #222; }
+
+.right-drawer {
+    position: fixed; top: 0; right: -450px; width: 450px; height: 100%;
+    background: #1a1a1a; border-left: 1px solid var(--gold);
+    box-shadow: -10px 0 30px rgba(0,0,0,0.5); z-index: 200;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column;
+}
+.right-drawer.open { right: 0; }
+
+.drawer-header { padding: 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; background: #222; flex-shrink: 0; }
+.drawer-content { flex: 1; overflow-y: auto; padding: 15px; }
+
+.close-drawer-btn {
+    background: none; border: none; color: #666; 
+    font-size: 1.5rem; cursor: pointer; padding: 5px;
+    transition: 0.2s;
+}
+.close-drawer-btn:hover { color: var(--red); transform: scale(1.1); }
+
+/* Log Table Specifics */
+.log-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.log-table th { text-align: left; color: #888; padding: 10px 5px; border-bottom: 1px solid #444; position: sticky; top: 0; background: #1a1a1a; z-index: 2; }
+.log-table td { padding: 8px 5px; border-bottom: 1px solid #2a2a2a; color: #ccc; white-space: normal; }
+.log-item-row { display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px dashed #333; padding-bottom: 2px; }
+.log-item-row:last-child { border-bottom: none; }
+.log-table .sos-row { color: var(--red); }
+
+/* Badges */
+.method-badge {
+    font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;
+    text-transform: uppercase; font-weight: bold; white-space: nowrap;
+}
+.method-badge.cash { background: #444; color: #ccc; }
+.method-badge.payday { background: rgba(255, 215, 0, 0.1); color: var(--gold); border: 1px solid var(--gold); }
+.method-badge.online { background: rgba(39, 174, 96, 0.1); color: var(--green); border: 1px solid var(--green); }
+
+/* --- FEEDBACKS --- */
+#viewFeedbacks .order-card { min-height: 120px; }
+#viewFeedbacks .card-body { display: flex; flex-direction: column; justify-content: center; }
+
+/* --- PLACEHOLDERS --- */
+.empty-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #444; text-align: center; }
+.empty-placeholder i { font-size: 4rem; margin-bottom: 20px; }
+.sales-report-table {
+    width: 100%;
+    table-layout: fixed; /* Keeps columns locked regardless of content */
+    border-collapse: collapse;
+}
+.sales-report-table td.text-right.text-danger {
+    color: #ff6b6b !important;
+}
+
+/* Ensure Cash stays Green */
+.sales-report-table td.text-right.text-success {
+    color: #4CAF50 !important;
+}
+
+/* Ensure empty dashes are Gray */
+.sales-report-table td.text-right.text-muted {
+    color: #666 !important;
+}
+/* 2. Define exact column widths for BOTH Header and Data */
+.sales-report-table th:nth-child(1), .sales-report-table td:nth-child(1) { width: 25%; text-align: left; }   /* Date */
+.sales-report-table th:nth-child(2), .sales-report-table td:nth-child(2) { width: 13%; text-align: center; } /* Count */
+.sales-report-table th:nth-child(3), .sales-report-table td:nth-child(3) { width: 18%; text-align: right; }  /* Cash */
+.sales-report-table th:nth-child(4), .sales-report-table td:nth-child(4) { width: 20%; text-align: right; }  /* Credit */
+.sales-report-table th:nth-child(5), .sales-report-table td:nth-child(5) { width: 20%; text-align: right; }  /* Total */
+/* =========================================
+   MOBILE RESPONSIVENESS (iPhone/Android)
+   ========================================= */
+
+@media (max-width: 768px) {
+
+    /* --- 1. LAYOUT RESET --- */
+    .app-layout {
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    /* --- 2. SIDEBAR BECOMES BOTTOM NAV --- */
+    .dash-sidebar {
+        position: fixed;
+        bottom: 0; left: 0;
+        width: 100%; height: 60px;
+        flex-direction: row; /* Horizontal icons */
+        padding: 0;
+        z-index: 1000;
+        border-right: none;
+        border-top: 1px solid #333;
+        background: #0f0f0f;
+        justify-content: space-between;
+    }
+
+    /* Hide Logo Area on Mobile */
+    .logo-area { display: none; }
+
+    /* Nav Buttons Style */
+    .dash-nav {
+        display: flex;
+        flex-direction: row;
+        width: 80%; /* Takes up most space */
+    }
+
+    .nav-btn {
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        margin: 0;
+        border-radius: 0;
+        font-size: 0.65rem;
+        padding: 5px;
+        gap: 2px;
+    }
+    
+    .nav-btn i { font-size: 1.2rem; margin-right: 0; margin-bottom: 2px; }
+    .nav-btn.active { border-top: 2px solid var(--gold); background: #222; }
+    .badge-soon { display: none; }
+
+    /* Footer (Logout) */
+    .sidebar-footer {
+        width: 20%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0; border-left: 1px solid #333;
+    }
+    .back-link { display: none; } /* Hide "Back to Menu" link */
+    
+    #logoutBtn {
+        background: none; color: var(--red);
+        font-size: 1.2rem; padding: 10px;
+        width: auto;
+    }
+
+    /* --- 3. MAIN CONTENT ADJUSTMENTS --- */
+    .dash-main {
+        padding: 15px;
+        padding-bottom: 80px; /* Space for bottom nav */
+        height: 100vh;
+        overflow-y: auto; /* Allow scrolling */
+    }
+    
+    /* Top Bar Stacking */
+    .top-bar {
+        height: auto;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .stats-text { width: 100%; text-align: center; font-size: 0.85rem; }
+    .filters { width: 100%; display: flex; gap: 10px; }
+    .dark-select { flex: 1; }
+
+    /* --- 4. SALES TRI-GRID STACKING --- */
+    .sales-tri-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        height: auto;
+        overflow: visible;
+    }
+
+    /* Order: Stats first, then Log, then Payday */
+    .tri-col.stats-col { order: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tri-col:nth-child(1) { order: 2; height: 500px; } /* Daily Log */
+    .tri-col:nth-child(2) { order: 3; height: 400px; } /* Payday */
+
+    .stat-card.compact { min-height: 80px; }
+
+    /* --- 5. TABLES --- */
+    /* Allow horizontal scroll for tables so columns don't break */
+    .table-container {
+        overflow-x: auto;
+    }
+    .sales-report-table {
+        min-width: 400px; /* Force min-width so it scrolls instead of squishing */
+    }
+    .sales-report-table th, .sales-report-table td {
+        font-size: 0.8rem;
+        padding: 8px 5px;
+    }
+
+    /* --- 6. LIVE ORDERS GRID --- */
+    .orders-grid.full-width {
+        grid-template-columns: 1fr; /* Single column cards */
+        padding-bottom: 60px;
+    }
+
+    /* --- 7. DRAWERS (Full Screen) --- */
+    .right-drawer {
+        width: 100%;
+        right: -100%;
+    }
+    
+    /* Reviews Grid */
+    #adminReviewsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+/* --- SOS LAYOUT --- */
+.sos-layout {
+    display: flex;
+    gap: 20px;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* LEFT COLUMN */
+.sos-list-col {
+    width: 300px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.search-wrap {
+    padding: 15px;
+    border-bottom: 1px solid #333;
+}
+.dark-input {
+    width: 100%;
+    background: #111;
+    border: 1px solid #444;
+    padding: 10px;
+    color: white;
+    border-radius: 4px;
+}
+.dark-input:focus { border-color: var(--gold); outline: none; }
+
+.sos-scroll-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* Group Headers */
+.sos-group-header {
+    font-size: 0.75rem;
+    color: var(--gold);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 15px 0 5px 5px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+}
+.sos-group-header:first-child { margin-top: 0; }
+
+/* User Item */
+.sos-user-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+    border-bottom: 1px solid #222;
+}
+.sos-user-item:hover { background: #333; }
+.sos-user-item.active { background: rgba(255, 215, 0, 0.1); border-left: 3px solid var(--gold); }
+
+.u-avatar {
+    width: 35px; height: 35px;
+    border-radius: 50%;
+    background: #333;
+    margin-right: 10px;
+    object-fit: cover;
+}
+.u-info h4 { font-size: 0.9rem; margin: 0; color: #eee; }
+.u-info span { font-size: 0.75rem; color: #777; }
+
+/* RIGHT COLUMN */
+.sos-detail-col {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.detail-header {
+    padding: 20px;
+    border-bottom: 1px solid #333;
+    background: #252525;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#detName { margin: 0; font-size: 1.5rem; color: white; }
+#detMeta { color: #888; font-size: 0.9rem; }
+
+.debt-tag {
+    text-align: right;
+    background: rgba(211, 47, 47, 0.1);
+    border: 1px solid var(--red);
+    padding: 5px 15px;
+    border-radius: 6px;
+}
+.debt-tag small { display: block; color: var(--red); font-size: 0.65rem; font-weight: bold; }
+.debt-tag span { font-size: 1.2rem; color: #fff; font-weight: bold; }
+
+.history-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+/* Reuse existing log-table styles, just ensuring width */
+.sos-detail-col .log-table th { background: #1e1e1e; }
+/* --- UTILITIES (Critical for SOS Toggle) --- */
+.hidden { display: none !important; }
+
+/* --- TOAST NOTIFICATIONS (Ported from Kiosk) --- */
+.toast-container { 
+    position: fixed; bottom: 30px; right: 30px; 
+    z-index: 5000; display: flex; flex-direction: column; gap: 10px; 
+    pointer-events: none; 
+}
+
+.toast {
+    background: #222; color: #fff; padding: 12px 20px; border-radius: 6px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
+    opacity: 0; transform: translateX(20px);
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    display: flex; align-items: center; gap: 10px; 
+    border-left: 4px solid var(--gold);
+    min-width: 250px;
+}
+
+.toast.show { opacity: 1; transform: translateX(0); }
+.toast.error { border-left-color: #D32F2F; }
+.toast.success { border-left-color: #4CAF50; }
+.toast i { font-size: 1.1rem; }
+/* Mobile Stack */
+@media (max-width: 768px) {
+    .sos-layout { flex-direction: column; overflow-y: auto; }
+    .sos-list-col { width: 100%; height: 300px; }
+    .sos-detail-col { height: 500px; }
+}
+/* --- UTILITY CLASSES (Critical) --- */
+.hidden {
+    display: none !important;
+}
+
+/* --- MODAL OVERLAY (The Background) --- */
+.modal-overlay {
+    position: fixed;
+    inset: 0; /* Top:0, Left:0, Right:0, Bottom:0 */
+    background: rgba(0, 0, 0, 0.85); /* Dark transparent background */
+    z-index: 6000; /* Must be higher than Toast (5000) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px); /* Blur effect */
+    
+    /* Animation */
+    opacity: 0;
+    animation: fadeInModal 0.2s forwards;
+}
+
+@keyframes fadeInModal {
+    to { opacity: 1; }
+}
+
+/* --- THE MODAL BOX --- */
+.login-box {
+    background: #1e1e1e; /* Dark Card Background */
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid var(--gold); /* Gold Border */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    max-width: 90%;
+    transform: scale(0.9);
+    animation: popInModal 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes popInModal {
+    to { transform: scale(1); }
+}
+
+/* --- CONFIRMATION SPECIFIC STYLES --- */
+.confirm-icon-box {
+    font-size: 3.5rem;
+    color: var(--gold);
+    margin-bottom: 20px;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+/* BUTTONS */
+.btn-modal {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: 0.2s;
+}
+
+.btn-modal.cancel {
+    background: #333;
+    color: #ccc;
+    border: 1px solid #555;
+}
+.btn-modal.cancel:hover {
+    background: #444;
+    color: white;
+}
+
+.btn-modal.confirm {
+    background: var(--gold);
+    color: black;
+}
+.btn-modal.confirm:hover {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+}
+.sos-group-header {
+    background: #1a1a1a;
+    padding: 12px 15px;
+    border-bottom: 1px solid #333;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between; /* Space between Name and Arrow */
+    align-items: center;
+    transition: background 0.2s;
+}
+.sos-group-header:hover {
+    background: #222;
+}
+
+.sos-group-title {
+    font-size: 0.8rem;
+    color: var(--gold);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* The Arrow Icon */
+.sos-group-header i {
+    color: #666;
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+/* Rotate arrow when active */
+.sos-group-header.active i {
+    transform: rotate(180deg);
+    color: white;
+}
+
+/* The User List Container (Hidden by default) */
+.sos-group-body {
+    background: #111;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out; /* Smooth slide */
+}
+
+/* Class to open the list */
+.sos-group-body.open {
+    max-height: 5000px; /* Large enough to fit content */
+    border-bottom: 1px solid #333;
+}
+
+/* Indent users slightly to show hierarchy */
+.sos-group-body .sos-user-item {
+    padding-left: 20px;
+    border-bottom: 1px solid #222;
+}
+.custom-dd {
+    position: relative;
+    width: 140px; /* Fixed width for consistency */
+    font-family: 'Poppins', sans-serif;
+    user-select: none;
+}
+
+/* 1. The Trigger Button */
+.dd-trigger {
+    background: #1a1a1a;
+    border: 1px solid #444;
+    color: #eee;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.2s;
+    font-size: 0.9rem;
+}
+
+.dd-trigger:hover {
+    border-color: var(--gold);
+    background: #222;
+}
+
+.dd-trigger i {
+    font-size: 0.7rem;
+    color: var(--gold);
+    transition: transform 0.3s ease;
+}
+
+/* Active State (Open) */
+.custom-dd.active .dd-trigger {
+    border-color: var(--gold);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+}
+
+.custom-dd.active .dd-trigger i {
+    transform: rotate(180deg);
+}
+
+/* 2. The Menu (Hidden List) */
+.dd-menu {
+    position: absolute;
+    top: 110%; /* Just below the trigger */
+    left: 0;
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    z-index: 100;
+    
+    /* Animation & Scroll */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+/* Show State */
+.custom-dd.active .dd-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 3. The Options */
+.dd-option {
+    padding: 10px 15px;
+    color: #ccc;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: 0.2s;
+    border-bottom: 1px solid #222;
+}
+
+.dd-option:last-child { border-bottom: none; }
+
+.dd-option:hover {
+    background: var(--gold);
+    color: black;
+    font-weight: 600;
+}
+
+.dd-option.selected {
+    color: var(--gold);
+    background: #252525;
+    font-weight: bold;
+}
+.filters {
+    display: flex;       /* Forces children to sit in a row */
+    gap: 15px;           /* Space between the two dropdowns */
+    align-items: center; /* Aligns them vertically */
+}
+.btn-close-circle {
+    /* Base Styles (Extracted from your inline code) */
+    background: transparent;
+    border: 1px solid #444;
+    color: #888;
+    width: 30px; 
+    height: 30px; 
+    border-radius: 50%; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: 0.2s ease;
+}
+.method-badge.proof-btn {
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    font-family: inherit; /* Inherit font from table */
+}
+
+/* Hover effect specifically for the button version */
+.method-badge.proof-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    border-color: rgba(255,255,255,0.3);
+    filter: brightness(1.2); /* Make it slightly brighter */
+}
+
+/* Ensure icon is visible */
+.method-badge.proof-btn i {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+.btn-action-small {
+    background: #333;
+    border: 1px solid #555;
+    color: #ccc;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: 0.2s;
+    display: flex; align-items: center; gap: 5px;
+}
+.btn-action-small:hover {
+    background: #444;
+    color: white;
+}
+
+.btn-action-small.verify {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: #4CAF50;
+    color: #4CAF50;
+}
+.btn-action-small.verify:hover {
+    background: #4CAF50;
+    color: black;
+}
+#adminLockBtn {
+    border-left: 1px solid #333;
+    padding-left: 15px;
+    margin-left: 5px;
+}
+
+#adminLockBtn:hover {
+    color: white;
+    border-color: #555;
+}
+/* HOVER EFFECT */
+.btn-close-circle:hover {
+    background: rgba(211, 47, 47, 0.1); /* Faint Red Background */
+    border-color: #d32f2f;              /* Red Border */
+    color: #d32f2f;                     /* Red Icon */
+    transform: rotate(90deg);           /* Spin Animation */
+}
+
+/* ACTIVE/CLICK EFFECT */
+.btn-close-circle:active {
+    background: #d32f2f;
+    color: white;
+    transform: scale(0.9);
+}
+.mobile-only-logout { display: none !important; }
+@media (max-width: 923px) {
+    .filters {
+        flex-direction: row !important; /* Force row even on small screens */
+        width: 100%;
+    }
+    
+    /* Optional: Make them grow to fill width on mobile */
+    .custom-dd {
+        flex: 1; 
+        width: auto; /* Allow them to shrink/grow */
+    }
+}
+@media (max-width: 923px) {
+
+    /* --- 1. GENERAL LAYOUT --- */
+    body {
+        overflow-y: auto; /* Allow body scroll on mobile */
+    }
+    .app-layout {
+        flex-direction: column;
+        height: auto;
+        padding-bottom: 70px; /* Space for bottom nav */
+    }
+
+    /* --- 2. SIDEBAR -> BOTTOM NAV --- */
+    .dash-sidebar {
+        position: fixed;
+        bottom: 0; left: 0;
+        width: 100%;
+        height: 60px; /* Fixed height */
+        flex-direction: row; /* Horizontal */
+        padding: 0;
+        z-index: 4000;
+        border-right: none;
+        border-top: 1px solid #333;
+        background: #0f0f0f;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+    }
+
+    /* Hide Logo & Text Labels */
+    .logo-area { display: none; }
+    
+    .dash-nav {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-around; /* Even spacing */
+        align-items: center;
+    }
+
+    .nav-btn {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        border-radius: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        background: transparent;
+        gap: 0;
+    }
+
+    /* THE MAGIC: Hide Text, Show only Icon */
+    .nav-btn span, 
+    .nav-btn .badge-soon { 
+        display: none; 
+    }
+
+    .nav-btn i {
+        font-size: 1.4rem; /* Bigger Icon */
+        margin: 0;
+        color: #666;
+        transition: 0.2s;
+    }
+
+    .nav-btn.active {
+        background: transparent;
+        border-top: 3px solid var(--gold); /* Indicator on top */
+    }
+    .nav-btn.active i {
+        color: var(--gold);
+        transform: translateY(-2px);
+    }
+
+    /* Hide the sidebar footer (Back/Logout) - Moved to Header */
+    .sidebar-footer { display: none; }
+
+
+    /* --- 3. MAIN CONTENT --- */
+    .dash-main {
+        padding: 15px;
+        height: auto;
+        overflow: visible;
+    }
+
+    /* Top Bar Mobile Layout */
+    .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        height: auto;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .top-bar h2 { font-size: 1.2rem; }
+    .stats-text { width: 100%; text-align: center; font-size: 0.9rem; }
+    
+    /* Sales Dropdowns - Side by Side */
+    .filters {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+    }
+    .custom-dd { flex: 1; width: auto; }
+
+
+    /* --- 4. SALES TRACKER RE-ORDERING --- */
+    .sales-tri-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        overflow: visible;
+    }
+
+    /* ORDERING MAGIC: 
+       1. Stats (Top)
+       2. Daily Log (Middle)
+       3. Payday (Bottom)
+    */
+    .tri-col.stats-col { order: 1; }
+    .tri-col:nth-child(1) { order: 2; height: 400px; } /* Daily Log */
+    .tri-col:nth-child(2) { order: 3; height: 400px; } /* Payday */
+
+    /* --- 5. COMPACT STATS GRID --- */
+    .tri-col.stats-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 2 Columns side-by-side */
+        gap: 10px;
+        padding: 0;
+    }
+
+    /* Make cards tighter */
+    .stat-card.compact {
+        min-height: auto;
+        padding: 10px 12px;
+    }
+    .stat-card.compact h4 {
+        font-size: 0.65rem; /* Smaller Label */
+        margin-bottom: 2px;
+    }
+    .stat-card.compact span {
+        font-size: 1.1rem; /* Big Number */
+    }
+    .stat-card.compact small {
+        font-size: 0.65rem;
+    }
+
+
+    /* --- 6. LIVE ORDERS & REVIEWS --- */
+    /* Force 1 column for cards */
+    .orders-grid.full-width {
+        grid-template-columns: 1fr; 
+        padding-bottom: 0;
+    }
+
+    /* --- 7. SOS PAGE --- */
+    .sos-layout {
+        flex-direction: column;
+        overflow: visible;
+    }
+    .sos-list-col {
+        width: 100%;
+        height: 300px; /* Limit height of list */
+        margin-bottom: 20px;
+    }
+    .sos-detail-col {
+        width: 100%;
+        height: 500px; /* Give space for history */
+    }
+
+
+    /* --- 8. MODALS --- */
+    .login-box {
+        width: 90%;
+        max-width: none;
+    }
+    .mobile-only-logout { display: flex !important; }
+}
+.btn-logout-action {
+    width: 100%;
+    background: rgba(211, 47, 47, 0.1); /* Faint Red */
+    color: var(--red);
+    border: 1px solid var(--red);
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    margin-top: 10px;
+}
+
+/* Hover Effect: Solid Red with Glow */
+.btn-logout-action:hover {
+    background: var(--red);
+    color: white;
+    transform: translateY(-2px); /* Lift up */
+    box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4); /* Red Glow */
+}
+
+/* Click Effect */
+.btn-logout-action:active {
+    transform: scale(0.98);
+}
+/* --- LIVE ORDERS HIGH CONTRAST OVERRIDE --- */
+
+/* Force Order Cards to be Dark Charcoal (Not Purple) */
+.order-card {
+    background-color: #1e1e1e !important; /* Solid Dark Grey */
+    border: 1px solid #444; /* Clean Border */
+    overflow: hidden; /* Keeps child backgrounds inside rounded corners */
+}
+.card-body {
+    background-color: #1e1e1e !important; /* Match Card Background */
+    color: white !important;
+    padding: 15px;
+    overflow-y: auto !important;
+}
+.card-actions {
+    background-color: #252525 !important; /* Slightly lighter to separate it */
+    border-top: 1px solid #333; /* Line separating food from button */
+    padding: 10px;
+}
+
+/* Make the Header Darker */
+#viewOrders .card-top {
+    background: #252525 !important;
+    border-bottom: 1px solid #333;
+    color: #ccc;
+    font-weight: bold;
+}
+
+/* Make Customer Name Huge & Gold */
+.cust-name {
+    text-shadow: 0 1px 2px black;
+}
+
+/* Make Address/Meta Light Grey */
+#viewOrders .cust-meta {
+    color: #bbb !important;
+    font-size: 0.9rem;
+}
+
+/* Make Items List Bright White & Spaced Out */
+#viewOrders .items-list li {
+    color: #fff !important;
+    font-size: 1.1rem; /* Bigger text */
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+}
+
+/* Make Quantities (e.g. 2x) Gold */
+#viewOrders .items-list span:first-child {
+    color: var(--gold) !important;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+/* Highlight SOS Cards if any */
+#viewOrders .order-card.sos {
+    border: 2px solid var(--red);
+    background: #1a0505 !important; /* Very dark red tint */
+}
+/* Highlight orders that are Ready to Serve */
+.order-card[data-status="completed"] {
+    border: 2px solid #4CAF50 !important; /* Green Border */
+    background: #1a261a !important; /* Very faint green tint */
+}
+#pendingGrid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding-bottom: 50px;
+    min-height: 200px; /* Ensure container has height */
+}
+
+/* 2. Force Card Background & Text Colors */
+#pendingGrid .order-card {
+    background-color: #1e1e1e !important; /* Dark Grey Background */
+    border: 1px solid #444 !important;
+    color: white !important;
+    display: flex !important;
+    flex-direction: column;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    min-height: 150px;
+}
+
+/* 3. Force Header Visibility */
+#pendingGrid .card-top {
+    background-color: #333 !important;
+    color: white !important;
+    border-bottom: 1px solid #555;
+}
+
+/* 4. Force Item List Visibility */
+#pendingGrid .items-list li {
+    color: white !important;
+    border-bottom: 1px solid #333;
+}
+
+/* 5. Force Buttons to Show */
+#pendingGrid .btn-done {
+    display: block !important;
+    visibility: visible !important;
+}
+.maxim-box {
+    margin-top: 10px;
+    padding: 10px;
+    background: #2a2a2a;
+    border: 1px dashed #666;
+    border-radius: 6px;
+}
+
+.maxim-applied {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(255, 215, 0, 0.05); /* Faint gold bg */
+    border-left: 3px solid var(--gold);
+    font-size: 0.9rem;
+    text-align: right;
+}
+
+.df-input {
+    background: #111;
+    border: 1px solid #555;
+    color: white;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.df-file {
+    font-size: 0.7rem;
+    color: #ccc;
+    width: 140px;
+}
+.btn-denom {
+    background: #333;
+    border: 1px solid #555;
+    color: white;
+    padding: 15px;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.1s;
+}
+.btn-denom:active {
+    transform: scale(0.95);
+    background: var(--gold);
+    color: black;
+}

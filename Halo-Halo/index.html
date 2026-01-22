@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="icons/icon.png">
+    <title>Joanna's Halo-Halo & Snack Shoppe</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Delius&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Icons -->
+     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Style -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+       (function(){
+          emailjs.init("_vpMAL03l1qt9rrgS"); 
+       })();
+    </script>
+</head>
+<body>
+
+    <div id="toastBox" class="toast-container"></div>
+
+    <!-- LANDING PAGE -->
+    <div id="landingPage" class="landing-layer">
+        <div class="landing-content">
+            <img src="icons/brand.png" alt="Lecker" class="landing-logo">
+            <div class="awards-row" style="margin-bottom: 30px;">
+    
+    <img src="images/2020.png" class="award-img" 
+         onclick="triggerBadgeZoom(this)" 
+         alt="Winner 2020">
+    
+    <img src="images/2022.png" class="award-img" 
+         onclick="triggerBadgeZoom(this)" 
+         alt="Winner 2022">
+    
+    <img src="images/2024.png" class="award-img" 
+         onclick="triggerBadgeZoom(this)" 
+         alt="Winner 2024">
+    
+    <img src="images/2023.png" class="award-img" 
+         onclick="triggerBadgeZoom(this)" 
+         alt="Finalist 2023">
+    
+</div>
+            <h1 class="landing-text">Distinctively Yummy!</h1>
+            <div class="landing-branches" style="color: #fff; margin-bottom: 30px; font-size: 1rem; opacity: 0.9;">
+        <p><i class="fas fa-map-marker-alt" style="color:var(--gold)"></i> Banawa, Cebu City (Main Branch)</p>
+        <p><i class="fas fa-map-marker-alt" style="color:var(--gold)"></i> Panagdait, Subangdaku, Mandaue City</p>
+        <p><i class="fas fa-map-marker-alt" style="color:var(--gold)"></i> Pitogo, Consolacion (Near SM)</p>
+    </div>
+            <!-- Inside landing-content -->
+<div class="landing-actions-group">
+    <!-- Existing Buttons (Dine-in, etc) -->
+    <button class="pulse-btn" onclick="startKioskSession('Dine-in')">
+        <i class="fas fa-utensils"></i> DINE-IN
+    </button>
+    <button class="pulse-btn" onclick="startKioskSession('Take-out')">
+        <i class="fas fa-shopping-bag"></i> TAKE-OUT
+    </button>
+    <button class="pulse-btn" onclick="startKioskSession('Delivery')">
+        <i class="fas fa-motorcycle"></i> DELIVERY
+    </button>
+</div>
+
+<!-- NEW: SOCIAL MEDIA FOOTER -->
+<div class="landing-footer-socials">
+    <p>For Events Reservations:</p>
+    <div class="social-row">
+        <a href="https://www.facebook.com/joannashalohalo" target="_blank" title="Facebook">
+            <i class="fab fa-facebook"></i>
+        </a>
+        <a href="https://www.instagram.com/joannashalohalo" target="_blank" title="Instagram">
+            <i class="fab fa-instagram"></i>
+        </a>
+        <a href="mailto:joannashalohalo@gmail.com" title="Email Us">
+            <i class="fas fa-envelope"></i>
+        </a>
+    </div>
+</div>
+
+        </div>
+    </div>
+
+    <!-- MAIN KIOSK LAYOUT -->
+    <div id="kioskContainer" class="kiosk-grid hidden">
+        
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="brand-area">
+                <img src="icons/brand.png" alt="Logo" ondblclick="document.getElementById('authModal').classList.remove('hidden')">
+                <div style="font-family: 'Delius'; color: var(--gold); margin-top: 10px; font-size: 1.1rem;">Joanna's Halo-Halo & Snack Shoppe</div>
+            
+            <div class="awards-row">
+        <img src="images/2020.png" class="award-img" onclick="triggerBadgeZoom(this)" alt="2020">
+        <img src="images/2022.png" class="award-img" onclick="triggerBadgeZoom(this)" alt="2022">
+        <img src="images/2024.png" class="award-img" onclick="triggerBadgeZoom(this)" alt="2024">
+        <!-- Optional: You might skip the finalist on the sidebar if it's too crowded, or include it -->
+        <img src="images/2023.png" class="award-img" onclick="triggerBadgeZoom(this)" alt="Finalist">
+    </div>
+            </div>
+            <!-- SIDEBAR NAVIGATION -->
+<nav class="nav-menu">
+    <!-- Updated: Appetizers -> Desserts/Halo-Halo -->
+    <div class="nav-item active" data-cat="desserts">
+        <i class="fas fa-ice-cream"></i> <span>HALO-HALO</span>
+    </div>
+    
+    <!-- REMOVED BURGERS LINE COMPLETELY -->
+
+    <div class="nav-item" data-cat="meals">
+        <i class="fas fa-utensils"></i> <span>MEALS</span>
+    </div>
+    
+    <!-- Updated: Add-ons -> Snacks -->
+    <div class="nav-item" data-cat="snacks">
+        <i class="fas fa-cookie-bite"></i> <span>SNACKS</span>
+    </div>
+    
+    <div class="nav-item" data-cat="drinks">
+        <i class="fas fa-glass-whiskey"></i> <span>DRINKS</span>
+    </div>
+    
+    <div class="nav-item hidden" id="promoTab" data-cat="promos">
+        <i class="fas fa-tags"></i> <span>PROMOS</span>
+    </div>
+</nav>
+            <div class="checkout-bar" id="cartBtn">
+                <div class="cart-info">
+                    <span class="cart-label">TOTAL</span>
+                    <span id="cartTotalDisplay" class="cart-price">₱0</span>
+                </div>
+                <div class="cart-icon-box">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span id="cartCountBadge" class="badge">0</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN STAGE -->
+        <main class="main-stage">
+            
+            <!-- VIEW A: IDLE -->
+            <div id="idleView" class="stage-view active-view">
+                <div class="empty-state">
+                    <i class="fas fa-arrow-left bounce-left"></i>
+                    <h2>Select a category<br>to begin</h2>
+                </div>
+            </div>
+
+            <!-- VIEW B: MENU -->
+            <!-- VIEW B: MENU -->
+<div id="menuView" class="stage-view">
+    
+    <!-- NEW HEADER BAR -->
+    <div class="view-header">
+        
+        <!-- Left: Back to Home -->
+        <button id="btnHome" class="hdr-icon-btn" onclick="returnToLanding()" title="End Session">
+            <i class="fas fa-home"></i>
+        </button>
+
+        <!-- Center: SOS & Owner Controls -->
+        <div class="header-status-group">
+    
+
+    
+
+
+    <!-- 3. Owner -->
+        <button id="adminLockBtn" class="hdr-status-pill" onclick="document.getElementById('authModal').classList.remove('hidden')" title="Owner Login">
+        <i class="fas fa-lock"></i>
+        <!-- Wrapped text in span -->
+        <span>Owner</span>
+    </button>
+
+    <!-- 4. Owner Settings (Keep as is) -->
+    <button id="ownerSettingsBtn" class="hdr-icon-btn small hidden" onclick="openOwnerPortal()" title="Owner Dashboard">
+        <i class="fas fa-cog"></i>
+    </button>
+</div>
+
+<!-- Right: Reviews -->
+<div class="header-actions">
+    
+    <!-- NEW: SOCIAL QUICK LINKS -->
+    <div class="header-socials">
+        <a href="https://www.facebook.com/joannashalohalo" target="_blank" class="soc-icon-btn">
+            <i class="fab fa-facebook"></i>
+        </a>
+        <a href="https://www.instagram.com/joannashalohalo" target="_blank" class="soc-icon-btn">
+            <i class="fab fa-instagram"></i>
+        </a>
+        <a href="mailto:joannashalohalo@gmail.com" class="soc-icon-btn">
+            <i class="fas fa-envelope"></i>
+        </a>
+        <!-- Divider Line -->
+        <div class="header-divider"></div>
+    </div>
+
+    <!-- Read Reviews (Existing) -->
+    <button class="hdr-btn outline" id="btnReadReviews" title="Read Reviews">
+        <i class="fas fa-star"></i>
+    </button>
+    
+    <!-- Write Review (Existing) -->
+    <button class="hdr-btn solid" id="btnWriteReview" title="Rate Us">
+        <i class="fas fa-pen"></i>
+        <span>Rate Us</span>
+    </button>
+</div>
+
+    </div>
+
+    <!-- Grid stays the same -->
+    <div id="menuGrid" class="grid-container"></div>
+</div>
+
+            <!-- VIEW C: CHECKOUT -->
+            <div id="checkoutView" class="stage-view">
+                <button id="backToMenuBtn" class="back-btn"><i class="fas fa-arrow-left"></i> Continue Ordering</button>
+                <div class="checkout-layout">
+                    <!-- Summary -->
+                    <div class="order-summary">
+    
+    <!-- New Header with Flexbox -->
+    <div class="summary-header">
+        <h3>Your Selection</h3>
+        <button type="button" class="btn-clear-tray" onclick="clearEntireCart()">
+            <i class="fas fa-trash-alt"></i> Clear
+        </button>
+    </div>
+
+    <!-- The list container -->
+    <div id="checkoutList" class="checkout-list"></div>
+
+    <div class="grand-total-line">
+        <span>Total Amount</span>
+        <span id="finalTotal">₱0</span>
+    </div>
+</div>
+
+                    <!-- Form -->
+                    <div class="customer-form">
+            <h3>Finalize Order</h3>
+            <form id="orderForm">
+                <!-- DYNAMIC DELIVERY FIELDS -->
+<!-- DYNAMIC DELIVERY FIELDS -->
+<div id="deliveryInfoBlock" class="hidden" style="margin-bottom: 20px;">
+    <h4 style="color:var(--gold); margin-bottom:10px;">Delivery Location
+        <p style="font-size: 0.7rem; color: #888; margin-top: 5px;">
+    <i>Building not appearing? Search for a nearby landmark or street, then drag the pin.</i>
+</p>
+    </h4>
+
+    <!-- 1. SMART SEARCH BAR (New) -->
+    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+        <input type="text" id="geoSearchInput" placeholder="Type location (e.g., Ayala Center Cebu)" 
+               style="margin-bottom: 0; border: 1px solid var(--gold);" onkeypress="handleEnterSearch(event)">
+        <button type="button" onclick="searchLocation()" class="btn-action-small" 
+                style="background:var(--gold); color:black; font-weight:bold; width: auto; padding: 0 15px;">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+
+    <!-- 2. THE MAP -->
+    <div id="mapContainer"></div>
+    
+    <!-- 3. AUTO-CALCULATED FIELDS -->
+    <div class="calc-info-box">
+        <div class="calc-row">
+            <span class="label-dim"><i class="fas fa-route"></i> Est. Distance:</span>
+            <span id="distDisplay" class="val-white">0 km</span>
+        </div>
+        <div class="calc-divider"></div>
+        <div class="calc-row">
+            <span class="label-dim">Delivery Fee:</span>
+            <span id="feeDisplay" class="val-gold">₱0</span>
+        </div>
+        <input type="hidden" id="calcDistance">
+        <input type="hidden" id="calcFee">
+    </div>
+
+    <!-- 4. MANUAL DETAILS -->
+    <input type="text" id="custName" placeholder="Full Name" autocomplete="off">
+    <!-- Note: We autofill this address input when they search! -->
+    <input type="text" id="custAddress" placeholder="Specific Landmark / Gate / House #" autocomplete="off">
+    
+    <div style="display:flex; gap:10px;">
+        <input type="tel" id="custContact" placeholder="Mobile Number" autocomplete="off">
+        <input type="email" id="custEmail" placeholder="Email (Optional)" autocomplete="off">
+    </div>
+</div>
+    <!-- HIDDEN TITLE (Optional) -->
+    <h4 style="color:var(--gold); margin-bottom:15px; text-align:center;">
+        Select Payment Method
+    </h4>
+
+    <!-- 1. PAYMENT OPTIONS CONTAINER -->
+<div class="payment-stack" id="paymentContainer">
+    
+    <!-- OPTION A: PAY AT CASHIER (Dine-in / Take-out Only) -->
+    <div class="pay-option" id="optCashier" onclick="togglePayment('Cashier', this, event)">
+        <div class="pay-row">
+            <i class="fas fa-cash-register"></i>
+            <span>Pay at Counter</span>
+            <div class="check-circle"><i class="fas fa-check"></i></div>
+        </div>
+    </div>
+    
+    <!-- OPTION B: GCASH QR (For Everyone) -->
+    <div class="pay-option" id="optGCash" onclick="togglePayment('GCash', this, event)">
+        <div class="pay-row">
+            <i class="fas fa-mobile-alt"></i>
+            <span>GCash QR</span>
+            <div class="check-circle"><i class="fas fa-check"></i></div>
+        </div>
+        <!-- QR Details -->
+        <div class="pay-details">
+            <img id="qrGcashDisplay" src="qr/gcash.png" onclick="openLightbox(this.src); event.stopPropagation();" alt="QR">
+            <p style="font-size:0.8rem; color:#ccc; text-align:center; margin-bottom:5px;">
+                Attach Screenshot or Show Receipt
+            </p>
+            <div class="proof-upload-area">
+                <input type="file" id="fileGCash" class="proof-file-input" accept="image/*" hidden>
+                <input type="hidden" id="urlGCash" class="proof-url-hidden">
+                <button type="button" class="btn-upload-proof" onclick="triggerUpload(this); event.stopPropagation();">
+                    <i class="fas fa-camera"></i> Upload Proof
+                </button>
+                <span id="statusGCash" class="upload-status"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- OPTION C: CASH ON DELIVERY (Delivery Only) -->
+    <!-- Added 'hidden' class by default. JS will show it if Order Type is Delivery -->
+    <div class="pay-option hidden" id="optCOD" onclick="togglePayment('COD', this, event)">
+        <div class="pay-row">
+            <i class="fas fa-truck"></i>
+            <span>Cash on Delivery</span>
+            <div class="check-circle"><i class="fas fa-check"></i></div>
+        </div>
+        <div class="pay-details">
+            <p style="font-size:0.8rem; color:#ccc; margin-top:5px;">
+                Please prepare the exact amount if possible. Maxim Rates will Apply.
+            </p>
+        </div>
+    </div>
+
+</div>
+    
+    <!-- Hidden Input for Logic -->
+    <input type="hidden" id="selectedPaymentMethod">
+    
+    <!-- Special Requests -->
+    <textarea id="custNote" placeholder="Special requests / Allergies..." rows="3" style="margin-top:20px;"></textarea>
+    
+    <!-- Submit -->
+    <button type="submit" class="place-order-btn">PLACE ORDER</button>
+</form>
+</div>
+                </div>
+            </div>
+
+            <!-- VIEW D: THANK YOU -->
+            <!-- VIEW D: THANK YOU -->
+<div id="thankYouView" class="stage-view">
+    <div class="success-content">
+        <div class="success-icon"><i class="fas fa-check"></i></div>
+        <h1>Order Placed!</h1>
+        
+        <!-- NEW: BIG QUEUE NUMBER -->
+        <div style="background:rgba(255,255,255,0.1); padding:10px 30px; border-radius:12px; border:2px dashed var(--gold); margin:15px 0;">
+            <p style="color:#ccc; font-size:0.9rem; margin-bottom:5px;">Your Order Number</p>
+            <h2 id="displayQueueNum" style="color:var(--gold); font-size:4rem; line-height:1; margin:0;">...</h2>
+        </div>
+
+        <p>Please watch the monitor for your number.</p>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+    </div>
+</div>
+        </main>
+
+        <!-- ADMIN PANEL -->
+        <aside id="adminPanel" class="admin-panel hidden">
+            <div class="admin-header">
+                <h3>ADMIN MODE</h3>
+                <button id="adminLogout"><i class="fas fa-power-off"></i></button>
+            </div>
+            <button onclick="openOwnerPortal()" class="dashboard-link-btn" style="background:var(--gold); color:black; margin-bottom:10px;">
+        <i class="fas fa-user-cog"></i> OWNER SETTINGS
+    </button>
+<a class='dashboard-link-btn' href='dashboard.html'><i class="fas fa-th-list"></i> OPEN DASHBOARD</a>
+            <div class="admin-scroll-content">
+                <div class="admin-section">
+                    <h4>Settings</h4>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="togglePromoVisibility">
+                        <span class="slider round"></span>
+                        <span class="toggle-label">Show Promos Tab</span>
+                    </label>
+                </div>
+                <hr class="admin-divider">
+                <div class="admin-section">
+                    <h4>Item Editor</h4>
+                    <form id="adminForm">
+                        <input type="hidden" id="editId">
+                        <input type="hidden" id="finalImgUrl">
+                        <label>Category</label>
+                        <!-- ADMIN ITEM EDITOR DROPDOWN -->
+<label>Category</label>
+<select id="inpCat">
+    <!-- MATCH THESE VALUES EXACTLY TO THE data-cat ABOVE -->
+    <option value="desserts">Halo-Halo / Desserts</option>
+    <option value="meals">Meals / Rice Bowls</option>
+    <option value="snacks">Snacks / Pizza / Fries</option>
+    <option value="drinks">Drinks</option>
+    <option value="promos">Promos/Events</option>
+</select>
+                        <label>Image</label>
+                        <div id="dropZone" class="upload-box">
+                            <div id="uploadPlaceholder"><i class="fas fa-cloud-upload-alt"></i><p>Upload</p></div>
+                            <img id="imgPreview" class="hidden" alt="Preview">
+                            <div id="uploadLoader" class="loader hidden"></div>
+                            <input type="file" id="fileInput" accept="image/*" hidden>
+                        </div>
+                        <label>Name</label><input type="text" id="inpName" required>
+                        <label>Price</label><input type="number" id="inpPrice" required>
+                        <label>Desc</label><textarea id="inpDesc" rows="2"></textarea>
+                        <div class="admin-actions">
+                            <button type="submit" id="saveBtn" class="btn-save">Save</button>
+                            <button type="button" id="deleteBtn" class="btn-del hidden">Delete</button>
+                            <button type="button" id="cancelBtn" class="btn-clear">Clear</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <!-- REVIEWS DRAWER -->
+        <div id="reviewsDrawer" class="public-drawer">
+            <div class="drawer-header">
+                <h3>Customer Vibes</h3>
+                <button id="closeReviewsDrawer" class="close-drawer-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="drawer-content" id="publicReviewsList"></div>
+        </div>
+    </div> 
+
+<!-- MODALS -->
+
+    <!-- Auth (Owner Login) -->
+    <div id="authModal" class="modal-overlay hidden">
+        <div class="login-box">
+            <h2>Owner Login</h2>
+            <input type="email" id="loginEmail" placeholder="Email">
+            <input type="password" id="loginPass" placeholder="Password">
+            <div class="login-actions">
+                <button id="doLoginBtn">Login</button>
+                <button id="closeAuth" class="text-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Write Review -->
+    <div id="reviewModal" class="modal-overlay hidden">
+        <div class="review-modal-box">
+            <h3>Rate Your Bite</h3>
+            <div class="star-widget">
+                <input type="radio" name="rate" id="rate-5" value="5"><label for="rate-5" class="fas fa-star"></label>
+                <input type="radio" name="rate" id="rate-4" value="4"><label for="rate-4" class="fas fa-star"></label>
+                <input type="radio" name="rate" id="rate-3" value="3"><label for="rate-3" class="fas fa-star"></label>
+                <input type="radio" name="rate" id="rate-2" value="2"><label for="rate-2" class="fas fa-star"></label>
+                <input type="radio" name="rate" id="rate-1" value="1"><label for="rate-1" class="fas fa-star"></label>
+            </div>
+            <form id="reviewForm">
+                <!-- GUEST INPUT -->
+                <input type="text" id="revName" placeholder="Name (Optional)" autocomplete="off">
+                
+                <!-- SOS USER BADGE -->
+                <div id="revLoggedInBadge" class="hidden" style="display: flex; align-items: center; gap: 10px; background: #222; padding: 10px; border-radius: 8px; border: 1px solid var(--gold); margin-bottom: 15px;">
+                    <img id="revUserImg" src="images/default-user.png" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid #555;">
+                    <div style="font-size: 0.9rem; color: #ccc;">
+                        Reviewing as <span id="revLoggedInName" style="color: var(--gold); font-weight: bold;">User</span>
+                    </div>
+                </div>
+
+                <textarea id="revComment" placeholder="Comments..." rows="3" required></textarea>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel-rev" id="closeReviewModal">Cancel</button>
+                    <button type="submit" class="btn-submit-rev">Post</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SOS Employee Registration -->
+    <div id="empRegModal" class="modal-overlay hidden">
+        <div class="login-box" style="width: 350px;">
+            <h2 style="color:var(--gold);">Create Account</h2>
+            <p style="text-align:center; color:#888; margin-bottom:15px;">Create your profile.</p>
+            <form id="empRegForm">
+                <input type="text" id="regName" placeholder="Full Name" required autocomplete="off">
+                <input type="email" id="regEmail" placeholder="Email (For Recovery)" required autocomplete="off">
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="regFloor" placeholder="Floor" required style="flex:1;">
+                    <input type="text" id="regCompany" placeholder="Account" required style="flex:1;">
+                </div>
+                <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
+                <p style="font-size:0.8rem; color:var(--gold); margin-bottom:5px;">Security</p>
+                <input type="text" id="regAccessCode" placeholder="Access Code (e.g. 2468)" required 
+                       style="text-align:center; font-weight:bold; letter-spacing:2px; color:var(--gold); border-color:#555;">
+                <div class="login-actions">
+                    <button type="submit" id="btnRegSubmit">Create Profile</button>
+                    <button type="button" class="text-btn" onclick="document.getElementById('empRegModal').classList.add('hidden')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SOS Forgot ID -->
+    <div id="forgotIdModal" class="modal-overlay hidden">
+        <div class="login-box" style="width: 350px;">
+            <h2 style="color:var(--gold);">Recover ID</h2>
+            <p style="text-align:center; color:#ccc;">Enter email to receive your ID.</p>
+            <form id="forgotIdForm">
+                <input type="email" id="recoverEmail" placeholder="Registered Email" required>
+                <div class="login-actions">
+                    <button type="submit" id="btnRecoverSubmit">Send ID</button>
+                    <button type="button" class="text-btn" onclick="document.getElementById('forgotIdModal').classList.add('hidden'); document.getElementById('sosMainModal').classList.remove('hidden')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SOS Main Portal (Login & Dashboard Combined) -->
+    <div id="sosMainModal" class="modal-overlay hidden">
+        <div class="login-box" style="width: 380px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="color:var(--gold); margin:0;">Employee Portal</h2>
+                <button onclick="closeSOSMainModal()" style="background:none; border:none; color:#666; font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            
+            <!-- STATE A: LOGIN -->
+            <div id="sosModalLogin">
+                <p style="color:#ccc; margin-bottom:15px; text-align:center;">Enter your Access Code</p>
+                <div class="portal-search-box" style="width:100%; margin-bottom:15px;">
+                    <input type="password" id="landingCodeInput" placeholder="Access Code" autocomplete="off" style="text-align:center; letter-spacing:3px;">
+                    <button onclick="handleLandingLogin()"><i class="fas fa-arrow-right"></i></button>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                    <span onclick="openEmpRegModal()" style="cursor:pointer; color:#888; text-decoration:underline;">Register New</span>
+                    <span onclick="openForgotIdModal()" style="cursor:pointer; color:#888;">Forgot Code?</span>
+                </div>
+            </div>
+
+            <!-- STATE B: PROFILE STATUS (Hidden by default) -->
+            <div id="sosModalStatus" class="hidden">
+                <!-- Header with Logout Icon -->
+                <div class="profile-header" style="display: flex; align-items: center; gap: 15px;">
+                    <div class="avatar-wrapper" onclick="document.getElementById('portalAvatarInput').click()">
+                        <img id="portalAvatarDisplay" src="images/default-user.png" alt="User">
+                        <div class="avatar-overlay"><i class="fas fa-camera"></i></div>
+                        <input type="file" id="portalAvatarInput" accept="image/*" hidden> 
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="landingEmpName">Loading...</h2>
+                        <div class="id-badge">ID: <span id="landingEmpIdDisplay">--</span></div>
+                    </div>
+                    <!-- Minimal Logout Button -->
+                    <button onclick="logoutLanding()" class="btn-logout-icon" title="Secure Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+
+                <!-- Fields -->
+                <div class="profile-fields">
+                    <div class="field-row">
+                        <label><i class="fas fa-building"></i></label>
+                        <input type="text" id="portalCompany" disabled placeholder="Company">
+                    </div>
+                    <div class="field-row">
+                        <label><i class="fas fa-layer-group"></i></label>
+                        <input type="text" id="portalFloor" disabled placeholder="Floor">
+                    </div>
+                    <div class="field-row">
+                        <div onclick="toggleSecret()" style="cursor:pointer; padding:10px 0;">
+                            <i id="secretIcon" class="fas fa-key"></i>
+                        </div>                    
+                        <input type="password" id="portalAccessCode" disabled placeholder="Access Code">
+                    </div>
+                </div>
+
+                <!-- Edit Actions -->
+                <div class="profile-actions">
+                    <button id="btnToggleEdit" class="action-btn outline" onclick="toggleProfileEdit()">
+                        <i class="fas fa-pen"></i> Edit Profile
+                    </button>
+                    <button id="btnSaveProfile" class="action-btn save hidden" onclick="saveProfileChanges()">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+
+                <hr class="admin-divider">
+
+                <!-- Debt & History -->
+                <div style="display:flex; gap:10px;">
+                    <div class="debt-box">
+                        <small>UNPAID BALANCE</small>
+                        <div id="landingEmpDebt">₱0</div>
+                    </div>
+                    <button onclick="openEmpHistory()" class="history-btn-large">
+                        <i class="fas fa-history"></i> History
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOS History Modal -->
+    <div id="empHistoryModal" class="modal-overlay hidden">
+        <div class="login-box" style="width: 400px; max-height: 80vh; display:flex; flex-direction:column;">
+            <div class="history-header">
+                <h3>My Transactions</h3>
+                <button class="close-hist-btn" onclick="closeHistoryModal()">&times;</button>
+            </div>
+            
+            <div class="history-list-container" id="empHistoryList"></div>
+            
+            <div class="history-footer" style="text-align: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; font-size: 0.8rem;">
+                <span style="color:#ff6b6b; font-weight:bold;">● Unpaid</span>
+                <span style="color:#444; margin: 0 8px;">|</span>
+                <span style="color:#4CAF50; font-weight:bold;">● Paid</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR -->
+    <div id="qrLightbox" class="lightbox-modal">
+        <div class="lightbox-close">&times;</div>
+        <img id="lightboxImg" class="lightbox-content" src="" alt="Full QR">
+    </div>
+    <div id="ownerPortalModal" class="modal-overlay hidden">
+    <div class="login-box" style="width: 400px; max-height:90vh; overflow-y:auto;">
+        
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 style="color:var(--gold); margin:0;">Owner Dashboard</h2>
+            <button onclick="document.getElementById('ownerPortalModal').classList.add('hidden')" 
+                    style="background:none; border:none; color:#666; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+
+        <!-- 1. STORE SETTINGS -->
+        <p class="section-label" style="color:var(--gold);">Store Controls</p>
+        <div class="field-row" style="justify-content: space-between;">
+            <span><i class="fas fa-tags"></i> Activate Promos</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="ownerPromoToggle">
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+        <!-- 2. QR MANAGEMENT (Dynamic Images) -->
+        <hr class="admin-divider">
+        <p class="section-label" style="color:var(--gold);">Payment QR Codes</p>
+        
+        <!-- GCash Upload -->
+        <div class="field-row" style="display:block; padding:15px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span><i class="fas fa-mobile-alt"></i> GCash QR</span>
+                <span id="gcashStatus" style="font-size:0.7rem; color:#666;">Current</span>
+            </div>
+            <input type="file" id="uploadGcashInput" accept="image/*" class="hidden">
+            <button class="btn-clear" style="width:100%;" onclick="document.getElementById('uploadGcashInput').click()">
+                <i class="fas fa-camera"></i> Update GCash Image
+            </button>
+        </div>
+
+        <!-- BPI Upload -->
+        <div class="field-row" style="display:block; padding:15px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span><i class="fas fa-university"></i> BPI QR</span>
+                <span id="bpiStatus" style="font-size:0.7rem; color:#666;">Current</span>
+            </div>
+            <input type="file" id="uploadBpiInput" accept="image/*" class="hidden">
+            <button class="btn-clear" style="width:100%;" onclick="document.getElementById('uploadBpiInput').click()">
+                <i class="fas fa-camera"></i> Update BPI Image
+            </button>
+        </div>
+
+        <!-- 3. SECURITY (Change Password) -->
+        <hr class="admin-divider">
+        <p class="section-label" style="color:var(--gold);">Security</p>
+        
+        <div class="field-row">
+            <label><i class="fas fa-lock"></i></label>
+            <input type="password" id="newAdminPass" placeholder="New Password" style="margin:0; border:none;">
+        </div>
+        <button id="btnUpdatePass" class="action-btn outline" style="margin-top:10px; width:100%;" onclick="updateOwnerPassword()">
+            Update Password
+        </button>
+
+        <hr class="admin-divider">
+        <button onclick="adminLogout()" class="text-btn" style="width:100%; color:#d32f2f;">Log Out</button>
+    </div>
+</div>
+<div id="customConfirmModal" class="modal-overlay hidden" style="z-index: 6000;">
+    <div class="login-box" style="width: 360px; text-align: center;">
+        
+        <!-- Animated Icon -->
+        <div class="confirm-icon-box">
+            <i class="fas fa-question-circle"></i>
+        </div>
+        
+        <!-- Header -->
+        <h2 style="color: white; margin-bottom: 10px; font-size: 1.5rem;">Are you sure?</h2>
+        
+        <!-- Dynamic Message -->
+        <p id="confirmMsg" style="color: #ccc; margin-bottom: 25px;">Please confirm this action.</p>
+        
+        <!-- Buttons -->
+        <div class="confirm-actions">
+            <button id="btnConfirmNo" class="btn-modal cancel">
+                Cancel
+            </button>
+            <button id="btnConfirmYes" class="btn-modal confirm">
+                Yes, Proceed
+            </button>
+        </div>
+
+    </div>
+</div>
+    <img id="badgeZoomViewer" class="badge-viewer" src="" alt="Zoomed Badge">
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

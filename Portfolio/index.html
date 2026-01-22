@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-Native Product Engineer. Architecting complex web ecosystems, internal tools, and automation workflows.">
+    <meta property="og:title" content="Jose Romeo | Architecting Ecosystems">
+    <meta property="og:description" content="Don't just look—interact. Live test my full-stack applications directly in your browser.">
+    <meta property="og:image" content="assets/img/me.png"> <!-- CREATE THIS IMAGE -->
+    <meta property="og:url" content="https://jromeo.netlify.app">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#0f172a">
+    <title>Architecting Ecosystems | Jose Romeo</title>
+    <link rel="icon" type="image/png" href="assets/img/logo.png">
+    <link rel="apple-touch-icon" href="assets/img/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="#hero" class="brand">
+        <img src="assets/img/logo.png" alt="Jose Romeo Studio" class="brand-seal">
+    </a>
+        <ul class="nav-links">
+    <li><a href="#work">Systems</a></li>
+
+    <!-- Mini CV Link -->
+    <li class="nav-item dropdown-wrapper">
+    <!-- The Trigger -->
+    <a href="#" id="cv-trigger" onclick="toggleCvMenu(event)">
+        CV <i class="fa-solid fa-chevron-down" style="font-size: 0.6em; vertical-align: middle;"></i>
+    </a>
+
+    <!-- The Minimal Menu -->
+    <div id="cv-menu" class="system-dropdown">
+        <!-- Option 1: View (Side Panel) -->
+        <a href="#" onclick="openCvPanel(); return false;" class="dropdown-item">
+            <i class="fa-solid fa-eye"></i> View File
+        </a>
+        
+        <!-- Option 2: Download -->
+        <a href="assets/cv/my-resume.pdf" download="Jose_Romeo_CV.pdf" class="dropdown-item">
+            <i class="fa-solid fa-download"></i> Download
+        </a>
+    </div>
+</li>
+    <li><a href="#contact" class="btn-nav">Contact</a></li>
+</ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero-section">
+    <!-- Dark Grid Background -->
+    <div class="hero-bg">
+        <div class="grid-pattern-dark"></div>
+    </div>
+
+    <div class="hero-split">
+        <!-- COLUMN 1: The Image (Left) -->
+        <!-- You are looking right, so you go on the left to look at the text -->
+        <div class="hero-visual">
+            <div class="image-wrapper">
+                <!-- Replace src with your actual file path e.g., assets/img/me.png -->
+                <img src="assets/img/me.png" alt="Profile" class="cinematic-portrait">
+                <div class="gradient-overlay"></div>
+            </div>
+        </div>
+
+        <!-- COLUMN 2: The Text (Right) -->
+        <div class="hero-text hidden-scroll">
+            <div class="status-badge dark-mode"><span class="pulse green"></span> System Online</div>
+            
+            <h1>I orchestrate <br><span class="highlight-dark">intelligent solutions.</span></h1>
+<p class="subtitle dark-sub">
+    <strong>AI-Native Product Engineer.</strong> 
+    I bridge the gap between human ideas and functional software. 
+    I leverage AI to architect, prototype, and deploy complex ecosystem tools at speed.<br><br>
+    <strong>Don't just look—interact.</strong> Test the live ecosystems below, and let's discuss which architecture fits your vision."
+</p>
+            
+            <div class="hero-cta">
+                <div class="tech-arrow">
+    <span>&gt;</span>
+    <span>&gt;</span>
+    <span>&gt;</span>
+</div>
+                <a href="#work" class="btn-primary">Explore Work</a>
+                <a href="#" onclick="openCvPanel(); return false;" class="btn-outline-dark">
+    View Credentials <i class="fa-solid fa-file-contract"></i>
+</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <!-- Portfolio Grid -->
+    <section id="work" class="work-section">
+        <div class="section-header hidden-scroll">
+            <h2>The System Architecture</h2>
+            <p>Click "Live Test" to interact with the apps directly.</p>
+        </div>
+        <div class="project-grid" id="project-grid">
+            <!-- Injected via JS -->
+        </div>
+    </section>
+    <!-- Contact Section -->
+    <section id="contact" class="contact-section hidden-scroll">
+    <!-- Decorative Background Grid -->
+    <div class="contact-bg-grid"></div>
+    <div class="contact-floaters">
+        <i class="fa-solid fa-satellite-dish float-icon c-1"></i>
+        <i class="fa-solid fa-wifi float-icon c-2"></i>
+        <i class="fa-solid fa-tower-broadcast float-icon c-3"></i>
+        <i class="fa-solid fa-microchip float-icon c-4"></i>
+    </div>
+    <div class="contact-container">
+        <!-- The "Terminal" Card -->
+        <div class="terminal-card">
+            
+            <!-- Terminal Header -->
+            <div class="terminal-header">
+                <div class="terminal-status">
+                    <span class="status-dot blink"></span>
+                    <span class="status-text">CHANNEL_SECURE</span>
+                </div>
+                <div class="terminal-controls">
+                    <i class="fa-solid fa-wifi"></i>
+                    <span>NET_OK</span>
+                </div>
+            </div>
+
+            <div class="terminal-body">
+                <h2>Initialize Connection</h2>
+                <p class="terminal-sub">Transmission data is encrypted.</p>
+                
+                <!-- The Form -->
+                <form id="contact-form" class="contact-form">
+                    
+                    <div class="input-row">
+                        <div class="form-group">
+                            <label>USER_ID (Name)</label>
+                            <input type="text" name="user_name" required placeholder="Your Name" autocomplete="off">
+                            <div class="input-highlight"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>PROTOCOL (Email)</label>
+                            <input type="email" name="user_email" required placeholder="Your Email" autocomplete="off">
+                            <div class="input-highlight"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>PAYLOAD (Message)</label>
+                        <textarea name="message" rows="4" required placeholder="Got a PROJECT in mind? Let's Connect!"></textarea>
+                        <div class="input-highlight"></div>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="btn-terminal">
+                        TRANSMIT DATA <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <!-- Footer -->
+    <footer>
+    <p>&copy; 2026 Jose Romeo Studio. Engineered with precision.</p>
+    <div class="socials">
+    <!-- Professional -->
+    <a href="https://github.com/jromeo999" target="_blank" class="social-link github"><i class="fa-brands fa-github"></i></a>
+    <a href="https://www.linkedin.com/in/joseromeo00/" target="_blank" class="social-link linkedin"><i class="fa-brands fa-linkedin"></i></a>
+    
+    <!-- The Vibe Check -->
+    <a href="https://facebook.com/joseromeostudio" target="_blank" class="social-link facebook"><i class="fa-brands fa-facebook"></i></a>
+    <a href="https://www.instagram.com/insikonmyot/" target="_blank" class="social-link instagram"><i class="fa-brands fa-instagram"></i></a>
+    <a href="https://www.tiktok.com/rumyuyu" target="_blank" class="social-link tiktok"><i class="fa-brands fa-tiktok"></i></a>
+</div>
+</footer>
+
+    <!-- Modal (Same as before) -->
+    <div id="preview-modal" class="modal">
+        <div class="modal-content">
+            <div class="browser-header">
+                <div class="browser-controls">
+                    <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+                </div>
+                <div class="browser-address-bar" id="modal-url">loading...</div>
+                <button class="close-modal" id="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="iframe-container">
+                <div class="loader"></div>
+                <iframe src="" id="site-frame"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="open-new-tab">Open in New Tab <i class="fa-solid fa-external-link"></i></button>
+            </div>
+        </div>
+    </div>
+    <div id="notification-container" class="notification-container"></div>
+    <!-- The System Manual (Readme) Modal -->
+<div id="readme-modal" class="modal">
+    <div class="modal-content readme-content">
+        <div class="browser-header">
+            <div class="browser-controls">
+                <span class="dot red"></span><span class="dot yellow"></span>
+            </div>
+            <div class="browser-address-bar" id="readme-title-header">System Manual</div>
+            <button class="close-modal" id="close-readme"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="readme-body hidden-scroll">
+            <h2 id="readme-title">Project Name</h2>
+            <div id="readme-text" class="readme-text">
+                <!-- Text injected via JS -->
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- The Smart FAB -->
+<button id="smart-fab" class="smart-fab" aria-label="Navigate">
+    <i class="fa-solid fa-arrow-down"></i>
+</button>
+<!-- THE CHAT DOCK -->
+<div id="chat-widget" class="chat-widget">
+    
+    <!-- The Chat Window (Hidden by default) -->
+    <div class="chat-window hidden-chat">
+        <div class="chat-header">
+            <div class="chat-status">
+                <span class="status-dot blink"></span>
+                <img src="assets/img/me2.png" alt="Admin" class="bot-avatar">
+                <span>Jose Romeo (Bot AI)</span>
+                
+            </div>
+            <button id="close-chat"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="chat-body" id="chat-body">
+            <!-- Messages go here -->
+        </div>
+
+        <div class="chat-input-area">
+    <!-- ADD 'disabled' HERE -->
+    <input type="text" id="chat-input" placeholder="Select an option above..." autocomplete="off" disabled>
+    <button id="send-chat-btn" disabled><i class="fa-solid fa-paper-plane"></i></button>
+</div>
+    </div>
+
+    <!-- The Launcher Button (Floating Bubble) -->
+    <!-- We put it on the LEFT so it doesn't fight your Scroll FAB -->
+    <button id="chat-launcher" class="chat-launcher">
+        <i class="fa-solid fa-comment-dots"></i>
+        <span class="notification-badge">1</span>
+    </button>
+</div>
+<div id="cv-side-panel" class="cv-side-panel">
+    <div class="panel-header">
+        <span><i class="fa-solid fa-id-card"></i> CREDENTIALS</span>
+        
+        <!-- NEW: Action Buttons Container -->
+        <div style="display: flex; gap: 1rem;">
+            <!-- Download Button (Since toolbar is hidden) -->
+            <a href="assets/cv/my-resume.pdf" download="Jose_Romeo_CV.pdf" class="close-panel-btn" title="Download File" style="font-size: 1.2rem; text-decoration: none;">
+                <i class="fa-solid fa-download"></i>
+            </a>
+            
+            <!-- Close Button -->
+            <button class="close-panel-btn" onclick="closeCvPanel()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- PDF Container -->
+    <div class="pdf-container">
+        <iframe src="" id="cv-iframe" frameborder="0"></iframe>
+    </div>
+    
+    <!-- Footer CTA -->
+    <div class="panel-footer-cta">
+        <p>Seen enough?</p>
+        <button class="btn-terminal pulse-btn" onclick="connectFromCv()">
+            <i class="fa-solid fa-handshake"></i> LET'S CONNECT
+        </button>
+    </div>
+</div>
+
+
+<!-- Overlay for Side Panel (Click outside to close) -->
+<div id="panel-overlay" class="panel-overlay" onclick="closeCvPanel()"></div>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script type="text/javascript">
+   (function(){
+      // PASTE YOUR PUBLIC KEY HERE
+      emailjs.init("_vpMAL03l1qt9rrgS"); 
+   })();
+</script>
+    <script src="script.js"></script>
+</body>
+</html>

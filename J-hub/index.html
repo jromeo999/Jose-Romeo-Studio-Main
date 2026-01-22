@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>J | ARCHIVE</title>
+    
+    <!-- 1. THE GOLD ICON -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23050505%22 stroke=%22%23d4af37%22 stroke-width=%224%22/><path d=%22M38 32 L72 50 L38 68 Z%22 fill=%22%23d4af37%22/></svg>">
+
+    <!-- 2. FULL SCREEN APP MODE -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- This makes the top status bar BLACK instead of translucent/white -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"> 
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- CSS & FONTS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+ <body>
+  <!-- === ATMOSPHERE === -->
+  <div id="dynamic-bg"></div>
+  <div class="film-grain"></div>
+  <div id="toast" class="toast hidden">System Notification</div>
+  <!-- ============================================ -->
+  <!-- VIEW 1: THE VIEWER (Public Interface) -->
+  <!-- ============================================ -->
+  <div id="view-viewer" class="view-section">
+
+   <!-- SCREEN 1: LANDING PAGE -->
+   <!-- SCREEN 1: LANDING PAGE -->
+   <div id="landing-page" class="landing-overlay">
+    <div class="landing-content">
+     <div class="logo-area">
+      <i class="fas fa-film logo-icon"></i>
+      <h1 class="studio-title">PREMIUM SELECTION</h1>
+     </div>
+     <div class="system-status">
+      <span class="status-dot"></span> J | MOVIE HUB
+     </div>
+     <div class="divider"></div>
+     <p class="tagline">PRIVATE SCREENING ROOM</p>
+     <!-- MAIN ENTRY -->
+     <button id="btn-show-catalog" class="enter-btn">NOW SHOWING</button>
+     <!-- NEW: SLIDE PANEL TRIGGER -->
+     <button id="btn-open-request" class="request-link-btn">
+      <i class="fas fa-satellite-dish"></i> REQUEST MOVIES/SHOWS </button>
+    </div>
+    <!-- === THE SLIDE PANEL (Hidden by default) === -->
+    <div id="request-panel" class="slide-panel">
+     <div class="panel-inner">
+      <div class="panel-header">
+       <h3>
+        <i class="fas fa-bullhorn"></i> UPLINK
+       </h3>
+       <button id="btn-close-request" class="close-x">
+        <i class="fas fa-times"></i>
+       </button>
+      </div>
+      <p class="panel-desc">Submit title for archival retrieval.</p>
+      <div class="req-form">
+       <input type="text" id="req-input" placeholder="MOVIE TITLE..." autocomplete="off">
+       <button id="btn-submit-req" class="btn gold">TRANSMIT</button>
+      </div>
+      <div class="panel-footer"> SYSTEM V3.0 // READY </div>
+     </div>
+    </div>
+   </div>
+   <!-- SCREEN 2: CATALOG PANEL -->
+   <div id="catalog-panel" class="catalog-overlay hidden-panel">
+    <div class="catalog-container">
+     <div class="catalog-header-modern">
+      <div class="header-left">
+       <span class="live-dot"></span>
+       <h1 class="header-title">J-Hub</h1>
+       <span class="header-subtitle">/ Personal Favorites - Streaming Now</span>
+      </div>
+      <div class="header-right">
+       <div class="search-pill">
+        <i class="fas fa-search"></i>
+        <input type="text" id="catalog-search" placeholder="find signal..." autocomplete="off">
+       </div>
+      </div>
+     </div>
+     <!-- Movies Injected Here -->
+     <div id="catalog-grid">
+      <div class="loading-text">CONNECTING TO ARCHIVE...</div>
+     </div>
+    </div>
+   </div>
+   <!-- SCREEN 3: CINEMA CONTAINER -->
+   <!-- SCREEN 3: CINEMA CONTAINER (Split View) -->
+   <div id="cinema-view" class="cinema-container hidden">
+    <!-- Ambient Background -->
+    <div class="projector-light"></div>
+    <div class="ambient-glow" id="ambient-glow"></div>
+    <div class="cinema-controls-cluster">
+     <button id="btn-return-lobby" class="cinema-ctrl-btn" title="Return">
+      <i class="fas fa-arrow-left"></i>
+     </button>
+     <button id="btn-watch-mode" class="cinema-ctrl-btn" title="Lights Out">
+      <i class="fas fa-eye"></i>
+     </button>
+    </div>
+    <!-- MAIN CONTENT WRAPPER -->
+    <div class="cinema-split-layout">
+     <!-- LEFT PANEL: THE SCREEN -->
+     <div class="cinema-left">
+      <div class="screen-wrapper">
+       <iframe id="main-player" src="" frameborder="0" allow="autoplay; encrypted-media; fullscreen" class="click-blocked"></iframe>
+       <div id="stream-placeholder" class="placeholder hidden">
+        <div class="loader-ring"></div>
+        <h2>LOADING FILM REEL...</h2>
+       </div>
+      </div>
+      <!-- Metadata under screen -->
+      <div class="now-playing-info">
+       <h1 id="np-title">MOVIE TITLE</h1>
+       <span id="np-meta">YEAR • COLLECTION</span>
+      </div>
+     </div>
+     <!-- RIGHT PANEL: RELATED LIST -->
+     <div class="cinema-right">
+      <div class="sidebar-header-cinema">NEXT IN SERIES</div>
+      <div id="related-grid" class="related-grid">
+       <!-- JS will inject co-category movies here -->
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  </div>
+  <!-- ============================================ -->
+  <!-- VIEW 2: THE ADMIN (Dashboard) -->
+  <!-- ============================================ -->
+  <!-- === VIEW 2: THE ADMIN (Dashboard) === -->
+  <!-- === VIEW 2: THE ADMIN (Dashboard) === -->
+<div id="view-admin" class="view-section hidden">
+    
+    <!-- SIDEBAR: CONTROLS & MONITOR -->
+    <div class="admin-sidebar">
+        
+        <!-- 1. HEADER (FIXED) -->
+        <div class="sidebar-header">
+            <h3><i class="fas fa-network-wired"></i> SYSTEM DECK</h3>
+            <!-- Mobile Logout -->
+            <button id="btn-logout-mobile" class="mobile-power-btn">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </div>
+
+        <!-- 2. SCROLLABLE MIDDLE SECTION (WRAPPED) -->
+        <div class="sidebar-scroll-area">
+            
+            <!-- MONITOR -->
+            <div class="mini-monitor">
+                <label>PRIVATE MONITOR</label>
+                <div class="monitor-frame-wrapper">
+                    <iframe id="admin-monitor-frame" src="" frameborder="0" allow="autoplay; encrypted-media; fullscreen"></iframe>
+                    <div class="monitor-overlay"></div>
+                </div>
+                <div class="live-tag">ADMIN PREVIEW ONLY</div>
+            </div>
+
+            <!-- CONTROL PANEL -->
+            <div class="sidebar-controls">
+                <div class="box-header">SIGNAL SOURCE</div>
+                
+                <!-- Input Area -->
+                <div class="input-group">
+                    <select id="src-type" class="tech-input">
+                        <option value="imdb">IMDb (e.g. tt12345)</option>
+                        <option value="tmdb">TMDB (e.g. 550)</option>
+                    </select>
+                    <input type="text" id="media-id" class="tech-input" placeholder="ID...">
+                </div>
+
+                <!-- Meta Preview (Small) -->
+                <div id="meta-display" class="meta-card hidden">
+                    <img id="meta-poster" src="" alt="Poster">
+                    <div class="meta-info">
+                        <h4 id="meta-title">...</h4>
+                        <span id="meta-year">YYYY</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="btn-row">
+                    <button id="btn-preview" class="btn secondary">
+                        <i class="fas fa-eye"></i> TEST
+                    </button>
+                </div>
+
+                <!-- Series Selection -->
+                <div class="input-group" style="margin-top: 15px; border-top: 1px dashed #333; padding-top: 15px;">
+                    <label style="color:#666; font-size:0.7rem;">COLLECTION TAG</label>
+                    <select id="collection-select" class="tech-input">
+                        <option value="">-- Solo Feature --</option>
+                    </select>
+                    <input type="text" id="new-collection" class="tech-input" placeholder="OR New Tag Name...">
+                </div>
+
+                <!-- Add Button -->
+                <div class="btn-row" style="margin-top: 10px;">
+                    <button id="btn-add-queue" class="btn gold">ADD TO ARCHIVE</button>
+                </div>
+
+                <!-- Collection Manager Link -->
+                <button id="btn-manage-collections" class="text-btn" style="font-size:0.7rem; color:var(--gold); width:100%; text-align:center;">
+                    <i class="fas fa-cog"></i> MANAGE TAGS
+                </button>
+                
+                <!-- Fuse Collections -->
+                <button id="btn-open-merge" class="text-btn" style="font-size:0.7rem; color:var(--gold); width:100%; text-align:center; margin-top:5px;">
+                    <i class="fas fa-object-group"></i> FUSE COLLECTIONS
+                </button>
+                
+                <!-- Incoming Requests -->
+                <button id="btn-view-requests" class="text-btn" style="font-size:0.7rem; color:var(--green); width:100%; text-align:center; margin-top:5px;">
+                    <i class="fas fa-satellite-dish"></i> INCOMING SIGNALS <span id="req-badge"></span>
+                </button>
+            </div>
+        </div>
+        <!-- END SCROLL AREA -->
+
+        <!-- 3. FOOTER (FIXED) -->
+        <div class="sidebar-footer">
+            <button id="btn-logout-desktop" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> LOGOUT
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN AREA: VISUAL CATALOG -->
+    <div class="admin-main">
+        <div class="main-header">
+            <h2>ARCHIVE DATABASE</h2>
+            <div style="display:flex; gap:20px; align-items:center;">
+                <span class="time-display" id="clock">00:00:00</span>
+                <button id="btn-clear-all" class="text-danger-btn" style="border:1px solid #333; padding:5px 15px;">WIPE ALL</button>
+            </div>
+        </div>
+
+        <!-- THIS IS WHERE THE POSTERS GO -->
+        <div id="admin-catalog-container">
+            <!-- JS will inject content here -->
+            <div style="color:#444; margin-top:50px;">WAITING FOR DATA...</div>
+        </div>
+
+        <!-- Hidden elements required by JS logic -->
+        <div class="hidden">
+            <input type="text" id="announce-input">
+            <button id="btn-announce"></button>
+            <span id="queue-count"></span>
+            <ul id="queue-list"></ul>
+        </div>
+    </div>
+</div>
+   <!-- MAIN AREA: VISUAL CATALOG -->
+   <div class="admin-main">
+    <div class="main-header">
+     <h2>ARCHIVE DATABASE</h2>
+     <div style="display:flex; gap:20px; align-items:center;">
+      <span class="time-display" id="clock">00:00:00</span>
+      <button id="btn-clear-all" class="text-danger-btn" style="border:1px solid #333; padding:5px 15px;">WIPE ALL</button>
+     </div>
+    </div>
+    <!-- THIS IS WHERE THE POSTERS GO -->
+    <div id="admin-catalog-container">
+     <!-- JS will inject content here -->
+     <div style="color:#444; margin-top:50px;">WAITING FOR DATA...</div>
+    </div>
+    <!-- Hidden elements required by JS logic (Keep them so code doesn't break) -->
+    <div class="hidden">
+     <input type="text" id="announce-input">
+     <button id="btn-announce"></button>
+     <span id="queue-count"></span>
+     <ul id="queue-list"></ul>
+    </div>
+   </div>
+  </div>
+  <!-- AUTH MODAL -->
+  <div id="login-modal" class="modal hidden">
+   <div class="modal-box login-terminal">
+    <!-- New Biometric Icon -->
+    <div class="biometric-icon">
+     <i class="fas fa-fingerprint"></i>
+     <div class="scan-line"></div>
+    </div>
+    <h3>IDENTITY VERIFICATION</h3>
+    <form id="login-form">
+     <div class="input-line">
+      <i class="fas fa-user-astronaut"></i>
+      <input type="email" id="admin-email" placeholder="OPERATOR ID" required autocomplete="off">
+     </div>
+     <div class="input-line">
+      <i class="fas fa-key"></i>
+      <input type="password" id="admin-pass" placeholder="ACCESS KEY" required autocomplete="off">
+     </div>
+     <button type="submit" class="access-btn">AUTHENTICATE</button>
+    </form>
+    <button id="close-login" class="text-btn abort-btn">ABORT CONNECTION</button>
+   </div>
+  </div>
+  <div id="collection-modal" class="modal hidden">
+   <div class="modal-box">
+    <h3>COLLECTION MANAGER</h3>
+    <!-- ADD IN ADVANCE -->
+    <div style="display:flex; gap:10px;">
+     <input type="text" id="new-preset-input" placeholder="New Series Name...">
+     <button id="btn-save-preset" style="width:auto;">ADD</button>
+    </div>
+    <!-- LIST OF EXISTING -->
+    <div id="manager-list" class="manager-list"></div>
+    <button onclick="document.getElementById('collection-modal').classList.add('hidden')">CLOSE</button>
+   </div>
+  </div>
+  <div id="system-dialog" class="modal hidden">
+   <div class="modal-box dialog-box">
+    <h3 id="dialog-title">SYSTEM ALERT</h3>
+    <p id="dialog-msg">Awaiting Input...</p>
+    <input type="text" id="dialog-input" class="tech-input hidden" style="margin-bottom: 15px; border: 1px solid var(--gold);">
+    <div class="dialog-actions">
+     <button id="btn-dialog-cancel" class="btn secondary">CANCEL</button>
+     <button id="btn-dialog-confirm" class="btn gold">CONFIRM</button>
+    </div>
+   </div>
+  </div>
+  <!-- REQUESTS INBOX MODAL -->
+  <div id="requests-modal" class="modal hidden">
+   <div class="modal-box" style="max-width: 500px; border-color: var(--green);">
+    <h3 style="color: var(--green); border-bottom-color: var(--green);">
+     <i class="fas fa-satellite-dish"></i> TRANSMISSION LOG
+    </h3>
+    <div class="requests-list-container">
+     <ul id="requests-list" class="terminal-list">
+      <!-- Requests load here -->
+      <li style="color:#666;">SCANNING FREQUENCIES...</li>
+     </ul>
+    </div>
+    <button id="close-requests" class="btn secondary" style="width:100%; margin-top:20px; border-color:#333;">CLOSE LOG</button>
+   </div>
+  </div>
+  <div id="merge-modal" class="modal hidden">
+    <div class="modal-box" style="width: 500px; max-width:95%;">
+        <h3><i class="fas fa-random"></i> COLLECTION FUSION</h3>
+        <p style="color:#666; font-size:0.8rem; margin-bottom:15px;">
+            Select multiple small collections to merge into one Super-Set.
+        </p>
+
+        <!-- The List of Checkboxes -->
+        <div id="merge-list" class="manager-list" style="height: 250px;">
+            <!-- JS injects checkboxes here -->
+        </div>
+
+        <!-- The New Name Input -->
+        <div style="margin-top:20px; border-top:1px solid #333; padding-top:20px;">
+            <label style="color:var(--gold); font-size:0.8rem;">NEW BUNDLE NAME:</label>
+            <input type="text" id="merge-new-name" placeholder="e.g. WEEKEND SET A..." style="width:100%; margin-top:5px;">
+        </div>
+
+        <div class="dialog-actions" style="margin-top:20px;">
+            <button id="btn-cancel-merge" class="btn secondary">CANCEL</button>
+            <button id="btn-confirm-merge" class="btn gold">MERGE SELECTED</button>
+        </div>
+    </div>
+</div>
+  <!-- FIREBASE SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- APP SCRIPT -->
+  <script src="app.js"></script>
+ </body>
+</html>

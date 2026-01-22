@@ -1,0 +1,2804 @@
+:root {
+    --bg-color: #050505;
+    --sidebar-bg: #0a0a0a;
+    --main-bg: #111;
+    --gold: #d4af37;
+    --green: #00ff41;
+    --red: #ff3333;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+body { background: var(--bg-color); color: #fff; font-family: 'Share Tech Mono', monospace; height: 100vh; overflow: hidden; }
+.hidden { display: none !important; }
+.hidden-panel { opacity: 0; pointer-events: none; transform: scale(0.95); }
+
+/* === CUSTOM SCROLLBARS === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #050505; border-left: 1px solid #222; }
+::-webkit-scrollbar-thumb { background: #333; border: 1px solid #000; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* === ATMOSPHERE === */
+.film-grain {
+    position: fixed; inset: 0; opacity: 0.05; pointer-events: none; z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* === VIEW 1: VIEWER === */
+#view-viewer { width: 100vw; height: 100vh; position: relative; }
+
+.admin-lock-icon {
+    position: fixed; top: 20px; right: 20px; z-index: 5000;
+    color: rgba(255,255,255,0.2); font-size: 1.5rem; cursor: pointer; padding: 10px; transition: color 0.3s;
+}
+.admin-lock-icon:hover {
+    opacity: 1;
+    border-color: var(--gold);
+    color: var(--gold);
+    transform: scale(1.1);
+}
+
+/* ANNOUNCEMENT BANNER */
+.announcement-banner {
+    position: fixed; top: 10%; left: 50%; transform: translateX(-50%);
+    background: rgba(212,175,55,0.95); color: #000; padding: 15px 60px;
+    z-index: 3000; border: 2px solid #fff; box-shadow: 0 0 30px var(--gold);
+    animation: slideDown 0.5s ease-out; font-weight: bold; letter-spacing: 2px;
+}
+@keyframes slideDown { from { top: -100px; } to { top: 10%; } }
+
+/* LANDING PAGE */
+.landing-overlay { 
+    position: absolute; inset: 0; background: #000; z-index: 2000; 
+    display: flex; justify-content: center; align-items: center; 
+    transition: opacity 0.5s;
+}
+.landing-content { 
+    text-align: center; border: 1px solid var(--gold); padding: 4rem; 
+    background: rgba(10,10,10,0.95); box-shadow: 0 0 50px rgba(212, 175, 55, 0.1); 
+}
+.logo-icon { font-size: 3rem; color: var(--gold); margin-bottom: 15px; }
+.studio-title { font-family: 'Cinzel', serif; letter-spacing: 8px; color: #fff; font-size: 2rem; }
+.divider { height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); width: 100%; margin: 30px 0; }
+.tagline { color: #888; letter-spacing: 2px; margin-bottom: 30px; }
+.enter-btn { 
+    padding: 15px 50px; background: transparent; border: 1px solid var(--gold); 
+    color: var(--gold); cursor: pointer; font-family: 'Cinzel', serif; 
+    font-weight: bold; font-size: 1.1rem; transition: all 0.3s; 
+}
+.enter-btn:hover { background: var(--gold); color: #000; box-shadow: 0 0 25px var(--gold); }
+
+/* CATALOG OVERLAY */
+.catalog-overlay {
+    position: absolute; inset: 0; 
+    
+    /* 1. Make it transparent so we see the blur behind it */
+    background: transparent !important; 
+    
+    /* 2. Add a gradient so the top header is readable even if the image is bright */
+    background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 20%, rgba(0,0,0,0.4) 100%) !important;
+    
+    z-index: 1500;
+    display: flex; justify-content: center; padding: 30px 40px;
+    overflow-y: auto; transition: opacity 0.4s, transform 0.4s;
+}
+.catalog-container { width: 100%; max-width: 1400px; }
+.catalog-header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    border-bottom: 1px solid #333; padding: 5px 10px; margin-bottom: 40px; 
+}
+.catalog-header h2 { font-family: 'Cinzel', serif; color: var(--gold); letter-spacing: 3px; font-size: 1.5rem; margin-left:5px; }
+.catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+
+/* MOVIE CARD */
+
+.movie-card:hover { transform: translateY(-5px) scale(1.02); border-color: var(--gold); z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+.movie-card img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: 0.5s; filter: grayscale(40%); }
+.movie-card:hover img { opacity: 1; filter: grayscale(0%); }
+
+.movie-overlay {
+    position: absolute; inset: 0; display: flex; justify-content: center; align-items: center;
+    opacity: 0; transition: 0.3s; background: rgba(0,0,0,0.4);
+}
+.movie-card:hover .movie-overlay { opacity: 1; }
+.movie-overlay i { font-size: 3rem; color: #fff; text-shadow: 0 0 20px #000; }
+
+/* CINEMA CONTAINER */
+.cinema-container {
+    position: absolute; inset: 0; background: #000; z-index: 1000;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    transition: opacity 1s;
+}
+.return-btn {
+    position: absolute; top: 30px; left: 30px; background: rgba(0,0,0,0.5); border: 1px solid #333;
+    color: #888; font-size: 1.2rem; padding: 15px; cursor: pointer; z-index: 2000; transition: 0.3s;
+    border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;
+}
+.return-btn:hover { color: var(--gold); border-color: var(--gold); background: #000; }
+
+.screen-wrapper { 
+    width: 90vw; aspect-ratio: 16/9; background: #000; 
+    border: 10px solid #0a0a0a; z-index: 10; position: relative; 
+    box-shadow: 0 0 100px rgba(0,0,0,0.9); 
+    margin-top: 40px;
+}
+
+/* IFRAME & PROTECTIONS */
+iframe { width: 100%; height: 100%; border: none; }
+.click-blocked { pointer-events: none !important; user-select: none; } 
+
+.placeholder { 
+    position: absolute; inset: 0; background: #050505; 
+    display: flex; flex-direction: column; justify-content: center; align-items: center; color: #444; 
+}
+.loader-ring { 
+    width: 60px; height: 60px; border: 3px solid #333; border-top: 3px solid var(--gold); 
+    border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; 
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.projector-light { 
+    position: absolute; top: -50%; left: 50%; transform: translateX(-50%); 
+    width: 60vw; height: 100%; 
+    background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 80%); 
+    filter: blur(50px); pointer-events: none; 
+}
+.ambient-glow { position: absolute; width: 100%; height: 100%; transition: opacity 3s; opacity: 0; background: radial-gradient(circle, rgba(255,255,255,0.1), transparent 60%); }
+
+/* INTRO OVERLAY */
+.intro-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.92); z-index: 100;
+    display: flex; justify-content: center; align-items: center;
+    backdrop-filter: blur(5px);
+}
+.play-trick-btn {
+    background: transparent; border: 2px solid var(--gold); color: var(--gold);
+    font-family: 'Cinzel', serif; font-size: 1.5rem; padding: 25px 60px;
+    letter-spacing: 5px; cursor: pointer; transition: 0.4s;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+}
+.play-trick-btn:hover { background: var(--gold); color: #000; transform: scale(1.05); box-shadow: 0 0 40px var(--gold); }
+
+/* === VIEW 2: ADMIN === */
+#view-admin { width: 100vw; height: 100vh; display: flex; background: var(--main-bg); z-index: 6000; }
+
+.admin-sidebar { 
+    width: 320px; background: var(--sidebar-bg); border-right: 1px solid #333; 
+    padding: 25px; display: flex; flex-direction: column; gap: 25px; 
+    height: 100vh; 
+}
+
+.sidebar-header { color: var(--gold); border-bottom: 1px solid #333; padding-bottom: 15px; }
+
+/* MONITOR */
+.mini-monitor { margin-bottom: 10px; }
+.mini-monitor label { display: block; color: #666; font-size: 0.8rem; margin-bottom: 5px; }
+.monitor-frame-wrapper { width: 100%; aspect-ratio: 16/9; background: #000; border: 1px solid #444; position: relative; }
+.monitor-frame-wrapper iframe { width: 100%; height: 100%; opacity: 0.7; }
+.monitor-overlay { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.2) 50%); background-size: 100% 4px; z-index: 5; }
+.live-tag { font-size: 0.7rem; color: #888; margin-top: 8px; display: flex; align-items: center; gap: 8px; letter-spacing: 1px; }
+
+/* SIDEBAR FOOTER (LOGOUT) */
+.sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid #333; }
+.logout-btn { 
+    width: 100%; background: #1a0a0a; border: 1px solid #333; color: #888; 
+    padding: 12px; cursor: pointer; font-family: 'Share Tech Mono', monospace; 
+    transition: 0.3s; 
+}
+.logout-btn:hover { background: #300; color: #f55; border-color: #f00; }
+
+.admin-main { flex: 1; padding: 40px; display: flex; flex-direction: column; gap: 25px; overflow-y: auto; }
+.main-header { display: flex; justify-content: space-between; border-bottom: 2px solid var(--gold); padding-bottom: 15px; }
+.time-display { font-size: 1.5rem; color: var(--gold); text-shadow: 0 0 10px rgba(212,175,55,0.3); }
+
+/* ADMIN CONTROLS */
+.control-grid { display: grid; grid-template-columns: 2fr 1.2fr; }
+.panel-box { background: #0f0f0f; border: 1px solid #333; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+.flex-grow { flex: 1; min-height: 0; }
+.box-header { font-size: 0.9rem; color: var(--gold); margin-bottom: 20px; letter-spacing: 1px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+
+.input-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; }
+.tech-input { 
+    background: #050505; border: 1px solid #333; color: #fff; padding: 15px; 
+    font-family: 'Share Tech Mono', monospace; width: 100%; font-size: 1rem; transition: 0.2s;
+}
+.tech-input:focus { border-color: var(--gold); box-shadow: 0 0 10px rgba(212,175,55,0.2); }
+
+.btn-row { display: flex; gap: 15px; margin-top: 10px; }
+.btn { padding: 15px 20px; cursor: pointer; border: none; font-weight: bold; flex: 1; font-family: 'Share Tech Mono', monospace; transition: 0.2s; }
+.btn.gold { background: var(--gold); color: #000; }
+.btn.gold:hover { background: #fff; }
+.btn.secondary { background: #080808; color: #888; border: 1px solid #333; }
+.btn.secondary:hover { color: #fff; border-color: #666; }
+
+/* QUEUE LIST */
+#queue-list { list-style: none; overflow-y: auto; flex: 1; padding-right: 5px; }
+#queue-list li { 
+    background: #151515; padding: 12px; margin-bottom: 8px; 
+    display: flex; justify-content: space-between; align-items: center; 
+    border-left: 3px solid #333; transition: 0.2s; 
+}
+#queue-list li:hover { background: #1a1a1a; border-left-color: var(--gold); }
+.q-info { display: flex; align-items: center; gap: 15px; }
+.q-info img { width: 30px; height: 45px; object-fit: cover; border: 1px solid #444; }
+.q-actions button { background: none; border: none; cursor: pointer; margin-left: 10px; font-size: 1.1rem; color: #555; transition: 0.2s; }
+.q-actions button:hover { color: var(--red); transform: scale(1.2); }
+
+/* METADATA CARD */
+.meta-card { display: flex; gap: 15px; background: #0a0a0a; border: 1px solid #333; padding: 15px; margin-top: 15px; align-items: center; }
+.meta-card img { width: 60px; height: 90px; object-fit: cover; border: 1px solid #444; }
+.meta-info h4 { color: var(--gold); font-size: 1rem; margin-bottom: 5px; }
+.meta-info span { color: #666; font-size: 0.9rem; }
+
+/* MODAL & TOAST */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 8000; display: flex; justify-content: center; align-items: center; }
+.modal-box { z-index: 8001; background: #111; border: 1px solid var(--gold); padding: 3rem; width: 400px; text-align: center; box-shadow: 0 0 50px rgba(212,175,55,0.2); }
+.modal-box h3 { color: var(--gold); margin-bottom: 20px; font-family: 'Cinzel', serif; }
+.modal-box input { width: 100%; margin: 10px 0; padding: 15px; background: #000; border: 1px solid #444; color: #fff; font-family: monospace; }
+.modal-box button { width: 100%; padding: 15px; background: var(--gold); border: none; cursor: pointer; margin-top: 20px; font-weight: bold; }
+.toast { 
+    position: fixed; top: 30px; left: 50%; transform: translateX(-50%); 
+    background: var(--gold); color: #000; padding: 15px 40px; 
+    z-index: 9000; font-weight: bold; border: 2px solid #fff; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.5); 
+}
+.text-btn { background: none; border: none; color: #666; cursor: pointer; padding: 10px; margin-top: 10px; text-decoration: underline; }
+.text-btn:hover { color: #fff; }
+/* === NEW SEARCH BAR === */
+.search-wrapper { flex-grow: 1; margin: 0 20px; max-width: 400px; }
+.search-input {
+    width: 100%; background: #000; border: 1px solid #444; color: var(--gold);
+    padding: 10px 15px; font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem; border-radius: 4px;
+}
+.search-input:focus { border-color: var(--gold); outline: none; }
+
+/* === SERIES GROUPING HEADERS === */
+.series-section {  border: 1px solid #222; background: #0e0e0e; }
+.series-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px; background: #151515; cursor: pointer;
+    border-bottom: 1px solid #222; transition: 0.2s; user-select: none;
+}
+.series-header:hover { background: #222; color: var(--gold); }
+.series-title { font-family: 'Cinzel', serif; font-size: 1.1rem; color: #ddd;  white-space: nowrap;       /* Don't wrap to next line */
+    overflow: hidden;          /* Hide overflow */
+    text-overflow: ellipsis;   /* Add ... if too long */
+    max-width: 70%;            /* Leave room for the count */
+    word-break: keep-all;  }
+.series-count { font-size: 0.8rem; color: #666; font-family: 'Share Tech Mono', monospace; }
+
+/* Expanded/Collapsed Logic */
+.series-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); transition: all 0.3s ease;
+}
+.series-section.collapsed .series-grid { display: none; }
+.series-section.collapsed .series-header { border-bottom: none; }
+
+/* Solo Header */
+.solo-header { 
+    font-family: 'Cinzel', serif; color: var(--gold); margin: 20px 0; 
+    border-bottom: 1px solid var(--gold); display: inline-block;
+    margin-top: -50px !important; margin-left: 18px; 
+}
+.solo-grid-fix {
+    margin-top: -50px !important; 
+    padding-top: 10px !important; /* Just a tiny gap for visuals */
+}
+/* DANGER BUTTON (Admin) */
+.text-danger-btn {
+    background: none;
+    border: none;
+    color: #444; /* Dark gray by default to avoid accidents */
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    padding: 5px 0;
+}
+
+.text-danger-btn:hover {
+    color: #ff3333; /* Red on hover */
+    text-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
+    font-weight: bold;
+}
+/* ========================================= */
+/* === CRITICAL GRID FIX (PASTE AT BOTTOM) = */
+/* ========================================= */
+
+/* Force Grid for both Solo lists and Series lists */
+.catalog-grid, 
+.series-grid {
+    display: grid !important;
+    /* This makes them sit side-by-side. If screen is small, they wrap. */
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important; 
+
+    width: 100% !important;
+}
+
+/* Ensure the cards themselves don't stretch weirdly */
+.movie-card {
+    width: 100%;
+    aspect-ratio: 2/3;
+    position: relative;
+    background: #111;
+    border: 1px solid #333;
+    position: relative !important;
+    overflow: hidden !important; /* Ensures text doesn't spill out */
+}
+
+/* Ensure images fill the card */
+.movie-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Fix the Series Section container */
+.series-section {
+    width: 100%;
+    background: #0e0e0e;
+    border: 1px solid #222;
+    display: block; 
+}
+
+/* Ensure the Series Header spans full width */
+.series-header {
+    width: 100%;
+    box-sizing: border-box; /* Includes padding in width calculation */
+}
+.manager-list { text-align: left; max-height: 300px; overflow-y: auto; margin: 20px 0; border: 1px solid #333; padding: 10px; }
+.manager-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #222; }
+.manager-item:hover { background: #1a1a1a; }
+.btn-edit-col { color: var(--gold); cursor: pointer; margin-right: 10px; }
+.btn-del-col { color: #f55; cursor: pointer; }
+/* ========================================= */
+/* === FINAL LAYOUT ENGINE (PERFECT FIT) === */
+/* ========================================= */
+
+/* 1. THE GRID (Balanced Margins) */
+.series-grid, 
+.catalog-grid {
+    display: grid !important;
+    /* This fills the row with as many cards as fit, minimum 180px wide */
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important; 
+    
+    /* Internal Spacing between cards */
+
+    
+    /* Outer Spacing (The Balanced Margins you asked for) */
+
+    
+    /* CRITICAL: Ensures padding doesn't push width beyond 100% */
+    box-sizing: border-box !important; 
+    width: 100% !important;
+}
+
+/* 2. THE CARD (Fixed Height & Aspect Ratio) */
+.movie-card {
+    width: 100%;
+    /* Forces strict Poster shape (2 width : 3 height) */
+    aspect-ratio: 2/3 !important; 
+    background: #000;
+    border: 1px solid #222;
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* 3. THE IMAGE (Perfect Crop) */
+.movie-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Crops image to fill the 2:3 ratio perfectly */
+    display: block;
+}
+
+/* 4. SERIES SECTION CONTAINER */
+.series-section {
+    width: 100%;
+    background: #0e0e0e;
+    border: 1px solid #222;
+    box-sizing: border-box; /* Prevents container from overflowing */
+}
+
+/* 5. ACCORDION LOGIC */
+/* Accordion Logic */
+.series-section.collapsed .series-grid { display: none !important; }
+.series-section.collapsed { padding-bottom: 0 !important; } /* Remove bottom padding when closed */
+.series-section.collapsed .series-header { border-bottom: none; }
+.series-header .fa-chevron-down { transition: transform 0.3s ease; }
+.series-section.collapsed .series-header .fa-chevron-down { transform: rotate(180deg); }
+/* 6. TEXT TRUNCATION (Dots...) */
+.series-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 60%; 
+    display: block;
+}
+/* ========================================= */
+/* === MOBILE RESPONSIVE OVERRIDES (v2.2) == */
+/* ========================================= */
+
+/* --- TABLETS & MOBILES (Under 1024px) --- */
+@media screen and (max-width: 1024px) {
+    body {overflow: auto}
+    /* ADMIN: Stack Sidebar and Main Content */
+    #view-admin {
+        flex-direction: column;
+        overflow-y: auto; /* Enable body scroll */
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .admin-sidebar {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 2px solid var(--gold);
+        padding: 15px;
+    }
+
+    .monitor-frame-wrapper {
+        width: 60%; /* Smaller monitor on tablet header */
+        margin: 0 auto;
+    }
+
+.sidebar-header {
+        display: flex !important;
+        justify-content: space-between !important; /* Pushes items apart */
+        align-items: center !important;
+        width: 100%;
+        padding-right: 10px; /* Safety padding */
+    }
+
+    /* 2. STYLE THE BUTTON */
+    .mobile-power-btn {
+        background: transparent;
+        border: 1px solid #333;
+        color: #f55; /* Red Power Color */
+        width: 40px;
+        height: 40px;
+        border-radius: 5px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Hide the old sidebar footer since button is now up top */
+    .sidebar-footer { display: none !important; }
+
+    .admin-main {
+        overflow: visible;
+        padding: 20px;
+    }
+
+    .control-grid {
+        grid-template-columns: 1fr; /* Stack panels */
+        padding: 10px;
+    }
+}
+    @media screen and (min-width: 1025px) {
+    .mobile-power-btn { display: none; } /* Keeps desktop clean */
+}
+
+/* --- MOBILE PHONES (Under 768px) --- */
+@media screen and (max-width: 768px) {
+    .series-section {
+        display: block !important;
+        padding: 10px;
+        height: auto !important;
+        overflow: hidden; /* Contains the expansion */
+    }
+
+    /* Force the grid to be rigid */
+    .series-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+        /* Ensure the grid doesn't try to calculate height based on screen height */
+        height: auto !important; 
+        align-content: start;
+    }
+    
+    /* Fix header shift */
+    .series-header {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* 1. LANDING PAGE */
+    .landing-content {
+        padding: 2rem;
+        width: 90%;
+    }
+    .logo-icon { font-size: 2rem; }
+    .studio-title { font-size: 1.5rem; letter-spacing: 4px; }
+    
+    /* 2. CATALOG PANEL */
+    .catalog-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    
+    .search-wrapper {
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* 3. THE GRID (Optimized for Small Screens) */
+    .series-grid, 
+    .catalog-grid {
+        /* Fit 2 columns on iPhone SE (320px) if possible, otherwise 1 */
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important; 
+
+    }
+
+    .series-header {
+        padding: 10px;
+    }
+    
+    .series-title {
+        font-size: 0.9rem;
+        max-width: 65%;
+    }
+
+    /* 4. CINEMA MODE */
+    .screen-wrapper {
+        width: 100vw; /* Full width */
+        border-left: none;
+        border-right: none;
+    }
+    
+    .play-trick-btn {
+        padding: 15px 30px;
+        font-size: 1rem;
+        letter-spacing: 2px;
+        width: 80%;
+    }
+
+    .return-btn {
+        top: 10px;
+        left: 10px;
+        width: 40px;
+        height: 40px;
+        background: rgba(0,0,0,0.8);
+        color: var(--gold);
+        border: 1px solid var(--gold);
+    }
+
+    /* 5. ADMIN DASHBOARD MOBILE */
+    .monitor-frame-wrapper {
+        width: 100%; /* Full width monitor */
+    }
+    
+    .btn-row {
+        flex-direction: column; /* Stack buttons */
+    }
+    
+    .meta-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .time-display {
+        font-size: 1rem;
+    }
+    
+    /* 6. MODALS */
+    .modal-box {
+        width: 90%;
+        padding: 1.5rem;
+    }
+    
+    /* 7. TOAST */
+    .toast {
+        width: 90%;
+        text-align: center;
+        padding: 15px;
+    }
+    
+    /* 8. ANNOUNCEMENT BANNER */
+    .announcement-banner {
+        width: 90%;
+        padding: 10px;
+        font-size: 0.8rem;
+        text-align: center;
+    }
+    #catalog-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: none !important;
+
+    }
+
+    /* 2. Stop the "Stretching" Glitch */
+    /* Ensures a folder doesn't try to match the height of an open one */
+    .series-section {
+        width: 100% !important;
+        height: auto !important; 
+        display: block !important;
+    }
+    .series-section {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* 2. Style the Header to look like a separate button */
+    .series-header {
+        background: #111 !important;
+        border: 1px solid #333 !important;
+        border-radius: 0 !important; /* Rounded corners */
+        margin-bottom: 0 !important; /* Space between header and cards */
+    }
+
+    /* 3. Remove extra padding around the grid so cards align with edge */
+    
+    /* Optional: Remove the border line inside the header when open *
+.series-section:not(.collapsed) {
+        margin-bottom: 20px !important; 
+    }
+
+    /* 4. Add breathing room between the Header and the Cards (When open) */
+    .series-section:not(.collapsed) .series-grid {
+        padding-top: 15px !important;
+    }
+}
+/* --- IPHONE SE SPECIFIC (Under 375px) --- */
+@media screen and (max-width: 375px) {
+    /* Make grid single column if screen is super tight, 
+       OR shrink minmax to squeeze 2 cols */
+    .series-grid, 
+    .catalog-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+        gap: 0 !important;
+    }
+
+
+    
+    .landing-content {
+        padding: 1.5rem 1rem;
+    }
+    
+    .enter-btn {
+        padding: 12px 30px;
+        font-size: 0.9rem;
+    }
+}
+div#catalog-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important; /* Kill the grid columns here */
+
+    width: 100% !important;
+    height: auto !important;
+    overflow-y: visible !important;
+}
+
+/* 3. FIX THE INNER GRIDS (The actual posters) */
+/* This targets both the Series Grids AND the Solo Grid */
+.series-grid, 
+div#catalog-grid > .catalog-grid {
+    display: grid !important;
+    /* Fit as many cards as possible, minimum 160px wide */
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* 4. FIX THE SERIES HEADER (The bar you click) */
+.series-section {
+    width: 100% !important;
+    display: block !important;
+    /* Reset any inherited grid behaviors */
+    grid-column: 1 / -1 !important; 
+}
+
+/* 5. ANIMATION LOGIC (Ensure hidden actually hides) */
+.series-section.collapsed .series-grid {
+    display: none !important;
+}
+.series-section:not(.collapsed) .series-grid {
+    display: grid !important;
+}
+.series-section {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;/* Spacing between shelves */
+}
+
+/* 2. Make the Clickable Header Bar Transparent */
+.series-header {
+    background: transparent !important;
+    border: none !important;
+    padding: 10px 20px !important; /* Align with the scrollable cards */
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+/* 3. Style the Title (Big, Clean, White) */
+.series-title {
+    font-size: 1.5rem !important; /* Larger text */
+    color: #fff !important;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 5px rgba(0,0,0,1); /* Shadow for readability */
+}
+
+/* 4. Style the Count/Arrow (Subtle Grey) */
+.series-count {
+    font-size: 0.9rem !important;
+    color: #555 !important;
+    background: transparent !important;
+}
+
+/* 5. HOVER EFFECT: Glow Gold instead of changing background */
+.series-header:hover .series-title {
+    color: var(--gold) !important;
+    text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+}
+.series-header:hover .series-count {
+    color: var(--gold) !important;
+}
+
+/* 6. Active State (When you click down) */
+.series-header:active {
+    transform: scale(0.99); /* Tiny click feedback */
+}
+
+/* 7. Ensure arrow rotates when closed */
+.series-section.collapsed .series-header .fa-chevron-down {
+    transform: rotate(-90deg); /* Point sideways when closed */
+}
+/* ================================================= */
+/* === UPGRADE: HORIZONTAL SCROLL FOR SERIES === */
+/* ================================================= */
+
+/* 1. Switch Series from Grid to Flex Row */
+.series-section:not(.collapsed) .series-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important; /* Forces them into one line */
+    overflow-x: auto !important;  /* Enables horizontal scrolling */
+    justify-content: flex-start !important;
+    gap: 15px !important;   /* Top/Bottom padding only */
+    
+    /* Make scroll smooth */
+    scroll-behavior: smooth;
+    
+    /* Add a little side padding so first/last cards aren't glued to edge */
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+}
+
+/* 2. Fix the Cards inside the Series to keep their shape */
+.series-grid .movie-card {
+    flex: 0 0 auto !important; /* Don't shrink, don't grow */
+    width: 160px !important;   /* Fixed width for uniformity */
+    height: auto !important;   /* Let aspect ratio handle height */
+    aspect-ratio: 2/3 !important;
+}
+
+/* 3. Custom Scrollbar for the Series (Gold Theme) */
+.series-grid::-webkit-scrollbar {
+    height: 8px; /* Horizontal bar height */
+}
+.series-grid::-webkit-scrollbar-track {
+    background: #050505;
+    border-radius: 4px;
+}
+.series-grid::-webkit-scrollbar-thumb {
+    background: #333; 
+    border-radius: 4px;
+    border: 1px solid #000;
+}
+.series-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--gold); /* Gold when you grab it */
+}
+/* === CUSTOM ADMIN DIALOG === */
+.dialog-box {
+    border: 2px solid var(--red); /* Red border for alerts */
+    background: #050000;
+    max-width: 350px !important;
+    text-align: left;
+    box-shadow: 0 0 50px rgba(255, 50, 50, 0.2);
+}
+
+.dialog-box h3 {
+    color: var(--red);
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.dialog-box h3::before {
+    content: '\f071'; /* Warning Icon */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+
+.dialog-box p {
+    color: #ccc;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+.dialog-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.dialog-actions button {
+    padding: 10px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+/* ========================================= */
+/* === ADMIN DASHBOARD 2.0 (VISUAL GRID) === */
+/* ========================================= */
+
+/* 1. SIDEBAR CONTROLS */
+.sidebar-controls {
+    background: #0f0f0f;
+    border: 1px solid #222;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+/* Make inputs smaller to fit sidebar */
+.sidebar-controls .tech-input {
+    padding: 8px;
+    font-size: 0.85rem;
+    background: #000;
+}
+.sidebar-controls .btn {
+    padding: 10px;
+    font-size: 0.8rem;
+}
+
+/* 2. ADMIN MAIN AREA (Scrollable) */
+.admin-main {
+    padding: 30px;
+    overflow-y: auto;
+}
+
+/* 3. ADMIN CATALOG HEADERS */
+.admin-section-title {
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+/* 4. ADMIN GRID (Posters) */
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+}
+
+/* 5. ADMIN CARDS */
+.admin-card {
+    position: relative;
+    aspect-ratio: 2/3;
+    border: 1px solid #333;
+    background: #000;
+    cursor: pointer;
+    overflow: hidden;
+}
+.admin-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6;
+    transition: 0.3s;
+}
+.admin-card:hover img {
+    opacity: 0.3; /* Dim image on hover to show buttons */
+}
+
+/* 6. DELETE OVERLAY (Appears on Hover) */
+.admin-card-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: 0.2s;
+}
+.admin-card:hover .admin-card-overlay {
+    opacity: 1;
+}
+
+.btn-admin-del {
+    background: rgba(255, 0, 0, 0.2);
+    border: 1px solid var(--red);
+    color: var(--red);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: 0.2s;
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.9rem !important; /* Smaller icon */
+    border-width: 1px !important;
+}
+.btn-admin-del:hover {
+    background: var(--red);
+    color: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px var(--red);
+}
+
+.admin-card-title {
+    font-size: 0.55rem !important; /* Tiny, precise text */
+    padding: 2px 4px !important;
+    background: rgba(0,0,0,0.9) !important;
+    white-space: nowrap;      /* Force one line */
+    overflow: hidden;
+    text-overflow: ellipsis;  /* Add "..." if too long */
+}
+/* ========================================= */
+/* === ADMIN ACCORDION (COLLAPSIBLE) === */
+/* ========================================= */
+
+/* 1. The Wrapper (The Folder) */
+.admin-group-section {
+    margin-bottom: 20px;
+    border: 1px solid #333;
+    background: #0a0a0a;
+}
+
+/* 2. The Header (Clickable Bar) */
+.admin-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #151515;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+    transition: background 0.2s;
+    user-select: none;
+    padding: 10px 15px !important;
+    font-size: 0.9rem !important; /* Slightly smaller header text */
+}
+.admin-group-header:hover {
+    background: #222;
+    color: var(--gold);
+}
+
+/* 3. Header Text Styles */
+.admin-group-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.admin-group-count {
+    font-size: 0.8rem;
+    color: #666;
+    font-family: 'Share Tech Mono', monospace;
+}
+
+/* 4. The Grid Container (Inside the folder) */
+.admin-group-section .admin-grid {
+    /* Shrink columns from 140px to 100px */
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+    gap: 8px !important;      /* Smaller gaps between cards */
+    padding: 10px !important; /* Less padding inside the folder */
+}
+
+/* 5. COLLAPSED STATE LOGIC */
+.admin-group-section.collapsed .admin-grid {
+    display: none !important; /* Hide posters */
+}
+.admin-group-section.collapsed .admin-group-header {
+    border-bottom: none; /* Remove separator line */
+}
+.admin-group-section.collapsed .fa-chevron-down {
+    transform: rotate(-90deg); /* Rotate arrow */
+}
+.fa-chevron-down {
+    transition: transform 0.3s ease;
+}
+/* ================================================= */
+/* === VIEWER MAKEOVER: COMPACT SHEET LAYOUT === */
+/* ================================================= */
+
+/* 1. RESET: Kill the Horizontal Scroll logic */
+.series-section:not(.collapsed) .series-grid,
+div#catalog-grid > .catalog-grid {
+    display: grid !important;
+    /* The Magic Number: 110px cards (Compact but touch-friendly) */
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+    gap: 10px !important;       /* Tight spacing */  /* Minimal padding */
+    overflow-x: visible !important;
+    justify-content: start !important;
+}
+
+/* 2. RESET: Ensure cards fill the grid cells */
+.series-grid .movie-card,
+.catalog-grid .movie-card {
+    width: 100% !important;
+    flex: none !important;
+    aspect-ratio: 2/3 !important;
+    border: 1px solid #222; /* Subtle border */
+}
+
+
+/* 4. HOVER: Glow Gold */
+.movie-card:hover {
+    border-color: var(--gold) !important;
+    transform: scale(1.05); /* Slight pop out */
+    z-index: 5;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+}
+
+
+/* 5. ADJUST: Make the Series Headers fit the compact vibe */
+.series-header {
+    padding: 10px 15px !important; /* Tighter header */
+}
+.series-title {
+    font-size: 1.1rem !important; /* Slightly smaller header text */
+}
+.movie-overlay {
+    display: none !important;
+}
+
+/* 2. Style the Title to Float in Center */
+.movie-title-tag {
+    /* Positioning: Dead Center */
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(0.8) !important; /* Start slightly zoomed out */
+    width: 90% !important; /* Keep it away from very edges */
+    
+    /* Aesthetics: No Box, Just Text */
+    background: transparent !important; 
+    color: #fff !important; /* White text looks best on posters */
+    text-shadow: 0 2px 10px #000, 0 0 20px rgba(0,0,0,0.8) !important; /* Heavy shadow to read over image */
+    
+    /* Typography */
+    font-family: 'Cinzel', serif !important;
+    font-size: .8rem !important; /* Larger than before */
+    font-weight: bold !important;
+    text-align: center !important;
+    
+    /* Text Wrapping: Allow long titles to wrap nicely in the center */
+    white-space: normal !important; 
+    line-height: 1.4 !important;
+    
+    /* Hidden State */
+    opacity: 0 !important;
+    transition: all 0.3s ease-out !important;
+    z-index: 20 !important;
+    pointer-events: none !important; /* Let clicks pass through to the card */
+}
+
+/* 3. The Reveal Interaction */
+.movie-card:hover .movie-title-tag {
+    opacity: 1 !important;
+    transform: translate(-50%, -50%) scale(1) !important; /* Zoom to normal */
+    color: var(--gold) !important; /* Turn Gold on hover */
+}
+
+/* 4. Background Interaction */
+/* When hovering, darken and blur the poster so text pops */
+.movie-card:hover img {
+    filter: brightness(0.3) blur(2px) !important; 
+    transform: scale(1.1) !important;
+}
+/* ========================================= */
+/* === CINEMATIC ENTRANCE ANIMATION === */
+/* ========================================= */
+
+/* 1. Define the Slide-Up Motion */
+@keyframes cardEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95); /* Start lower and slightly smaller */
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1); /* End in place */
+    }
+}
+/* ========================================= */
+/* === LANDING PAGE V3.0 (TERMINAL LOOK) === */
+/* ========================================= */
+
+/* 1. The Glass Box Container */
+.landing-content {
+    background: rgba(10, 10, 10, 0.85) !important; /* Semi-transparent */
+    backdrop-filter: blur(10px); /* Blurs the background behind it */
+    border: 1px solid rgba(212, 175, 55, 0.3) !important;
+    box-shadow: 0 0 80px rgba(0,0,0,0.8), inset 0 0 20px rgba(212, 175, 55, 0.05);
+    padding: 3rem 4rem !important;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 2. Optional: Add a subtle "Scan Line" moving down */
+.landing-content::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 5px;
+    background: rgba(212, 175, 55, 0.2);
+    box-shadow: 0 0 10px var(--gold);
+    animation: scanline 4s linear infinite;
+    opacity: 0.5;
+}
+@keyframes scanline {
+    0% { top: -10%; }
+    100% { top: 110%; }
+}
+
+/* 3. The Logo & Title */
+.logo-icon {
+    font-size: 4rem !important;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+    margin-bottom: 20px !important;
+}
+.studio-title {
+    font-family: 'Share Tech Mono', monospace !important; /* Tech font */
+    letter-spacing: 5px !important;
+    font-size: 2rem !important;
+}
+
+.system-status:hover {
+    color: var(--gold);
+    text-shadow: 0 0 15px var(--gold);
+}
+.system-status:hover .status-dot {
+    background: var(--gold);
+    box-shadow: 0 0 15px var(--gold);
+}
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--green);
+    animation: blink 2s infinite;
+}
+@keyframes blink { 50% { opacity: 0.3; } }
+
+/* 5. The Enter Button (Pulsing) */
+.enter-btn {
+    background: transparent !important;
+    border: 1px solid var(--gold) !important;
+    color: var(--gold) !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    letter-spacing: 3px;
+    font-size: 1.2rem !important;
+    padding: 15px 40px !important;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+    animation: btnPulse 3s infinite;
+}
+
+.enter-btn:hover {
+    background: var(--gold) !important;
+    color: #000 !important;
+    box-shadow: 0 0 30px var(--gold);
+    cursor: pointer;
+}
+
+@keyframes btnPulse {
+    0% { box-shadow: 0 0 0 rgba(212,175,55,0); }
+    50% { box-shadow: 0 0 15px rgba(212,175,55,0.3); }
+    100% { box-shadow: 0 0 0 rgba(212,175,55,0); }
+}
+
+/* 6. Tagline */
+.tagline {
+    color: #666 !important;
+    font-size: 0.7rem !important;
+    margin-bottom: 30px !important;
+}
+
+/* 2. Apply to Movie Cards AND Admin Cards */
+.movie-card, .admin-card {
+    /* "both" ensures it stays hidden until the animation starts */
+    animation: cardEntrance 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* 3. THE WATERFALL EFFECT (Staggering) */
+/* This automatically delays each card based on its position in the grid.
+   We do up to 15 because that usually covers the screen. 
+   Cards 16+ will appear together, which is fine for performance. */
+
+.movie-card:nth-child(1), .admin-card:nth-child(1) { animation-delay: 50ms; }
+.movie-card:nth-child(2), .admin-card:nth-child(2) { animation-delay: 100ms; }
+.movie-card:nth-child(3), .admin-card:nth-child(3) { animation-delay: 150ms; }
+.movie-card:nth-child(4), .admin-card:nth-child(4) { animation-delay: 200ms; }
+.movie-card:nth-child(5), .admin-card:nth-child(5) { animation-delay: 250ms; }
+.movie-card:nth-child(6), .admin-card:nth-child(6) { animation-delay: 300ms; }
+.movie-card:nth-child(7), .admin-card:nth-child(7) { animation-delay: 350ms; }
+.movie-card:nth-child(8), .admin-card:nth-child(8) { animation-delay: 400ms; }
+.movie-card:nth-child(9), .admin-card:nth-child(9) { animation-delay: 450ms; }
+.movie-card:nth-child(10), .admin-card:nth-child(10) { animation-delay: 500ms; }
+.movie-card:nth-child(11), .admin-card:nth-child(11) { animation-delay: 550ms; }
+.movie-card:nth-child(12), .admin-card:nth-child(12) { animation-delay: 600ms; }
+.movie-card:nth-child(13), .admin-card:nth-child(13) { animation-delay: 650ms; }
+.movie-card:nth-child(14), .admin-card:nth-child(14) { animation-delay: 700ms; }
+.movie-card:nth-child(15), .admin-card:nth-child(15) { animation-delay: 750ms; }
+
+/* ========================================= */
+/* === LOGIN MODAL: SECURITY TERMINAL UI === */
+/* ========================================= */
+
+/* 1. The Glass Container */
+.login-terminal {
+    background: rgba(5, 5, 5, 0.9) !important;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(212, 175, 55, 0.3) !important;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(212, 175, 55, 0.05);
+    padding: 25px 30px !important; /* Reduced from 40px */
+    max-width: 340px !important;   /* Slightly narrower */
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+    
+    /* Ensure sizing is strictly enforced */
+    width: 90% !important;
+    max-width: 380px !important;
+    border-radius: 2px;
+}
+
+/* 2. Biometric Scanner Animation */
+.biometric-icon {
+    position: relative;
+    font-size: 2.2rem;
+    color: #333;
+    margin: 0 auto 20px auto;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 16px !important; /* Pull header up */
+}
+.biometric-icon i {
+    z-index: 1;
+    color: rgba(212,175,55, 0.2); /* Dim Gold */
+}
+
+/* The moving laser line */
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--gold);
+    box-shadow: 0 0 10px var(--gold);
+    animation: bioScan 2s linear infinite;
+    z-index: 2;
+}
+@keyframes bioScan {
+    0% { top: 0%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+/* 3. Typography */
+.login-terminal h3 {
+    font-family: 'Share Tech Mono', monospace !important;
+    color: var(--gold) !important;
+    letter-spacing: 2px;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px rgba(212,175,55,0.3);
+}
+
+/* 4. Input Fields (Futuristic Lines) */
+.input-line {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    margin-bottom: 8px;
+    padding: 2px;
+    transition: 0.3s;
+}
+.input-line:focus-within {
+    border-bottom-color: var(--gold);
+}
+.input-line i {
+    color: #555;
+    margin-right: 15px;
+    font-size: 0.9rem;
+}
+.login-terminal input {
+    background: transparent !important;
+    border: none !important;
+    color: #fff !important;
+    width: 100%;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .8rem;
+    letter-spacing: 1px;
+}
+.login-terminal input::placeholder {
+    color: #444;
+}
+
+/* 5. The "Access" Button */
+.access-btn {
+    width: 100%;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 15px;
+    font-family: 'Share Tech Mono', monospace;
+    font-weight: bold;
+    letter-spacing: 2px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: 0.3s;
+}
+.access-btn:hover {
+    background: var(--gold);
+    color: #000;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+}
+
+/* 6. The "Abort" Button */
+.abort-btn {
+    font-size: 0.75rem !important;
+    color: #555 !important;
+    margin-top: 20px !important;
+    text-decoration: none !important;
+    letter-spacing: 1px;
+}
+.abort-btn:hover {
+    color: var(--red) !important;
+}
+/* ========================================= */
+/* === UPGRADE: TACTICAL LOGIN BUTTONS === */
+/* ========================================= */
+
+/* 1. THE MAIN "AUTHENTICATE" BUTTON */
+.access-btn {
+    /* Shape & Size */
+    width: 100% !important;
+    padding: 15px !important;
+    margin-top: 15px !important;
+    
+    /* The Cyberpunk Cut Corners */
+    clip-path: polygon(
+        10px 0, 100% 0, 
+        100% calc(100% - 10px), calc(100% - 10px) 100%, 
+        0 100%, 0 10px
+    ) !important;
+    
+    /* Visual Style: Solid Gold with subtle texture */
+    background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%) !important;
+    color: #000 !important;
+    border: none !important;
+    
+    /* Typography */
+    font-family: 'Share Tech Mono', monospace !important;
+    font-weight: bold !important;
+    font-size: 1.1rem !important;
+    letter-spacing: 2px !important;
+    
+    /* Interaction */
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.2) !important;
+}
+
+/* Hover Effect: Brighten and Glow */
+.access-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 30px rgba(212, 175, 55, 0.6) !important;
+    background: #ffd700 !important; /* Brighter gold */
+}
+/* Click Effect */
+.access-btn:active {
+    transform: scale(0.98) !important;
+}
+
+/* 2. THE "ABORT" BUTTON (Fixed Visibility) */
+.abort-btn {
+    /* Make it a real button, not just text */
+    display: block !important;
+    width: 100% !important;
+    padding: 12px !important;
+    margin-top: 15px !important;
+    
+    /* Style: Dark Red Wireframe */
+    background: transparent !important;
+    border: 1px solid #552222 !important;
+    color: #884444 !important; /* Visible Dark Red (Always visible) */
+    
+    /* Cut Corners (Opposite angle) */
+    clip-path: polygon(
+        0 0, calc(100% - 10px) 0, 
+        100% 10px, 100% 100%, 
+        10px 100%, 0 calc(100% - 10px)
+    ) !important;
+    
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.8rem !important;
+    letter-spacing: 2px !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: all 0.3s !important;
+}
+
+/* Hover Effect: Danger Red */
+.abort-btn:hover {
+    border-color: #ff3333 !important;
+    color: #ff3333 !important;
+    background: rgba(255, 51, 51, 0.1) !important;
+    box-shadow: 0 0 15px rgba(255, 51, 51, 0.3) !important;
+}
+/* ========================================= */
+/* === MAKEOVER: RETURN TO LOBBY BUTTON === */
+/* ========================================= */
+
+
+/* MOBILE ADJUSTMENT: Make it full width on phones */
+@media screen and (max-width: 768px) {
+    #close-catalog {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-top: 10px !important;
+        text-align: center !important;
+    }
+}
+/* ========================================= */
+/* === FEATURE: REQUEST SLIDE PANEL === */
+/* ========================================= */
+
+/* 1. The Trigger Button (Secondary) */
+.request-link-btn {
+    display: block;
+    margin: 20px auto 0 auto;
+    background: transparent;
+    border: none;
+    color: #666;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.request-link-btn:hover {
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(212,175,55,0.5);
+}
+
+/* 2. The Panel Container (Hidden Off-Screen) */
+.slide-panel {
+    position: fixed;
+    top: 0;
+    right: -100%; /* Start hidden to the right */
+    width: 100%;
+    max-width: 350px; /* Nice width on desktop */
+    height: 100vh;
+    background: rgba(5, 5, 5, 0.95);
+    backdrop-filter: blur(15px);
+    border-left: 1px solid var(--gold);
+    z-index: 50001 !important;
+    box-shadow: -10px 0 50px rgba(0,0,0,0.8);
+    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth slide */
+}
+
+/* Active State (Triggered by JS) */
+.slide-panel.active {
+    right: 0;
+}
+
+/* 3. Panel Content */
+.panel-inner {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+.panel-header h3 {
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    letter-spacing: 2px;
+}
+
+.close-x {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-right: 50px;
+}
+.close-x:hover { color: var(--red); transform: scale(1.1); }
+
+/* 4. The Form */
+.panel-desc {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+.req-form input {
+    width: 100%;
+    background: #000;
+    border: 1px solid #333;
+    color: var(--gold);
+    padding: 15px;
+    font-family: 'Share Tech Mono', monospace;
+    margin-bottom: 15px;
+}
+.req-form input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 15px rgba(212,175,55,0.2);
+}
+
+/* 5. Footer Decoration */
+.panel-footer {
+    margin-top: auto;
+    border-top: 1px solid #222;
+    padding-top: 20px;
+    color: #444;
+    font-size: 0.7rem;
+    text-align: center;
+}
+.req-item {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 15px !important; /* Force space between text and button */
+    padding: 15px !important;
+    border-bottom: 1px dashed #333 !important;
+    background: #050505;
+}
+
+/* 2. The Text Area (Takes up all available space) */
+.req-info {
+    flex: 1 !important; /* Grow to fill space */
+    min-width: 0 !important; /* Allow text truncate */
+    display: flex;
+    flex-direction: column;
+}
+
+.req-title {
+    color: var(--green);
+    font-weight: bold;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add ... if title is huge */
+}
+
+.req-date {
+    font-size: 0.7rem;
+    color: #555;
+    margin-top: 4px;
+}
+
+/* 3. The "DONE" Button (Fixed size, won't shrink) */
+.btn-fulfill {
+    flex-shrink: 0 !important; /* Never get squashed */
+    background: transparent !important;
+    border: 1px solid #333 !important;
+    color: #666 !important;
+    cursor: pointer !important;
+    padding: 8px 15px !important;
+    font-family: 'Share Tech Mono', monospace !important;
+    font-size: 0.75rem !important;
+    font-weight: bold !important;
+    transition: all 0.2s !important;
+    
+    /* Tactical Look */
+    clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+}
+
+/* Button Hover State */
+.btn-fulfill:hover {
+    border-color: var(--green) !important;
+    background: rgba(0, 255, 65, 0.1) !important;
+    color: var(--green) !important;
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.2) !important;
+}
+
+/* Button Icon */
+.btn-fulfill i {
+    margin-right: 5px;
+}
+/* ========================================= */
+/* === UX RESTORATION: NETFLIX MOBILE STYLE === */
+/* ========================================= */
+
+/* 1. FORCE HORIZONTAL SCROLL FOR SERIES (The Swipe) */
+.series-section:not(.collapsed) .series-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    
+    /* THE NETFLIX SPACING */
+    gap: 8px !important;            /* Tight gap between posters */ /* Start scroll 15px from screen edge */
+    margin: 0 !important;
+    
+    /* Smooth Scroll Snap */
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; /* Momentum scroll on iOS */
+    
+    /* Hide Scrollbar (Cleaner) */
+    scrollbar-width: none; /* Firefox */
+}
+.series-section:not(.collapsed) .series-grid::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+/* 2. CARD SIZING (Compact but Clear) */
+/* This fits 3.5 cards on an iPhone Pro, or 2.5 on an iPhone SE */
+.series-grid .movie-card {
+    flex: 0 0 auto !important;
+    width: 115px !important; /* The sweet spot size */
+    height: auto !important;
+    aspect-ratio: 2/3 !important;
+    scroll-snap-align: start;
+    border: none !important; /* Netflix doesn't use borders */
+}
+
+/* 3. SOLO FEATURES: KEEP AS GRID (But Match Size) */
+/* "Solo" is like the 'Search Results' view - better as a grid */
+div#catalog-grid > .solo-grid-fix {
+    display: grid !important;
+    /* Fill width with 115px cards */
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+    gap: 8px !important;
+/* Align with the horizontal rows */
+}
+
+/* 4. TRIM HEADER PADDING (Less Air) */
+.series-header {
+    padding: 5px 15px !important; /* Closer to the posters */
+}
+.series-title {
+    font-size: 1rem !important; /* Not too huge */
+}
+
+
+/* 5. LANDING PAGE OVERLAP FIX */
+/* Remove the "Container Padding" that pushes content in too much */
+.catalog-overlay {
+    padding: 20px 0 0 0 !important; /* Keep top padding for header, kill sides */
+}
+.catalog-container {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+/* ========================================= */
+/* === UX RESTORATION: NETFLIX HYBRID === */
+/* ========================================= */
+
+/* 1. FORCE HORIZONTAL SCROLL (Base for Everyone) */
+.series-section:not(.collapsed) .series-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 8px !important;
+    padding: 10px 15px !important; /* Left/Right padding for "Bleed" effect */
+    margin: 0 !important;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 2. CARD SIZING (Responsive) */
+.series-grid .movie-card {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    aspect-ratio: 2/3 !important;
+    scroll-snap-align: start;
+    border: none !important;
+    
+    /* Mobile Size (iPhone SE friendly) */
+    width: 115px !important; 
+}
+
+/* 3. DESKTOP TWEAKS (Larger Screens) */
+@media screen and (min-width: 768px) {
+    .series-grid .movie-card {
+        width: 150px !important; /* Slightly bigger on PC */
+        gap: 15px !important; /* More breathing room */
+    }
+    
+    /* SHOW THIN GOLD SCROLLBAR ON DESKTOP */
+    .series-section:not(.collapsed) .series-grid::-webkit-scrollbar {
+        height: 6px !important; /* Visible track */
+        display: block !important;
+    }
+    .series-section:not(.collapsed) .series-grid::-webkit-scrollbar-track {
+        background: #050505 !important;
+    }
+    .series-section:not(.collapsed) .series-grid::-webkit-scrollbar-thumb {
+        background: #333 !important;
+        border-radius: 10px !important;
+    }
+    .series-section:not(.collapsed) .series-grid::-webkit-scrollbar-thumb:hover {
+        background: var(--gold) !important; /* Lights up when grabbed */
+    }
+}
+
+/* 4. MOBILE TWEAKS (Phones) */
+@media screen and (max-width: 767px) {
+    /* HIDE SCROLLBAR ON MOBILE (Pure Swipe) */
+    .series-section:not(.collapsed) .series-grid {
+        scrollbar-width: none !important; /* Firefox */
+    }
+    .series-section:not(.collapsed) .series-grid::-webkit-scrollbar {
+        display: none !important; /* Chrome/Safari */
+    }
+}
+
+/* 5. SOLO FEATURES: KEEP AS GRID (Search Result Style) */
+div#catalog-grid > .solo-grid-fix {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+    padding: 0 15px !important;
+    margin-top: -10px !important;
+}
+
+/* 6. GENERAL CLEANUP */
+.series-header {
+    padding: 5px 15px !important;
+    margin-bottom: 0 !important;
+}
+.catalog-overlay {
+    padding: 60px 0 0 0 !important; /* Full width container */
+}
+.catalog-container {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* ========================================= */
+/* === MINIMALIST HEADERS (STATIC TEXT) === */
+/* ========================================= */
+
+.series-header {
+    /* Stop it from looking clickable */
+    cursor: default !important;
+    pointer-events: none !important; /* Ignore clicks completely */
+    
+    /* Remove the hover background change */
+    background: transparent !important;
+    border: none !important;
+}
+
+.series-title {
+    /* Make the font look like a Label, not a Button */
+    color: #fff !important; /* Keep white (or Gold if you prefer) */
+    font-size: 1.1rem !important;
+    font-weight: bold !important;
+    text-shadow: 0 2px 10px #000;
+}
+
+/* Remove hover glow effects since you can't click it */
+.series-header:hover .series-title {
+    color: #fff !important; 
+    text-shadow: 0 2px 10px #000 !important;
+}
+
+/* Ensure Grids are ALWAYS visible (Override any old collapse logic) */
+.series-grid {
+    display: flex !important; /* Horizontal Row */
+}
+.series-grid.solo-mode {
+    display: grid !important; /* Vertical Grid for solos */
+}
+/* ========================================= */
+/* === CINEMA 2.0: SPLIT SCREEN LAYOUT === */
+/* ========================================= */
+
+/* 1. The Flex Container */
+.cinema-split-layout {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* Prevent body scroll */
+    position: relative;
+    z-index: 20; /* Above background effects */
+}
+
+/* 2. LEFT PANEL (The Screen) */
+.cinema-left {
+    flex: 3; /* Takes 75% width */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    position: relative;
+}
+
+/* Resize the Huge Screen to fit the panel */
+.cinema-left .screen-wrapper {
+    width: 100% !important;
+    max-width: 1200px !important; /* Cap the width */
+    aspect-ratio: 16/9 !important;
+    border: 5px solid #111 !important; /* Thinner border */
+    box-shadow: 0 0 50px rgba(0,0,0,0.8) !important;
+}
+
+/* Info Text Under Screen */
+.now-playing-info {
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 20px;
+    text-align: left;
+}
+#np-title { font-family: 'Cinzel', serif; color: #fff; font-size: 1.5rem; letter-spacing: 2px; }
+#np-meta { color: var(--gold); font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; }
+
+/* 3. RIGHT PANEL (The Sidebar) */
+.cinema-right {
+    flex: 1; /* Takes 25% width */
+    background: rgba(10, 10, 10, 0.9);
+    border-left: 1px solid #222;
+    display: flex;
+    flex-direction: column;
+    min-width: 300px; /* Never get too small */
+}
+
+.sidebar-header-cinema {
+    padding: 20px;
+    font-family: 'Share Tech Mono', monospace;
+    color: #666;
+    border-bottom: 1px solid #222;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+}
+
+/* 4. The Related List (Vertical Scroll) */
+.related-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column; /* Stack vertically */
+    gap: 15px;
+}
+
+/* 5. Related Movie Card (Horizontal Layout) */
+.related-card {
+    display: flex;
+    gap: 10px;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 4px;
+    transition: 0.2s;
+    background: #050505;
+    border: 1px solid #222;
+}
+.related-card:hover {
+    background: #151515;
+    border-color: var(--gold);
+}
+.related-card img {
+    width: 60px;
+    height: 90px;
+    object-fit: cover;
+}
+.related-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.r-title { font-size: 0.9rem; color: #ddd; font-weight: bold; margin-bottom: 5px; }
+.r-year { font-size: 0.8rem; color: #666; }
+
+/* Active Playing Card */
+.related-card.active {
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, 0.1);
+}
+.related-card.active .r-title { color: var(--gold); }
+
+/* === MOBILE RESPONSIVENESS (Stack Them) === */
+@media screen and (max-width: 1024px) {
+    .cinema-split-layout {
+        flex-direction: column; /* Stack top to bottom */
+        overflow-y: auto; /* Enable page scroll */
+    }
+    .cinema-left {
+        flex: none; /* Auto height */
+        padding: 60px 20px 20px 20px; /* Top padding for Return button */
+        width: 100%;
+        background: #000;
+    }
+    .cinema-right {
+        display: block !important;      /* Block allows vertical stacking */
+        overflow-y: auto !important;    /* vertical scroll for the whole panel */
+        overflow-x: hidden !important;
+        padding-top: 10px !important;
+        padding-bottom: 50px !important; /* Space at bottom */
+        background: #0a0a0a;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* 2. HIDE THE OLD STATIC HEADER */
+    .sidebar-header-cinema {
+        display: none !important; 
+    }
+
+    /* 3. REUSE THE CATALOG HEADER STYLES INSIDE CINEMA */
+    .cinema-right .series-header {
+        background: transparent !important;
+        padding: 5px 15px !important;
+        margin-top: 10px !important;
+        border: none !important;
+        pointer-events: none !important; /* Text only, no click */
+    }
+    .cinema-right .series-title {
+        color: var(--gold) !important;
+        font-size: 0.9rem !important;
+        letter-spacing: 2px;
+        text-shadow: none !important;
+    }
+
+    /* 4. HORIZONTAL SCROLL STRIPS */
+    .cinema-right .series-grid {
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        gap: 10px !important;
+        padding: 10px 15px 20px 15px !important; /* Bottom padding for scrollbar/shadow */
+        scroll-snap-type: x mandatory;
+        
+        /* Remove default grid behaviors */
+        grid-template-columns: none !important;
+        width: 100% !important;
+    }
+
+    /* 5. MOVIE CARDS (Posters) */
+    .cinema-right .movie-card {
+        flex: 0 0 auto !important;
+        width: 110px !important;   /* Mobile Poster Size */
+        height: auto !important;
+        aspect-ratio: 2/3 !important;
+        scroll-snap-align: start;
+        border: 1px solid #333 !important;
+        background: #000;
+        position: relative;
+    }
+
+    .cinema-right .movie-card img {
+        opacity: 1 !important; /* Always visible */
+    }
+
+    /* Hide the Hover Titles on mobile sidebar to keep it clean */
+    .cinema-right .movie-title-tag {
+        display: none !important;
+    }
+}
+/* ========================================= */
+/* === GEN Z / MODERN HEADER MAKEOVER  === */
+/* ========================================= */
+
+/* 1. HIDE OLD STUFF (Just in case) */
+.catalog-header { display: none !important; }
+
+/* 2. THE NEW CONTAINER */
+.catalog-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* This ensures Left and Right sides are level */
+    padding: 20px 10px 30px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 10px;
+    height: 80px; /* Fixed height helps stability */
+}
+
+/* 3. LEFT SIDE: TYPOGRAPHY */
+.header-left {
+    cursor: pointer; /* Show hand cursor */
+    transition: 0.3s;
+    user-select: none;
+}
+
+.header-left:hover .header-title {
+    color: var(--red); /* Turn Red to indicate "Exit" */
+    text-shadow: 0 0 15px var(--red);
+}
+.header-left:hover .live-dot {
+    background: var(--red);
+    box-shadow: 0 0 15px var(--red);
+}
+
+/* Optional: Add a tooltip hint via CSS */
+.header-left:hover::after {
+    content: " [EXIT]";
+    color: var(--red);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    margin-left: 10px;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--green);
+    animation: pulseLive 2s infinite;
+}
+
+@keyframes pulseLive { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+.header-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.8rem;
+    color: #fff;
+    font-weight: 700;
+    margin: 0;         /* Critical: Remove default browser margins */
+    line-height: 1;    /* Critical: Stop text from taking extra vertical space */
+    position: relative;
+    top: -2px;    
+}
+
+.header-subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 4px;
+}
+
+/* 4. RIGHT SIDE: FUNCTIONALITY (Search + Exit) */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    height: 100%;
+}
+
+/* 5. THE SEARCH "PILL" */
+.search-pill {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 50px; /* Full rounded corners */
+    padding: 10px 20px;
+    display: flex;
+    height: 45px;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    width: 250px;
+}
+
+.search-pill:focus-within {
+    border-color: var(--gold);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+    transform: scale(1.02);
+    background: #000;
+}
+
+.search-pill i { color: #555; font-size: 0.9rem; }
+
+.search-pill input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    width: 100%;
+    outline: none;
+}
+.search-pill input::placeholder { color: #444; }
+
+
+
+/* --- MOBILE RESPONSIVENESS (Top Bar) --- */
+@media screen and (max-width: 768px) {
+    
+    .catalog-header-modern {
+        /* 1. Stack Layout */
+        display: flex !important;
+        flex-direction: column !important; /* Title Top, Search Bottom */
+        align-items: flex-start !important; /* Align to left */
+        justify-content: center !important;
+        
+        /* 2. Remove Fixed Height constraint */
+        height: auto !important;
+        min-height: 120px !important; /* Give it room */
+        
+        /* 3. Spacing */
+        gap: 15px !important;       /* Space between Title and Search */
+        padding: 30px 20px !important; /* Add padding around edges */
+        margin-bottom: 10px !important;
+    }
+
+    /* 4. Fix the Title Area */
+    .header-left {
+        width: 100% !important;
+        height: auto !important;
+        margin-bottom: 5px !important;
+    }
+
+    /* 5. Fix the Search Bar Area */
+    .header-right {
+        width: 100% !important;     /* Container fills width */
+        display: block !important;
+        height: auto !important;
+    }
+
+    .search-pill {
+        width: 100% !important;     /* Pill fills container */
+        margin: 0 !important;
+        height: 50px !important;    /* Taller touch target */
+    }
+}
+.top-controls {
+    position: absolute;
+    top: 25px;
+    right: 30px;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Space between icons */
+}
+
+/* SHARED ICON STYLE */
+.control-icon {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.3); /* Dim by default */
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* HOVER EFFECTS */
+
+/* Fingerprint glows Gold */
+#btn-login-trigger:hover {
+    color: var(--gold);
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.5));
+}
+#close-catalog {
+    margin: 12px;
+}
+/* Exit/Close glows Red */
+#close-catalog:hover {
+    color: var(--red);
+    transform: scale(1.1) rotate(90deg); /* Cool rotation effect */
+    filter: drop-shadow(0 0 8px rgba(255, 50, 50, 0.5));
+}
+
+/* UTILITY TO HIDE BUTTON */
+#close-catalog.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(20px); /* Slide out animation */
+}
+#dynamic-bg {
+    position: fixed;
+    inset: 0;
+    
+    /* Change from -1 to 0 or 1, just to be safe */
+    z-index: 0 !important; 
+    
+    background-color: #050505; 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(10px) brightness(0.6); /* Ensure brightness is low so text pops */
+    transform: scale(1.1);
+    transition: background-image 0.5s ease-in-out, opacity 0.5s ease;
+    opacity: 0;
+    pointer-events: none; /* Critical: Lets you click through it */
+}
+
+/* When active, show the image */
+#dynamic-bg.active {
+    opacity: 1;
+}
+
+
+/* ========================================= */
+/* === CINEMA SIDEBAR: HYBRID ENGINE     === */
+/* ========================================= */
+
+/* SHARED STYLES (Header Text) */
+.sidebar-header {
+    padding: 10px 15px;
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    background: transparent;
+    margin-top: 10px;
+}
+
+/* --- MOBILE (NETFLIX STYLE) --- */
+@media screen and (max-width: 1024px) {
+    
+    /* 1. CONTAINER: Vertical Scroll for the whole panel */
+    .cinema-right {
+        display: block !important;
+        overflow-y: auto !important; /* Allow stacking rows */
+        overflow-x: hidden !important;
+        padding-bottom: 50px !important; /* Space at bottom */
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* 2. THE GRID: Horizontal Scroll Strip */
+    .sidebar-grid {
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important; /* SIDEWAYS SCROLL */
+        gap: 10px !important;
+        padding: 5px 15px 20px 15px !important;
+        
+        /* Snap Logic */
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none; /* Hide scrollbar Firefox */
+    }
+    .sidebar-grid::-webkit-scrollbar { display: none; } /* Hide Chrome */
+
+    /* 3. THE CARD: Vertical Poster */
+    .sidebar-card {
+        flex: 0 0 auto !important;
+        width: 110px !important;
+        background: transparent;
+        scroll-snap-align: start;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar-card img {
+        width: 100%;
+        height: 165px;
+        object-fit: cover;
+        border: 1px solid #333;
+        margin-bottom: 5px;
+    }
+
+    /* Text Logic */
+    .s-title {
+        color: #ccc;
+        font-size: 0.8rem;
+        /* Simple truncation since line-clamp failed */
+        white-space: nowrap; 
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+    }
+    .s-year { display: none; } /* Hide year on mobile */
+}
+
+/* --- DESKTOP (TRADITIONAL LIST) --- */
+@media screen and (min-width: 1025px) {
+    
+    /* 1. CONTAINER: Locked */
+    .cinema-right {
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+    }
+
+    /* 2. WRAPPER FOR LISTS: Allow Vertical Scroll */
+    .related-grid {
+        display: block !important; /* Not flex */
+        overflow-y: auto !important;
+        height: 100% !important;
+        padding: 0 !important;
+    }
+
+    /* 3. GRID: Vertical Stack */
+    .sidebar-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 0 20px 20px 20px !important;
+        gap: 10px !important;
+    }
+
+    /* 4. CARD: Horizontal Layout (Image Left, Text Right) */
+    .sidebar-card {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center;
+        background: #111;
+        border: 1px solid #222;
+        padding: 10px;
+        width: 100%;
+        cursor: pointer;
+    }
+    .sidebar-card:hover {
+        border-color: var(--gold);
+        background: #1a1a1a;
+    }
+
+    .sidebar-card img {
+        width: 50px;
+        height: 75px;
+        object-fit: cover;
+        margin-right: 15px;
+    }
+
+    .sidebar-meta {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: left;
+    }
+
+    .s-title {
+        color: #ddd;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+    .s-year {
+        color: #666;
+        font-size: 0.8rem;
+    }
+}
+.cinema-controls-cluster {
+    position: absolute; top: 30px; left: 30px; z-index: 2000;
+    display: flex; gap: 15px; transition: opacity 0.5s;
+}
+
+.cinema-ctrl-btn {
+    background: transparent !important; /* No Circle Background */
+    border: none !important;            /* No Border */
+    backdrop-filter: none !important;   /* No Blur */
+    box-shadow: none !important;
+    
+    color: rgba(255,255,255,0.4);       /* Dim White */
+    font-size: 1.5rem;                  /* Larger Icon */
+    width: auto; 
+    height: auto; 
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.cinema-ctrl-btn:hover {
+    color: var(--gold) !important;
+    transform: scale(1.2); /* Grow slightly more */
+    background: transparent !important;
+    text-shadow: 0 0 15px var(--gold); /* Text Glow instead of Box Shadow */
+}
+
+/* Adjust the cluster position for mobile */
+@media screen and (max-width: 768px) {
+    .cinema-controls-cluster {
+        top: 15px;      /* Slightly higher */
+        left: 0 !important;        /* Start from very left edge */
+        width: 100%;    /* Fill screen width */
+        padding: 0 20px; /* Add safety margin on sides */
+        
+        /* THE MAGIC: Push buttons to opposite sides */
+        justify-content: space-between; 
+        gap: 0; 
+    }
+}
+/* 2. LIGHTS OUT LOGIC */
+/* We select everything we want to hide and fade it out */
+body.watch-mode .cinema-right,          /* Sidebar */
+body.watch-mode .now-playing-info,      /* Title/Text */
+body.watch-mode .cinema-controls-cluster, /* The Buttons themselves */
+body.watch-mode .top-controls,          /* Top Right Icons */
+body.watch-mode .film-grain,            /* Texture */
+body.watch-mode #dynamic-bg             /* Blurred Background */
+{
+    opacity: 0 !important;
+    pointer-events: none !important; /* Make unclickable */
+    transition: opacity 0.8s ease;   /* Slow, cinematic fade */
+}
+body.watch-mode .screen-wrapper {
+    position: fixed !important;   /* Detach from layout */
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important; /* Perfect Center */
+    
+    width: 100vw !important;      /* Full Width */
+    max-width: 100% !important;
+    aspect-ratio: 16/9 !important;
+    z-index: 9999 !important;     /* On top of everything */
+    
+    border: none !important;
+    box-shadow: 0 0 100px #000 !important; /* Deep shadow to blend edges */
+    background: #000;
+}
+.top-controls.hidden {
+    display: none !important;
+}
+/* Ensure background is pure black */
+body.watch-mode {
+    background: #000 !important;
+    overflow: hidden !important; /* Lock scrolling */
+}
+/* 3. MOBILE TWEAK */
+@media screen and (max-width: 768px) {
+    .cinema-controls-cluster { top: 15px; left: 15px; }
+    .catalog-header-modern {
+        padding-top: 0 !important; /* Make room for the icons at the top */
+    }
+    
+
+    
+    /* Ensure the search bar takes full width */
+    .header-right {
+        width: 100%;
+    }
+    
+    /* Ensure Top Controls stay on top */
+    .top-controls {
+        z-index: 9000 !important;
+    }
+}
+@media screen and (min-width: 1025px) {
+    
+    /* 1. Center the Container */
+    .short-collection .series-grid {
+        display: flex !important;
+        justify-content: center !important; /* The Magic: Center items */
+        gap: 20px !important; /* slightly more space for breathing room */
+        padding-bottom: 20px !important;
+    }
+
+    /* 2. Center the Header Title */
+    .short-collection .series-header {
+        justify-content: center !important; /* Center the flex header */
+        text-align: center !important;
+        margin-bottom: 10px !important;
+    }
+
+    .short-collection .series-title {
+        font-size: 1.2rem !important;
+        color: var(--gold) !important; /* Highlight short collections in gold */
+        letter-spacing: 4px !important;
+        opacity: 0.9;
+    }
+
+    /* 3. Optional: Add a subtle divider below them */
+    .short-collection {
+        margin-bottom: 40px !important;
+        position: relative;
+    }
+    
+    /* Decoration line underneath centered items */
+    .short-collection::after {
+        content: '';
+        display: block;
+        width: 200px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #333, transparent);
+        margin: 0 auto; /* Center the line */
+    }
+}
+.solo-grid-mode {
+    display: flex !important;
+    flex-wrap: wrap !important; /* THE KEY: Force multi-line */
+    justify-content: flex-start !important;
+    gap: 15px !important;
+    
+    /* Reset horizontal scroll logic if it was inherited */
+    overflow-x: hidden !important; 
+    padding-bottom: 40px !important;
+}
+
+/* 2. CARD SIZING IN SOLO GRID */
+.solo-grid-mode .movie-card {
+    /* 
+       On Desktop: flexible width to fit about 8-10 per row.
+       To fit exactly 20 per row (tiny), set width to 4.5%.
+       Let's stick to a readable size (~140px).
+    */
+    flex: 0 0 auto !important;
+    width: 140px !important; 
+    margin-bottom: 15px !important;
+}
+
+/* 3. SOLO HEADER DECORATION */
+.solo-wrapper .series-title {
+    color: var(--gold) !important;
+    font-size: 1.3rem !important;
+    border-bottom: 2px solid var(--gold);
+    display: inline-block;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+.merge-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #222;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.merge-item:hover {
+    background: #1a1a1a;
+}
+
+/* Custom Checkbox Appearance */
+.merge-item input[type="checkbox"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1px solid #555;
+    margin-right: 15px;
+    cursor: pointer;
+    position: relative;
+    background: #000;
+}
+
+.merge-item input[type="checkbox"]:checked {
+    background: var(--gold);
+    border-color: var(--gold);
+}
+
+.merge-item input[type="checkbox"]:checked::after {
+    content: '✔';
+    color: #000;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.merge-label {
+    flex: 1;
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+.merge-count {
+    font-size: 0.75rem;
+    color: #555;
+    background: #111;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.modal-box.dialog-box {z-index: 9999;}
+/* ========================================= */
+/* === CRITICAL FIXES (PASTE AT BOTTOM) === */
+/* ========================================= */
+
+/* 1. ADMIN SIDEBAR LAYOUT FIX (Stop Logout Cutoff) */
+.admin-sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100vh !important;
+    overflow: hidden !important; /* Stop the whole bar from scrolling */
+}
+
+.sidebar-header {
+    flex-shrink: 0 !important; /* Header stays fixed */
+}
+
+/* The new middle wrapper */
+.sidebar-scroll-area {
+    flex-grow: 1 !important;
+    overflow-y: auto !important; /* Only middle scrolls */
+    overflow-x: hidden !important;
+    padding-right: 5px; /* Room for scrollbar */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Ensure footer stays pinned at bottom */
+.sidebar-footer {
+    flex-shrink: 0 !important;
+    margin-top: 0 !important;
+    padding-top: 20px !important;
+    background: var(--sidebar-bg);
+    border-top: 1px solid #333;
+    z-index: 10;
+}
+
+/* 2. ADMIN CATALOG: 2-COLUMN GRID FIX */
+#admin-catalog-container {
+    display: grid !important;
+    /* This creates 2 columns */
+    grid-template-columns: 1fr 1fr !important; 
+    gap: 20px !important;
+    align-items: start !important; /* Prevents stretching */
+    width: 100% !important;
+    padding-bottom: 50px;
+}
+
+/* Ensure the folder itself behaves in the grid */
+.admin-group-section {
+    width: 100% !important;
+    margin-bottom: 0 !important;
+    display: block !important;
+    height: fit-content !important;
+}
+
+/* 3. FORCE "HIDDEN" TO ACTUALLY HIDE (Fixes System Online bug) */
+.hidden, .hidden-panel {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    z-index: -9999 !important;
+}
+
+/* 4. MOBILE RESPONSIVE TWEAKS FOR ADMIN */
+@media screen and (max-width: 1024px) {
+    /* Revert Admin to 1 column on tablets/phones */
+    #admin-catalog-container {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Allow sidebar to scroll normally on mobile */
+    .admin-sidebar {
+        height: auto !important;
+        overflow: visible !important;
+    }
+    
+    .sidebar-scroll-area {
+        overflow: visible !important;
+    }
+}
+/* ========================================= */
+/* === SLEEK ADMIN SCROLLBAR (CUSTOM) === */
+/* ========================================= */
+
+/* 1. The Scrollbar Container (Make it thin) */
+.admin-group-section .admin-grid::-webkit-scrollbar {
+    height: 6px !important; /* Very subtle height */
+}
+
+/* 2. The Track (Background) -> Invisible/Clean */
+.admin-group-section .admin-grid::-webkit-scrollbar-track {
+    background: transparent !important; /* No ugly grey box */
+    margin: 0 15px; /* Indent it slightly from edges */
+}
+
+/* 3. The Handle (Thumb) -> Dark Pill */
+.admin-group-section .admin-grid::-webkit-scrollbar-thumb {
+    background: #333 !important; /* Dark Grey by default */
+    border-radius: 10px !important; /* Rounded pill shape */
+    border: 1px solid #111 !important; /* Tiny border for depth */
+}
+
+/* 4. Hover Effect -> Glow Gold */
+.admin-group-section .admin-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--gold) !important; /* Lights up on interaction */
+    box-shadow: 0 0 5px rgba(212, 175, 55, 0.5); /* Subtle glow */
+    cursor: grab;
+}
+
+/* OPTIONAL: Firefox support (Thin line) */
+.admin-group-section .admin-grid {
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+}
+/* ======================================================= */
+/* === THE "2-GRID + HORIZONTAL SCROLL" ENGINE (FINAL) === */
+/* ======================================================= */
+
+/* 1. THE PARENT: 2 Fixed Columns for Folders */
+#admin-catalog-container {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important; /* STRICT 2 COLUMNS */
+    gap: 20px !important;
+    align-items: start !important; /* Prevent height stretching */
+    width: 100% !important;
+    padding-bottom: 50px;
+    box-sizing: border-box !important;
+}
+
+/* 2. THE FOLDER WRAPPER (Fixes Grid Overflow Bug) */
+.admin-group-section {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important; /* CRITICAL: Prevents grid blowout */
+    margin: 0 !important;
+    height: auto !important;
+    overflow: hidden !important; /* Contains the scrollbar inside */
+}
+
+/* 3. THE CONTENTS: Horizontal Scroll Strip */
+.admin-group-section .admin-grid {
+    display: flex !important;       /* Row Layout */
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;   /* NO WRAPPING TO NEW LINE */
+    
+    overflow-x: auto !important;    /* SCROLL SIDEWAYS */
+    overflow-y: hidden !important;
+    
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    padding: 15px !important;
+    width: 100% !important;
+    
+    /* Smooth Scroll */
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin; 
+}
+
+/* 4. THE POSTERS: Fixed Size & No Shrink */
+.admin-card {
+    flex: 0 0 auto !important;    /* Don't shrink, Don't grow */
+    width: 100px !important;      /* Fixed Poster Width */
+    height: auto !important;
+    aspect-ratio: 2/3 !important;
+    scroll-snap-align: start;
+    margin: 0 !important;
+}
+
+/* 5. VISIBLE SCROLLBAR (So you see it scrolls) */
+.admin-group-section .admin-grid::-webkit-scrollbar {
+    height: 8px !important;
+    display: block !important;
+}
+.admin-group-section .admin-grid::-webkit-scrollbar-track {
+    background: #0a0a0a !important;
+}
+.admin-group-section .admin-grid::-webkit-scrollbar-thumb {
+    background: #333 !important; 
+    border-radius: 4px !important;
+}
+.admin-group-section .admin-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--gold) !important;
+}
+
+/* 6. MOBILE FALLBACK (Keep scroll, drop to 1 Column) */
+@media screen and (max-width: 1024px) {
+    #admin-catalog-container {
+        grid-template-columns: 1fr !important; /* 1 Column on Phone/Tablet */
+    }
+}

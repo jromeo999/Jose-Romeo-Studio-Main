@@ -1,0 +1,4279 @@
+:root {
+
+    --primary: #0054a6;       
+    --primary-hover: #003d7a; 
+    --accent: #f7931e; 
+    --bg: #eff2f7;            
+    --bg-card: #ffffff;       
+    --bg-hover: #f3f6f9;      
+    --text: #2d3748;          /* High contrast dark grey (softer than black) */
+    --text-muted: #718096;    /* Professional slate grey */
+    --danger: #e53e3e;        /* Standard Red */
+    --success: #38a169;       /* Standard Green */
+    --border: #e2e8f0;        /* Subtle slate border */
+    
+    --radius: 6px;            /* Sharper, more corporate corners */
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    
+    --font: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color-scheme: light;
+    --bg-main: #eff2f7;      
+    --bg-secondary: #ffffff; 
+}
+
+/* =========================================
+   PROFESSIONAL DARK MODE (Neutral/Charcoal)
+   ========================================= */
+[data-theme="dark"] {
+    /* No more blue tint - Pure Neutral Dark */
+    --bg: #121212;            /* Near Black */
+    --bg-card: #1e1e1e;       /* Dark Grey Card */
+    --bg-hover: #2d2d2d;      /* Lighter Grey Hover */
+    
+    --text: #f7fafc;          /* Off-white text */
+    --text-muted: #a0aec0;    /* Light slate muted */
+    
+    /* Brighten the blue for dark mode readability */
+    --primary: #4299e1;       
+    --primary-hover: #63b3ed;
+    
+    /* Keep Orange accent for consistency */
+    --accent: #f6ad55; 
+    
+    --border: #2d3748;        /* Dark slate border */
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    color-scheme: dark;
+    --bg-main: #121212;
+    --bg-secondary: #1e1e1e;
+}
+::-webkit-calendar-picker-indicator {
+    filter: invert(1); /* Keeps it Black */
+    cursor: pointer;
+    opacity: 0.6; /* Slight fade so it's not too harsh */
+    transition: 0.2s;
+}
+
+/* Hover Effect */
+::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Dark Mode: Invert to White */
+[data-theme="dark"] ::-webkit-calendar-picker-indicator {
+    filter: invert(0); /* Turns Black icon to White */
+}
+
+* { box-sizing: border-box; outline: none; }
+body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); overflow: AUTO; transition: background 0.3s, color 0.3s; font-size: 14px; }
+img { object-fit: cover; }
+.hidden { display: none !important; }
+
+/* DARK MODE INVERSIONS */
+[data-theme="dark"] #brand-img { filter: invert(1); }
+
+/* --- LAYOUT GRID (FIXED) --- */
+.main-grid { display: grid; grid-template-columns: 300px 1fr 260px; gap: 20px; max-width: 1300px; margin: 76px auto 20px; padding: 0 20px 0 20px; }
+.sticky-col { position: sticky; top: 76px; height: fit-content; }
+
+/* --- HEADER --- */
+.sticky-header { position: fixed; top: 0; left: 0; right: 0; height: 56px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 50px; z-index: 1000; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 20px; cursor: pointer; letter-spacing: -1px; }
+.brand img { width: 24px; height: 24px; }
+
+.search-container { position: relative; flex: 1; max-width: 300px; margin: 0 20px; display: flex; align-items: center; background: var(--bg-hover); border-radius: 8px; padding: 0 10px; }
+.search-container input { border: none; background: transparent; height: 36px; width: 100%; color: var(--text); font-size: 14px; padding-left: 5px; }
+.search-icon { width: 16px; color: var(--text-muted); }
+.search-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; margin-top: 5px; box-shadow: var(--shadow); z-index: 200; }
+.cover-photo { width: 100%; height: 100%; background-size: cover; background-position: center; transition: background-position 0s; }
+.cover-wrapper .sidebar-cover { height: 320px; background: #333; position: relative; overflow: hidden; }
+.desktop-nav { display: flex; align-items: center; gap: 10px; }
+.nav-btn { background: transparent; border: none; color: var(--text-muted); padding: 6px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+.nav-btn.active, .nav-btn:hover { color: var(--primary); background: var(--bg-hover); }
+.avatar-sm { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 1px solid var(--border); }
+
+/* --- SIDEBAR & EDIT (FIXED) --- */
+.sidebar-cover { height: 120px; background: #333; position: relative; overflow: hidden; }
+.avatar-wrapper-sb { display: inline-block; padding: 3px; background: var(--bg-card); border-radius: 50%; }
+.avatar-lg { border-radius: 50%;  cursor: zoom-in; }
+
+.sb-edit-controls { position: absolute; top: 10px; right: 5px; z-index: 50; display: flex; gap: 2px; align-items: center; }
+.sb-cover-actions { position: absolute; top: 10px; left: 5px; display: flex; gap: 5px; align-items: center; z-index: 50; }
+.drag-handle-btn { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: move; transition: 0.2s; }
+.drag-handle-btn:hover { background: rgba(0,0,0,0.7); }
+
+/* --- POSTS --- */
+.card { background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
+.create-post-box { padding: 12px; }
+.cp-top { display: flex; gap: 8px; margin-bottom: 8px; }
+.cp-top textarea { flex: 1; border: none; background: transparent; resize: none; font-family: inherit; color: var(--text); padding-top: 6px; font-size: 13px; }
+.cp-bottom { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 8px; }
+.cp-tools { display: flex; gap: 10px; }
+.cp-tools label i { width: 18px; height: 18px; color: var(--text-muted); }
+.cp-tools label:hover i { color: var(--primary); }
+
+.post-card { padding: 15px; position: relative; }
+.post-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.post-meta div { font-weight: 600; font-size: 13px; cursor: pointer; }
+.post-meta span { font-size: 11px; color: var(--text-muted); }
+.post-img { width: 100%; border-radius: 6px; margin-top: 8px; border: 1px solid var(--border); }
+
+/* --- REACTIONS (FIXED) --- */
+.reaction-area { margin-top: 8px; padding-top: 5px; border-top: 1px solid var(--border); }
+.react-wrapper { display: inline-flex; align-items: center; position: relative; gap: 5px; }
+.react-btn { background: transparent; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+.react-btn:hover { background: var(--bg-hover); color: var(--primary); }
+.react-count-box { font-size: 11px; color: var(--text-muted); font-weight: 600; cursor: help; padding: 6px; }
+.react-count-box:hover { text-decoration: underline; }
+.react-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.9); /* Darker background */
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    white-space: pre; /* Keeps the new lines */
+    text-align: left; /* Align names to left */
+    z-index: 200;
+    pointer-events: none;
+    margin-bottom: 8px;
+    min-width: 100px; /* Minimum width */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}.react-count-box:hover + .react-tooltip { display: block; }
+.react-menu { position: absolute; top: -40px; left: 0; background: var(--bg-card); border: 1px solid var(--border); padding: 4px 8px; border-radius: 20px; display: flex; gap: 5px; box-shadow: var(--shadow); opacity: 0; visibility: hidden; transition: 0.2s; z-index: 50; }
+.react-btn:hover + .react-menu, .react-menu:hover { opacity: 1; visibility: visible; }
+.emoji-opt { font-size: 18px; cursor: pointer; transition: 0.2s; }
+.emoji-opt:hover { transform: scale(1.3); }
+.emoji-stack { display: flex; }
+.emoji-stack span { margin-right: -4px; font-size: 14px; }
+
+/* --- BUTTONS & INPUTS --- */
+.btn { border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 13px; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { transform: translateY(-1px); background: var(--primary-hover); }
+.btn-outline { background: transparent; border: 1px solid currentColor; color: var(--text); }
+.btn-outline:hover { transform: translateY(-1px); background: var(--primary-hover); }
+.btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 4px; border:none; background: var(--primary); color: white; cursor: pointer; }.mini-circle-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--bg-card); color: var(--text); transition: 0.2s; }
+.mini-circle-btn:hover { background: var(--bg-hover); transform: scale(1.05); }
+.mini-circle-btn.danger { color: var(--danger); border-color: var(--danger); }
+.mini-circle-btn.danger:hover { background: var(--danger); color: white; }
+.mini-circle-btn.success { color: var(--success); border-color: var(--success); }
+.mini-circle-btn.success:hover { background: var(--success); color: white; }
+.mini-circle-btn.glass { background: rgba(0,0,0,0.5); border: none; color: white; }
+.mini-circle-btn.glass:hover { background: rgba(0,0,0,0.7); }
+.input-group { position: relative; margin-bottom: 12px; }
+.input-group input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); background: var(--bg-card); border-radius: 8px; color: var(--text); }
+.input-group input:focus { border-color: var(--primary); }
+.input-group label { position: absolute; left: 12px; top: 10px; color: var(--text-muted); pointer-events: none; transition: 0.2s; font-size: 13px; background: transparent; }
+.input-group input:focus + label, .input-group input:not(:placeholder-shown) + label { top: -10px; font-size: 10px; color: var(--primary); background: var(--bg-card); padding: 0 4px; }
+.mini-input { width: 100%; padding: 5px 8px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-hover); color: var(--text); font-size: 12px; }
+.icon-btn { background: transparent; border: none; padding: 6px; color: var(--text-muted); cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; transition: 0.2s; }
+.icon-btn:hover { color: var(--primary); background: var(--bg-hover); }
+/* --- OTHER --- */
+.landing-container { height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--bg-hover) 0%, var(--bg) 100%); }
+.landing-box { text-align: center; max-width: 400px; padding: 40px; }
+.brand-hero { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; font-weight: 900; font-size: 32px; letter-spacing: -1px; }
+.brand-hero img { width: 40px; height: 40px; }
+h1 { font-size: 20px; white-space: nowrap;}
+.landing-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
+.profile-feed-header { padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
+.select-mode .post-card { border-left: 3px solid var(--primary); }
+.post-checkbox { position: absolute; top: 15px; right: 15px; transform: scale(1.2); }
+.network-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; padding: 12px; }
+.network-grid .card { margin: 0; padding: 8px; text-align: center; border: 1px solid var(--border); box-shadow: none; display: flex; flex-direction: column; align-items: center; }
+.network-grid h4 { font-size: 11px; margin: 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+.dropdown { position: relative; }
+.dropdown-content { position: absolute; top: 100%; right: 0; width: 180px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 4px; box-shadow: var(--shadow); z-index: 200; }
+.drop-item { padding: 6px 10px; display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; border-radius: 4px; }
+.drop-item:hover { background: var(--bg-hover); }
+/* --- USER DIRECTORY GRID (Right Column) --- */
+.suggestion-list {
+    padding: 10px;
+    display: grid;
+    /* 2 Columns: Min 100px each, sharing space */
+    grid-template-columns: 1fr 1fr; 
+    gap: 8px;
+    max-height: 75vh; /* Much taller scroll area */
+    overflow-y: auto;
+}
+
+/* Transform Items into Mini Cards */
+.suggestion-item {
+    display: flex;
+    flex-direction: column; /* Stack vertically */
+    align-items: center;
+    text-align: center;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    gap: 8px;
+    transition: transform 0.2s;
+}
+
+.suggestion-item:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    background: var(--bg-card);
+}
+
+/* Adjust text for grid layout */
+.suggestion-item div {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Adjust Action Buttons to center */
+.suggestion-item .btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(5px); }
+.modal-box { background: var(--bg-card); padding: 20px; border-radius: 12px; width: 90%; max-width: 300px; border: 1px solid var(--border); }
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 99999; box-shadow: var(--shadow); font-weight: 600; }
+.fab { position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; background: var(--text); color: var(--bg); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow); z-index: 100; }
+.lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+.lightbox img { max-width: 90%; max-height: 90%; }
+.vibe-circle-row { cursor: pointer; font-size: 11px; }
+.card-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 700; }
+.video-container { position: relative; padding-bottom: 56.25%; height: 0; background: black; }
+.video-container iframe { position: absolute; inset: 0; width: 100%; height: 100%; }
+.bulletin-board { padding: 15px 15px; }
+.bulletin-item { font-size: 11px; color: var(--text-muted); padding: 4px 0; cursor: pointer; transition: 0.2s; }
+.bulletin-item:hover { color: var(--primary); }
+.btn-text-icon { background: transparent; border: none; color: var(--text-muted); display: flex; align-items: center; gap: 5px; font-weight: 600; cursor: pointer; font-size: 12px; }
+.btn-text-icon:hover { color: var(--primary); }
+.btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 4px; border:none; background: var(--primary); color: white; cursor: pointer; }
+.btn-xs.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-xs.btn-danger { background: var(--danger); color: white; }
+.chat-overlay { position: fixed; bottom: 20px; right: 20px; width: 300px; height: 400px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; box-shadow: var(--shadow); z-index: 2000; overflow: hidden; }
+.chat-header { padding: 8px 12px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-hover); font-weight: 700; font-size: 13px; }
+.chat-body { flex: 1; overflow-y: auto; padding: 10px; background: var(--bg); display: flex; flex-direction: column; gap: 6px; }
+.chat-footer { padding: 8px 10px; border-top: 1px solid var(--border); background: var(--bg-card); }
+.message { padding: 6px 10px; border-radius: 8px; font-size: 12px; max-width: 80%; }
+.msg-in { background: var(--bg-hover); border: 1px solid var(--border); align-self: flex-start; }
+.msg-out { background: var(--primary); color: white; align-self: flex-end; }
+.chat-input-row { display: flex; gap: 5px; }
+.btn-send { background: var(--text); color: var(--bg); border: none; width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.text-danger { color: var(--danger); }
+.drop-divider { height: 1px; background: var(--border); margin: 3px 0; }
+.mini-input { width: 100%; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-hover); color: var(--text); font-size: 11px; }
+.inline-save-row { display: flex; gap: 5px; margin-top: 5px; }
+.editing .editable-text { border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
+/* --- CUSTOM SCROLLBARS --- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+/* --- LOGIN MODAL FIX --- */
+.modal-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px; }
+.modal-header h3 { margin: 0; }
+
+/* --- COMPACT & SLEEK ADJUSTMENTS --- */
+.card { box-shadow: var(--shadow); border: 1px solid var(--border); }
+.post-content { font-size: 13px; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; }
+
+/* --- SIDEBAR ZOOM --- */
+#side-cover {
+    background-color: var(--primary); /* Fallback theme color */
+    background-repeat: no-repeat;
+    background-position: center center;
+    transition: background-position 0s, background-size 0.1s;
+}
+/* --- ATTACHMENT PREVIEWS --- */
+.attachment-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 10px; }
+.attach-item { position: relative; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-hover); aspect-ratio: auto; }
+.attach-item img { width: 100%; height: 100%; object-fit: contain; }
+.attach-file { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; font-size: 10px; padding: 4px; text-align: center; color: var(--text-muted); }
+.attach-remove { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+
+/* --- CUSTOM CONFIRM DIALOG --- */
+.confirm-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+/* --- SIDEBAR ACTION BUTTONS (Side by Side) --- */
+
+#admin-controls-row button {
+    flex: 1; /* Equal width distribution */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 38px !important; /* FORCE UNIFORM HEIGHT */
+    padding: 0 12px; /* Consistent padding */
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+/* Ensure the Admin Row Container spans full width to sit 'Under' */
+#admin-controls-row {
+    width: 100%; /* Forces it to the next line */
+    display: flex;
+    gap: 10px;
+    margin-top: 5px; /* Tiny gap between Chat and Admin btns */
+}
+.btn-danger:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* --- MODERN BACK ARROW SVG --- */
+.modern-arrow {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    transition: transform 0.2s;
+}
+.modern-back-btn { 
+    display: inline-flex; align-items: center; gap: 8px; 
+    padding: 8px 16px; background: var(--bg); 
+    border: 1px solid var(--border); border-radius: 20px; 
+    font-weight: 600; color: var(--text); font-size: 13px;
+    cursor: pointer; transition: all 0.2s ease;
+}
+.modern-back-btn:hover .modern-arrow {
+    transform: translateX(-3px); /* Subtle animation */
+}
+.col-right .card { width: 300px; }
+.col-right .card h3 { margin: 10px 15px; } 
+[data-theme="dark"] .react-btn { color: #e5e7eb; } /* Make default icon light in dark mode */
+[data-theme="dark"] .react-btn:hover { color: var(--primary); }
+.create-post-box.drag-active {
+    border: 2px dashed var(--primary);
+    background: rgba(37, 99, 235, 0.1) !important; /* Slight blue tint */
+}
+
+.create-post-box { transition: background 0.2s, border 0.2s; }
+/* =========================================
+   PREMIUM CHAT WINDOW (FIXED & TESTED)
+   ========================================= */
+.chat-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between the two buttons */
+    margin-left: auto; /* Pushes them to the far right if needed */
+    flex-shrink: 0;
+}
+
+/* Optional: Make the Minimize button slightly different on hover */
+.icon-btn-tiny:hover i[data-feather="minus"] {
+    color: var(--primary); /* Blue for minimize */
+}
+.icon-btn-tiny:hover i[data-feather="x"] {
+    color: var(--danger); /* Red for close */
+    transform: rotate(90deg);
+}
+.chat-minimized {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 30px; /* Pill shape */
+    padding: 8px 16px 8px 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    cursor: pointer;
+    z-index: 4999; /* Below the main window z-index */
+    transition: transform 0.2s, opacity 0.2s;
+    max-width: 200px;
+}
+
+.chat-minimized:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+}
+
+.chat-minimized.hidden {
+    display: none !important;
+}
+
+#min-chat-img {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border);
+}
+
+#min-chat-name {
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.chat-window {
+    position: fixed;
+    bottom: 0;
+    right: 20px;
+    width: 350px;
+    height: 500px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 5px 40px rgba(0,0,0,0.15);
+    display: flex; flex-direction: column;
+    flex-direction: column;
+    z-index: 5000;
+    font-family: var(--font);
+    overflow: hidden;
+    transform: translateY(0);
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.chat-window.hidden {
+    transform: translateY(110%);
+    visibility: hidden;
+}
+.chat-window.pop-ul { transform-origin: bottom right; }
+.chat-window.pop-ur { transform-origin: bottom left; }
+.chat-window.pop-dl { transform-origin: top right; }
+.chat-window.pop-dr { transform-origin: top left; }
+
+
+/* --- HEADER: NO OVERLAPS ALLOWED --- */
+.chat-header {
+    flex-shrink: 0; /* Don't let header shrink */
+    height: 60px;
+    padding: 0 16px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 10;
+}
+
+/* 1. Avatar Container: Rigid Size */
+.chat-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1; /* Take available space */
+    overflow: hidden; /* Cut off text if too long */
+}
+
+/* 2. The Avatar Image: STRICT Dimensions */
+#chat-header-img {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important; /* Prevent squishing */
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    flex-shrink: 0; /* CRITICAL: Stops overlap/squishing */
+}
+
+.chat-status {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#chat-header-name {
+    font-weight: 700;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.online-dot {
+    font-size: 11px;
+    color: var(--success);
+    font-weight: 600;
+}
+.online-dot::before { content: "• Online"; }
+
+/* --- CHAT BODY (Wrapper) --- */
+.chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column; /* Required for align-self to work */
+    gap: 8px; /* Space between messages */
+}
+
+/* --- YOUR CUSTOM MESSAGES (Compact) --- */
+.d-msg-row {
+    display: flex; 
+    gap: 6px; 
+    max-width: 85%; /* Prevent hitting edges */
+    position: relative;
+    align-items: flex-end;
+    /* Animation */
+    animation: fadeIn 0.2s ease;
+}
+
+/* Alignment Logic */
+.d-msg-row.out { 
+    align-self: flex-end; /* Push to right */
+    flex-direction: row-reverse; 
+}
+.d-msg-row.in { 
+    align-self: flex-start; /* Push to left */
+}
+
+.d-bubble {
+    padding: 8px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Colors mapped to Vibe Hub Variables */
+.d-msg-row.in .d-bubble { 
+    background: var(--bg-card); 
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 2px;
+    color: var(--text);
+}
+.d-msg-row.out .d-bubble { 
+    background: var(--primary); 
+    color: white; 
+    border: 1px solid var(--primary);
+    border-bottom-right-radius: 2px;
+}
+
+/* Timestamp */
+.d-meta { 
+    font-size: 10px; 
+    margin-top: 3px; 
+    opacity: 0.7; 
+    text-align: right; 
+    line-height: 1;
+}
+.d-msg-row.out .d-meta { color: rgba(255,255,255,0.8); }
+.d-msg-row.in .d-meta { color: var(--text-muted); }
+
+/* --- INPUT AREA (Integrated) --- */
+.dock-input-area {
+    padding: 10px 12px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    display: flex; 
+    gap: 8px; 
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.dock-input {
+    flex: 1;
+    background: var(--bg-hover);
+    border: 1px solid transparent;
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 13px;
+    height: 38px;
+    outline: none;
+    color: var(--text);
+    transition: 0.2s;
+}
+.dock-input:focus { 
+    background: var(--bg-card);
+    border-color: var(--primary); 
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.send-dock-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--primary); 
+    color: white;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; 
+    transition: transform 0.2s;
+}
+.send-dock-btn:hover { transform: scale(1.1); background: var(--primary-hover); }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.chat-toast {
+    position: fixed;
+    bottom: 80px; /* Above the minimized pill/chat window */
+    right: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--primary);
+    border-left: 4px solid var(--primary);
+    padding: 12px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 6000;
+    cursor: pointer;
+    animation: slideInRight 0.3s ease;
+    max-width: 300px;
+}
+
+.chat-toast img {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.chat-toast-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-toast-name { font-weight: 700; font-size: 13px; }
+.chat-toast-msg { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+/* --- 1. THE CHAT DOCK (Vertical Stack) --- */
+.chat-dock {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column-reverse; /* Newest at bottom */
+    gap: 15px;
+    z-index: 6000; /* Above chat window */
+    pointer-events: none; /* Let clicks pass through gaps */
+}
+
+/* The Avatar Circle */
+.dock-item {
+    width: 50px; 
+    height: 50px;
+    position: relative; /* Becomes 'fixed' when dragged */
+    z-index: 6000;
+    pointer-events: auto !important; 
+    touch-action: none !important;
+    user-select: none;
+    -webkit-user-drag: none; /* Critical for mobile drag */
+    transition: transform 0.1s;
+    cursor: auto;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dock-item:active { cursor: grabbing; transform: scale(0.95); /* Press down effect */
+ }
+.dock-item:hover { transform: scale(1.15);     z-index: 6001; /* Pop slightly above others */
+ }
+.dock-img {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    object-fit: contain;
+    background-color: #ffffff; /* White bg for transparent SVGs */
+    border: 2px solid #ffffff; /* White border to pop against dark mode */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    -webkit-user-drag: none;
+    user-select: none;
+}
+
+/* While Dragging */
+.dock-item.dragging {
+    position: fixed; /* Popped out of flow */
+    z-index: 7000;   /* On top of everything */
+    transition: none !important; 
+    transform: scale(1.1); /* Keep it slightly popped while holding */
+    cursor: grabbing;
+}
+
+/* Active State (Currently Open) */
+.dock-item.active .dock-img {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4);
+}
+
+
+/* 2. MOVE THE CLOSE 'X' BUTTON TO THE TOP-RIGHT */
+.dock-remove {
+    position: absolute;
+    top: -5px;   /* Stays at the top */
+    right: -5px; /* <-- CHANGED from 'left' to 'right' */
+    
+    width: 18px; /* Slightly larger for easier tapping */
+    height: 18px;
+    background: var(--text);
+    color: var(--bg);
+    border-radius: 50%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-size: 10px;
+    opacity: 0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    z-index: 11; /* Above the badge */
+}
+
+/* Make it pop on hover */
+.dock-item:hover .dock-remove { 
+    opacity: 1; 
+    transform: scale(1.1);
+}
+
+@keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+/* --- 2. SHIFT CHAT WINDOW LEFT --- */
+.chat-window {
+    right: 85px; /* Moved left to make room for Dock */
+    /* keep other existing styles... */
+}
+.icon-btn-tiny {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: 0.2s;
+    flex-shrink: 0;
+    z-index: 2000;
+}
+.icon-btn-tiny:hover {
+    color: var(--danger);
+    background: var(--bg-hover);
+    border-radius: 50%;
+}
+#side-cover {
+    background-color: var(--bg-card); /* Auto-switches based on theme */
+    background-repeat: no-repeat;
+    background-position: center center;
+    transition: background-position 0s, background-size 0.1s;
+}
+/* --- MODERN REACTIONS CSS --- */
+.react-icon {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.2s;
+}
+
+/* Colors for specific reactions */
+.color-love { color: #ef4444; fill: #ef4444; } /* Red filled */
+.color-fire { color: #f59e0b; fill: #f59e0b; } /* Orange/Gold filled */
+.color-laugh { color: #06b6d4; fill: #06b6d4; } /* Cyan filled */
+
+/* The Menu Items */
+.icon-opt {
+    padding: 6px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.icon-opt:hover {
+    background: var(--bg-hover);
+    transform: scale(1.2) translateY(-2px);
+}
+.icon-opt i {
+    width: 20px;
+    height: 20px;
+}
+/* --- CUSTOM REACTION SVGs --- */
+.react-btn svg, .icon-opt svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.2s;
+}
+#user-directory{
+    display: block;
+}
+
+.color-love { stroke: #ef4444 !important; fill: #ef4444 !important; fill-opacity: 0.2; } /* Red */
+.color-joy  { stroke: #0ea5e9 !important; } /* Sky Blue */
+.color-sad  { stroke: #8b5cf6 !important; } /* Violet */
+.color-mad  { stroke: #f97316 !important; } /* Deep Orange */
+.color-fire { stroke: #eab308 !important; fill: #eab308 !important; fill-opacity: 0.2; } /* Yellow */
+
+/* Menu Layout */
+.react-menu {
+    gap: 8px !important;
+    padding: 8px 12px !important;
+    top: -60px !important;
+    border-radius: 50px !important;
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+}
+
+.icon-opt:hover svg {
+    transform: scale(1.3);
+}
+
+/* Active State for the main button */
+.react-btn.active {
+    color: var(--primary);
+}
+.react-btn.active .color-love { color: #ef4444; } /* Override primary if love */
+.react-btn.active .color-fire { color: #f59e0b; } /* Override primary if fire */
+/* =========================================
+   MOBILE RESPONSIVENESS (Final Fix)
+   ========================================= */
+
+/* Default: Hide Mobile Nav on Desktop */
+.mobile-nav { display: none; }
+
+/* Mobile Styles (Tablets & Phones) */
+@media (max-width: 768px) {
+    
+    /* 1. Layout Reset & Spacing */
+    .main-grid {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        margin-bottom: 0;
+        padding-bottom: 80px; /* Space for Bottom Nav */
+    }
+    .profile-feed-header.card { margin-top: 2px;}
+    .dock-item.active {
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* FIX: Ensure the Close Button is always clickable */
+    .chat-header .icon-btn-tiny {
+        position: relative;
+        z-index: 6000; /* Higher than everything */
+        width: 50px;   /* Bigger touch target */
+        height: 50px;
+    }
+    .settings-card {
+        display: block !important;
+        margin-top: 10px;
+        margin-bottom: 80px; /* Extra space above Bottom Nav */
+    }
+    [data-theme="dark"] #mobile-nav-img {
+    /* 1. White Border to define the circle */
+    border: 2px solid #ffffff !important;
+    
+    /* 2. White Background so transparent black icons are visible */
+    background: #ffffff; 
+    
+    /* 3. Ensure border doesn't shrink the image size */
+    box-sizing: content-box; 
+
+    }
+    /* 2. Disable Sticky Sidebars on Mobile */
+    .sticky-col { 
+        position: static !important; /* Forces natural scrolling */
+        height: auto !important; 
+        width: 100%;
+    }
+
+    /* 3. Hide Desktop Elements */
+    .desktop-nav { display: none !important; }
+    
+    /* 4. Column Visibility Logic (Controlled by JS Router) */
+    /* By default hide Left (Sidebar) and Right (Vibes) */
+    .col-left, .col-right { display: none; }
+    .col-center { display: block; width: 100%; margin-top: 2px !important; }
+
+    /* When JS adds .mobile-active, show them full width */
+    .col-left.mobile-active, 
+    .col-right.mobile-active {
+        display: block !important;
+        width: 100%;
+        margin-bottom: -25px;
+    }
+    #suggestions-list {
+        display: none !important;
+    }
+    .col-right.mobile-active #user-directory {
+        display: none !important;
+    }
+    /* Helper to hide center feed when other tabs are open */
+    .col-center.hidden-on-mobile { display: none !important; }
+
+    /* 5. Mobile Bottom Nav (Fixed to Bottom) */
+    .mobile-nav {
+        display: flex !important; /* Force show */
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: 60px;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border);
+        justify-content: space-around;
+        align-items: center;
+        z-index: 9999; /* Always on top */
+        padding-bottom: env(safe-area-inset-bottom);
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+
+    .mob-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        padding: 8px;
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .mob-btn.active { color: var(--primary); }
+    .mob-btn i { width: 24px; height: 24px; }
+
+    /* 6. Header Tweaks */
+    .sticky-header { padding: 0 15px; }
+    .brand span { display: none; } /* Hide text, keep logo */
+    .search-container { margin: 0 0 0 10px; }
+    
+    /* 7. Modal Fixes */
+    .modal-box { width: 85%; }
+    #mobile-nav-img {
+    width: 28px !important;  /* Force tiny size */
+    height: 28px !important;
+    min-width: 28px;         /* Prevent squishing */
+    border-radius: 50%;
+    object-fit: cover;       /* Crop if not square */
+    border: 2px solid var(--bg-card); /* White ring */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Ensure the button holding it doesn't stretch */
+.mob-btn {
+    overflow: hidden; /* Cut off anything spilling out */
+    max-height: 60px;
+}
+}
+
+
+/* iPhone SE Specific (Very Small Screens) */
+@media (max-width: 370px) {
+    .brand { display: none; } /* Hide Logo completely to save space */
+    .search-container { margin: 0; }
+    .post-meta div { font-size: 12px; }
+}
+/* =========================================
+   MOBILE CHAT OVERHAUL (iPhone SE Optimized)
+   ========================================= */
+
+@media (max-width: 768px) {
+
+    /* --- 1. REPOSITION DOCK TO TOP RIGHT --- */
+    .chat-dock {
+        bottom: auto;       /* Unset bottom */
+        top: 65px;          /* Place just below the sticky header */
+        right: 10px;
+        flex-direction: column; /* Stack downwards */
+        gap: 10px;
+        z-index: 5001;      /* Above everything */
+    }
+
+    /* Smaller Chat Heads for Mobile */
+    .dock-item {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .dock-badge {
+        min-width: 16px;
+        height: 16px;
+        font-size: 12px;
+    }
+
+    /* --- 2. CHAT WINDOW: TOP-RIGHT DROPDOWN STYLE --- */
+    .chat-window {
+        top: 65px !important;
+        left: 10px !important; 
+        right: 10px !important;
+        width: auto !important;
+        height: 55vh !important;
+        border-radius: 12px;
+        transform-origin: top center;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
+    }
+
+    /* Hidden State (Retract Upwards) */
+    .chat-window.hidden {
+        transform: scale(0.9) translateY(-20px);
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    /* Visible State */
+    .chat-window:not(.hidden) {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* --- 3. COMPACT INTERNALS (For iPhone SE) --- */
+    
+    /* Slimmer Header */
+    .chat-header {
+        height: 45px;
+        padding: 0 10px;
+        font-size: 12px;
+    }
+    
+    /* Smaller Avatar in Header */
+    #chat-header-img {
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+    }
+
+    /* Compact Message Bubbles */
+    .chat-body {
+        padding: 8px;
+        gap: 6px;
+    }
+    
+    .d-bubble {
+        padding: 6px 10px;
+        font-size: 12px;
+        border-radius: 12px;
+    }
+    
+    /* Slimmer Input Area */
+    .dock-input-area {
+        padding: 6px 8px;
+        height: 50px;
+    }
+    
+    .dock-input {
+        height: 34px;
+        font-size: 12px;
+    }
+    
+    .send-dock-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* Hide Dock items if Chat is Open (Optional cleanliness) */
+    /* When chat window is open, we can hide the dock behind it or push it */
+    /* But keeping it visible allows switching users easily. */
+}
+
+/* --- IPHONE SE SPECIFIC (320px - 375px width) --- */
+@media (max-width: 375px) {
+    .chat-window {
+        right: 5px;
+        left: 5px;
+        top: 60px;
+    }
+    
+    /* Adjust text size for very small screens */
+    .d-msg-row { max-width: 90%; }
+    .d-bubble { font-size: 11px; }
+}
+/* --- CHAT EDIT MODE (Footer Actions) --- */
+.chat-edit-bar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px; /* Proper gap between buttons */
+    animation: fadeIn 0.2s ease;
+}
+
+.btn-chat-action {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.btn-chat-action:active { transform: scale(0.95); }
+
+.btn-cancel {
+    background: var(--bg-hover);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+.btn-cancel:hover { background: var(--border); }
+
+.btn-delete {
+    background: var(--danger);
+    color: white;
+}
+.btn-delete:hover { background: #dc2626; } /* Slightly darker red */
+/* --- SEPARATED REACTION AREA --- */
+.reaction-area {
+    margin-top: 8px;
+    padding-top: 5px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between Icon and Count */
+}
+
+/* 1. The Action Button (Icon Only) */
+.react-btn {
+    background: transparent;
+    border: none;
+    padding: 6px; /* Reduced padding since text is gone */
+    border-radius: 50%; /* Circle shape looks better for just icon */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    position: relative;
+    color: var(--text-muted);
+}
+.react-btn:hover { background: var(--bg-hover); color: var(--primary); }
+.react-btn.active { color: var(--primary); }
+
+/* 2. The Count Link (Text Only) */
+.react-count-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    position: relative; /* For tooltip positioning */
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.react-count-link:hover {
+    text-decoration: underline;
+    color: var(--text);
+    background: var(--bg-hover);
+}
+
+/* 3. The Simple Tooltip (Hover on Count) */
+.simple-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    pointer-events: none;
+    margin-bottom: 6px;
+    z-index: 100;
+}
+.react-count-link:hover .simple-tooltip { display: block; }
+
+/* --- REACTION MODAL LIST --- */
+.reaction-list-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 10px;
+}
+
+.reaction-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Pushes Name to left, Emoji to right */
+    padding: 8px;
+    border-radius: 8px;
+    background: var(--bg-hover);
+}
+
+.react-user-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.react-emoji-display {
+    font-size: 20px; /* Make the emoji pop */
+}
+/* --- MESSENGER STYLE NOTIFICATIONS --- */
+.notify-stack {
+    position: fixed;
+    top: 10px;       /* Safety margin from top */
+    left: 50%;
+    transform: translateX(-50%); /* Center horizontally */
+    width: 90%;      /* Mobile width */
+    max-width: 400px; /* Desktop max width */
+    z-index: 9999;   /* On top of EVERYTHING */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;       /* Space between stacked messages */
+    pointer-events: none; /* Let clicks pass through empty space */
+}
+
+.notify-card {
+    background: var(--bg-card); /* Adapts to Dark Mode */
+    color: var(--text);
+    padding: 10px 15px;
+    border-radius: 30px; /* The "Pill" Shape */
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2); /* Deep shadow */
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    pointer-events: auto; /* Enable clicking the card */
+    cursor: pointer;
+    border: 1px solid var(--border);
+    
+    /* Animation: Slide Down */
+    animation: notifySlideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: transform 0.2s, opacity 0.3s;
+}
+
+/* Interaction */
+.notify-card:active { transform: scale(0.96); }
+.notify-card.fading-out { opacity: 0; transform: translateY(-20px); }
+
+/* Internal Layout */
+.notify-img {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--bg-card); /* White ring */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.notify-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.notify-name {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.notify-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* "..." if text is long */
+}
+
+
+@keyframes notifySlideDown {
+    from { opacity: 0; transform: translateY(-50px) scale(0.8); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (min-width: 769px) {
+    .chat-window {
+        /* Dimensions */
+        width: 340px;
+        height: 480px;
+        border-radius: 12px;
+        
+        /* Default anchor (reset by JS) */
+        bottom: auto; right: auto; top: auto; left: auto;
+    }
+
+    /* Transform Origins for "Popping" effect */
+    .chat-window.pop-ul { transform-origin: bottom right; }
+    .chat-window.pop-ur { transform-origin: bottom left; }
+
+    
+    .chat-window.hidden {
+        opacity: 0;
+        transform: scale(0.9); /* Scale down effect */
+        visibility: hidden;
+    }
+}
+
+.accordion-header {
+    justify-content: left;
+}
+.accordion-body {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-hover);
+    border-radius: 8px;
+    margin: 5px 0;
+    padding: 5px;
+    animation: slideDown 0.2s ease;
+}
+.sub-item {
+    font-size: 11px;
+    padding: 8px 10px;
+    border-radius: 6px;
+}
+.acc-icon { width: 14px; transition: transform 0.2s; margin-left: 100px; }
+.rotate-180 { transform: rotate(180deg); }
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Colors */
+.text-warning { color: #f59e0b; }
+.btn-warning { background: #f59e0b; color: white; }
+.btn-warning:hover { background: #d97706; }
+
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #dc2626; }
+
+/* Settings Card (Right Col) */
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child { border-bottom: none; }
+.set-label { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; margin-bottom: 10px; margin-top: 10px;}
+.set-label i { width: 18px; }
+
+/* Fake Toggle Switch UI */
+.toggle-switch {
+    width: 36px; height: 20px;
+    background: var(--bg-hover);
+    border-radius: 20px;
+    position: relative;
+    border: 1px solid var(--border);
+}
+[data-theme="dark"] .toggle-switch { background: var(--primary); border-color: var(--primary); }
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+[data-theme="dark"] .toggle-switch::after { transform: translateX(16px); }
+
+/* Buttons inside card */
+.settings-card .btn { font-size: 11px; padding: 15px; margin: 15px; }
+.settings-card {
+    display: none;
+}
+
+.side-panel {
+    position: fixed;
+    top: 60px; /* Below sticky header */
+    left: 10px;
+    bottom: 10px;
+    width: 350px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    z-index: 3999;
+    transform: translateX(-120%); /* Hidden */
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+.side-panel.active { transform: translateX(0); }
+
+.panel-header {
+    padding: 15px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+}
+.panel-title { font-weight: 700; font-size: 14px; }
+.panel-content { padding: 15px; overflow-y: auto; flex: 1; }
+
+.panel-section { margin-bottom: 20px; }
+.panel-sub-title { 
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px; 
+    color: var(--text-muted); margin-bottom: 10px; font-weight: 700; 
+}
+
+.panel-divider { height: 1px; background: var(--border); margin: 15px 0; }
+
+/* --- QUICK LINKS --- */
+ql-list-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ql-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.ql-card:hover {
+    transform: translateX(5px);
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Add a subtle gradient accent on hover */
+.ql-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--primary); opacity: 0; transition: 0.2s;
+}
+.ql-card:hover::before { opacity: 1; }
+
+.ql-icon {
+    width: 36px; height: 36px;
+    background: var(--bg-hover);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary);
+}
+
+.ql-info { flex: 1; display: flex; flex-direction: column; }
+.ql-info span { font-weight: 700; font-size: 13px; }
+.ql-info small { font-size: 11px; color: var(--text-muted); }
+
+.ql-arrow { width: 14px; color: var(--text-muted); transition: 0.2s; }
+.ql-card:hover .ql-arrow { color: var(--primary); transform: translateX(2px); }
+
+/* --- NOTIFICATION TOGGLE SWITCH --- */
+.notify-toggle-wrap { display: flex; align-items: center; gap: 8px; }
+
+/* The Switch Box */
+.switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background-color: var(--bg-hover); border: 1px solid var(--border);
+    transition: .4s; border-radius: 20px;
+}
+.slider:before {
+    position: absolute; content: "";
+    height: 12px; width: 12px; left: 2px; bottom: 2px;
+    background-color: var(--text-muted); transition: .4s; border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--primary); border-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(16px); background-color: white; }
+
+/* Make Side Panel transition smoother */
+.side-panel {
+    transform: translateX(-120%);
+    box-shadow: 5px 0 25px rgba(0,0,0,0.1);
+}
+
+/* --- MINIMAL BREAK TOOL --- */
+.bt-card {
+    background: var(--bg); /* Contrast against panel */
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+}
+
+.bt-header {
+    display: flex; justify-content: space-between; 
+    font-size: 10px; font-weight: 700; color: var(--text-muted);
+    margin-bottom: 10px;
+}
+.bt-clock { font-family: monospace; }
+.bt-status-ready,.bt-status-over,.bt-status-active { background: var(--text);
+    color: var(--bg);
+    border: none;
+    padding: 6px 14px;
+    font-size: 10px;
+    font-weight: 800;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    width: auto;
+    margin-left: 15px; }
+.bt-display-box {
+    padding: 10px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+    transition: 0.3s;
+}
+.bt-display-box.overtime {
+    background: rgba(239, 68, 68, 0.1); /* Light red tint */
+    border-color: var(--danger);
+}
+
+.bt-big-time {
+    font-size: 32px;
+    font-weight: 800;
+    font-family: monospace;
+    line-height: 1;
+    color: var(--text);
+}
+.chat-trash {
+    position: fixed;
+    bottom: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4999;
+    transition: bottom 0.3s;
+    pointer-events: none;
+}
+.chat-trash.visible { bottom: 70px; }
+
+.trash-zone {
+    width: 60px; height: 60px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+    transition: 0.2s;
+}
+.chat-trash.active .trash-zone {
+    background: var(--danger);
+    transform: scale(1.2);
+    box-shadow: 0 0 20px var(--danger);
+}
+.bt-bank-text { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+.bt-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* Mobile Adjustments */
+@media (max-width: 768px) {/* Move up above mobile nav */
+    .side-panel { bottom: 70px; top: 10px; }
+    .chat-trash {
+    position: fixed;
+    bottom: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4999;
+    transition: bottom 0.3s;
+    pointer-events: none;
+}
+.chat-trash.visible { bottom: 70px; }
+.settings-list { padding: 15px 15px; margin-top: 10px;
+    margin-bottom: 10px; }
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+.setting-row:last-child { border-bottom: none; }
+.trash-zone {
+    width: 60px; height: 60px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+    transition: 0.2s;
+}
+.chat-trash.active .trash-zone {
+    background: var(--danger);
+    transform: scale(1.2);
+    box-shadow: 0 0 20px var(--danger);
+}
+.dock-item, .dock-img {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none !important;
+    -webkit-user-drag: none;
+    touch-action: none;
+}
+}
+/* --- NEW INPUT STYLES --- */
+.company-input {
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid var(--border);
+    background: transparent;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text);
+    padding: 5px 0;
+    outline: none;
+    transition: 0.2s;
+}
+.company-input:focus { border-color: var(--primary); }
+
+.bt-identity-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 12px;
+}
+
+.bt-input-minimal {
+    width: 100%;
+    border: none;
+    background: var(--bg-hover);
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 11px;
+    color: var(--text);
+    font-weight: 600;
+}
+.bt-input-minimal:focus { outline: 1px solid var(--primary); background: var(--bg-card); }
+
+.bt-shift-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border);
+}
+
+.bt-time-input {
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    font-family: monospace;
+    font-size: 12px;
+    padding: 4px;
+    border-radius: 4px;
+    margin-top: 2px;
+}
+
+.bt-login-btn {
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    padding: 6px 14px;
+    font-size: 10px;
+    font-weight: 800;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    width: auto;
+    margin-right: 15px;
+}
+.bt-login-btn.active {
+    background: var(--danger);
+    color: white;
+}
+/* --- BREAK TOOL LOGS --- */
+.bt-logs-container {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 11px;
+}
+
+.bt-log-header, .bt-log-row {
+    display: grid;
+    /* 5 Columns: Start | End | Type | Excess | Status */
+    grid-template-columns: 0.9fr 0.9fr 1.2fr 1fr 0.8fr; 
+    padding: 6px 10px;
+    background: var(--bg-hover);
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    gap: 4px;
+    font-size: 10px;
+    white-space: nowrap; /* Prevent wrapping */
+}
+.bt-log-header {
+    background: var(--bg-hover);
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+.bt-log-row {
+    color: var(--text);
+    align-items: center;
+}
+
+.bt-log-list {
+    max-height: 150px; /* Scrollable area */
+    overflow-y: auto;
+}
+.bt-log-row.bad .status-cell { color: var(--danger); font-weight: 800; }
+.bt-log-row.good .status-cell { color: var(--success); font-weight: 800; }
+.bt-log-row:last-child { border-bottom: none; }
+
+.bt-log-row.bad {
+    background: rgba(239, 68, 68, 0.05); /* Light red tint */
+    color: var(--danger);
+    font-weight: 600;
+}
+
+.icon-btn-tiny {
+    background: transparent; border: none; padding: 4px;
+    color: var(--text-muted); cursor: pointer; border-radius: 4px;
+}
+.icon-btn-tiny:hover { color: var(--text); background: var(--bg-hover); }
+.icon-btn-tiny i { width: 14px; height: 14px; }
+/* --- LOG ROW COLORS --- */
+.bt-log-row.bad {
+    background: rgba(239, 68, 68, 0.1); /* Light Red BG */
+    color: var(--danger);
+    font-weight: 700;
+    border-left: 3px solid var(--danger); /* Visual indicator on left */
+}
+
+.bt-log-row.good {
+    background: rgba(16, 185, 129, 0.05); /* Light Green BG */
+    color: var(--success); /* Assuming you have --success: #10b981; in :root */
+    font-weight: 600;
+    border-left: 3px solid var(--success);
+}
+/* --- TIMER OVERTIME STATE --- */
+.bt-display-box {
+    padding: 10px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+    transition: all 0.3s ease; /* Smooth transition for color change */
+}
+
+/* When the .overtime class is added via JS */
+.bt-display-box.overtime {
+    background-color: rgba(239, 68, 68, 0.1); /* Light Red Tint */
+    border-color: var(--danger);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); /* Red Glow */
+    animation: btPulse 1.5s infinite; /* Pulsing effect */
+}
+
+/* Turn the big numbers Red in overtime */
+.bt-display-box.overtime .bt-big-time {
+    color: var(--danger);
+}
+
+/* Turn the bank text Red in overtime */
+.bt-display-box.overtime .bt-bank-text {
+    color: var(--danger);
+    opacity: 0.8;
+}
+
+/* Pulse Animation Definition */
+@keyframes btPulse {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+/* --- ATTENDANCE TABLES --- */
+.table-responsive {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    min-width: 600px; /* Force scroll on mobile */
+}
+
+.report-table thead {
+    background: var(--bg-hover);
+    color: var(--text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.report-table th, .report-table td {
+    padding: 12px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+}
+
+.report-table tbody tr:hover {
+    background: var(--bg-hover);
+    cursor: pointer;
+}
+
+.report-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Colors in Table */
+.text-danger { color: var(--danger); }
+.text-success { color: var(--success); }
+/* --- DAY TOGGLES (Split Rest Days) --- */
+.day-toggle-row {
+    display: flex;
+    justify-content: space-between; /* Spreads them evenly */
+    margin-top: 4px;
+    background: var(--bg-hover);
+    padding: 4px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+}
+
+.day-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.day-btn:hover {
+    background: var(--bg-card);
+    color: var(--primary);
+}
+
+/* Active State (Selected Rest Day) */
+.day-btn.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+input[type="date"] {
+    background-color: var(--bg-hover); /* Adapts to dark/light */
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px;
+    font-family: inherit;
+    color-scheme: light dark; /* Makes the dropdown calendar match theme */
+}
+
+/* --- FIX: Button Alignment (OCD Fix) --- */
+.btn-icon-text {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center everything */
+    gap: 8px; /* Consistent space between icon and text */
+    width: 100%;
+    line-height: 1; /* Prevents text from sitting lower/higher */
+}
+.bt-config-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1.2fr 0.8fr 0.8fr; /* Time inputs wider than RD */
+    gap: 6px;
+    margin-bottom: 12px;
+    background: var(--bg-hover);
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+
+.bt-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.bt-col label {
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.bt-time-input {
+    width: 100%;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    font-family: monospace;
+    font-size: 11px;
+    padding: 4px;
+    border-radius: 4px;
+    height: 26px; /* Uniform height */
+}
+.center-text { text-align: center; }
+
+/* --- 3-COLUMN LIVE ROW --- */
+.bt-live-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--border);
+}
+
+.bt-clock {
+    font-family: monospace;
+    font-size: 14px; /* Larger live clock */
+    font-weight: 700;
+    color: var(--text);
+}
+.att-filter-box {
+    background: var(--bg-hover);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+.radio-label {
+    font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;
+}
+.date-wrapper-smart {
+    background: var(--bg-card);
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+}
+.alarm-icon {
+    position: absolute; 
+    top: 10px; 
+    right: 10px;
+    height: 24px;
+    padding: 0 8px; /* Horizontal padding for text */
+    border-radius: 12px; /* Pill shape */
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    gap: 6px; /* Space between Bell and Text */
+    cursor: pointer; 
+    color: var(--text-muted);
+    transition: all 0.2s ease; 
+    z-index: 20;
+}
+
+.alarm-icon:hover { 
+    background: var(--bg-card); 
+    border-color: var(--primary);
+    color: var(--primary); 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.alarm-icon.active { 
+    background: var(--danger); 
+    color: white; 
+    border-color: var(--danger);
+    animation: ring 1s infinite; 
+}
+.alarm-opt-row.selected {
+    background-color: rgba(37, 99, 235, 0.1) !important;
+    border: 1px solid var(--primary) !important;
+    color: var(--primary) !important;
+    font-weight: 800;
+    border-radius: 6px;
+}
+.btn:disabled, .btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--bg-hover) !important;
+    color: var(--text-muted) !important;
+    border-color: var(--border) !important;
+    text-decoration: line-through; /* Optional: crosses it out */
+}
+/* Ensure checkmark stays blue */
+.alarm-opt-row.selected::after {
+    content: '✓';
+    margin-left: auto;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+/* Style for the text label */
+#bt-alarm-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: capitalize; /* "beep" -> "Beep" */
+    pointer-events: none;
+}
+
+.alarm-menu {
+    position: absolute; top: 35px; right: 5px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; width: 140px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    z-index: 20; padding: 5px; text-align: left;
+    overflow: hidden;
+}
+.alarm-opt {
+    padding: 6px; font-size: 11px; cursor: pointer; border-radius: 4px;
+}
+.alarm-opt:hover { background: var(--bg-hover); }
+
+@keyframes ring {
+    0% { transform: rotate(0); }
+    25% { transform: rotate(15deg); }
+    75% { transform: rotate(-15deg); }
+    100% { transform: rotate(0); }
+}
+/* --- MINI TOOLS DOCK --- */
+.mini-tools-dock {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-right: none;
+    border-top-left-radius: 12px; border-bottom-left-radius: 12px;
+    box-shadow: -2px 5px 15px rgba(0,0,0,0.1);
+    z-index: 4000;
+    display: flex; flex-direction: column; gap: 10px; padding: 10px 5px;
+}
+.mt-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-muted); transition: 0.2s;
+}
+.mt-icon:hover { background: var(--bg-hover); color: var(--primary); }
+.mt-icon i { width: 18px; height: 18px; }
+/* --- CHAT MEDIA & LINKS --- */
+.chat-media-img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 8px;
+    margin-bottom: 2px;
+    cursor: zoom-in;
+    display: block;
+    object-fit: contain;
+}
+/* --- EMBEDDED LINKS IN POSTS --- */
+.post-link {
+    color: var(--primary);
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+.post-img-embed {
+    display: block;
+    max-width: 100%;
+    max-height: 400px; /* Don't let tall images take over the feed */
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: zoom-in;
+    border: 1px solid var(--border);
+}
+/* --- LIVE LINK PREVIEW --- */
+.link-preview-area {
+    margin: 10px 0;
+    padding: 10px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    position: relative;
+    animation: fadeIn 0.3s ease;
+}
+
+.lp-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.lp-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.lp-img {
+    max-width: 100%;
+    max-height: 250px; /* Compact preview */
+    border-radius: 6px;
+    object-fit: contain;
+    background: black; /* Good for transparent GIFs */
+}
+
+/* Close button for preview */
+.lp-remove {
+    position: absolute;
+    top: 5px; right: 5px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border: none;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+.lp-remove:hover { background: var(--danger); }
+/* Make the textarea text darker at the top, and lighter at the bottom */
+#new-post-text {
+    /* Standard text color */
+    color: var(--text); 
+    
+    /* Smooth transition if they type */
+    transition: color 0.2s;
+}
+
+/* Optional: If you want to get crazy, you can make the font monospace 
+   so the link looks like "code" at the bottom */
+#new-post-text {
+    font-family: inherit;
+}
+/* Links inside bubbles */
+.chat-link {
+    text-decoration: underline;
+    word-break: break-all; /* Prevents long URLs from breaking layout */
+}
+
+/* Links sent by ME (White text) */
+.d-msg-row.out .chat-link { color: white; }
+
+/* Links received (Blue/Dark text) */
+.d-msg-row.in .chat-link { color: var(--primary); }
+/* --- MINI TOOL BOXES --- */
+.mini-tool-box {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%); /* Start centered */
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    z-index: 3001 !important;
+    padding: 10px;
+    
+    /* RESIZABLE MAGIC */
+    resize: both;
+    overflow: hidden; /* Needed for resize handle to show correctly */
+    display: flex;       /* Enables Flexbox */
+    flex-direction: column; /* Stack items vertically */
+    padding: 10px;
+    min-width: 280px;    /* Slightly wider default */
+    min-height: 350px;   /* Slightly taller default */
+    max-width: 90vw;
+    max-height: 90vh;
+}
+.mt-header {
+    cursor: grab; /* Indicates draggable */
+    padding: 12px 15px;
+    background: var(--bg-hover);
+    margin: -10px -10px 10px -10px; /* Stretch to edges */
+    border-bottom: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+    user-select: none;
+    flex-shrink: 0; 
+    touch-action: none;
+}
+.mt-header:active {
+    cursor: pointer;
+    background: var(--border); /* Visual feedback when holding */
+}
+.mt-header i { cursor: pointer; }
+.mt-header svg, 
+.mt-header i,
+.mt-controls {
+    cursor: pointer;
+    pointer-events: auto; /* Force events to work */
+    position: relative;
+    z-index: 10; /* Float above the drag layer */
+}
+
+/* Notepad */
+.mt-notepad {
+    flex: 1;              /* GROW to fill all available empty space */
+    width: 100%;          /* Full width */
+    resize: none;         /* Disable the textarea's own drag handle */
+    border: 1px solid var(--border);
+    background: var(--bg-hover);
+    padding: 10px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 8px;   /* Space before buttons */
+    box-sizing: border-box;
+}
+
+.mt-notepad:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--bg-card);
+}
+
+/* Calculator */
+.calc-display {
+    width: 100%; padding: 8px; text-align: right;
+    background: var(--bg-hover); border: 1px solid var(--border);
+    border-radius: 4px; margin-bottom: 8px; font-family: monospace; font-size: 18px; color: var(--text);
+}
+.calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; flex: 1; }
+.calc-grid button {
+    border: none; background: var(--bg-hover); border-radius: 4px;
+    font-weight: 700; cursor: pointer; color: var(--text);
+}
+.calc-grid button:hover { background: var(--border); }
+.calc-grid .op { color: var(--primary); }
+.calc-grid .eq { background: var(--primary); color: white; }
+.calc-grid .clear { background: var(--danger); color: white; margin-top: 5px; }
+/* --- NOTEPAD ENHANCEMENTS --- */
+.mt-header { display: flex; justify-content: space-between; align-items: center; }
+.mt-controls i { cursor: pointer; margin-left: 8px; width: 16px; transition:0.2s; }
+.mt-controls i:hover { color: var(--primary); }
+
+.mt-actions {
+    flex-shrink: 0;
+    display: flex; 
+    gap: 5px; 
+}
+.mt-actions button { 
+    flex: 1; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+}
+.mt-actions button i { width: 14px; height: 14px; }
+
+/* Saved List Overlay */
+.mt-note-list {
+    position: absolute; inset: 0; background: var(--bg-card); z-index: 10;
+    padding: 10px; display: flex; flex-direction: column;
+}
+.mt-list-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px;
+    font-weight: 700;
+}
+.saved-note-item {
+    background: var(--bg-hover); padding: 8px; border-radius: 6px; margin-bottom: 5px;
+    font-size: 11px; cursor: pointer; border: 1px solid var(--border);
+    white-space: pre-wrap; max-height: 60px; overflow: hidden;
+}
+.saved-note-item:hover { border-color: var(--primary); }
+
+/* --- BREAK TRACKER MINI TOOL --- */
+/* Remove Underline from Company Name */
+.company-input.no-border {
+    border-bottom: none !important;
+    margin-left: 5px;
+}
+
+/* Updated Alarm Menu */
+.alarm-menu { width: 180px; padding: 0; overflow: hidden; }
+.alarm-opt-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 10px; cursor: pointer; font-size: 12px;
+    border-bottom: 1px solid var(--border);
+}
+.alarm-opt-row:hover { background: var(--bg-hover); }
+.alarm-opt-row:last-child { border-bottom: none; }
+.alarm-opt-row span { flex: 1; }
+
+.test-btn {
+    background: var(--primary); color: white; border: none;
+    font-size: 9px; padding: 2px 6px; border-radius: 4px; cursor: pointer;
+    animation: fadeIn 0.2s;
+}
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+/* --- CALCULATOR FOCUS --- */
+#tool-calc:focus-within { border-color: var(--primary); }
+.bt-footer {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bt-footer-group {
+    display: flex;
+    gap: 8px; /* Space between items */
+}
+
+/* Minimal Text+Icon Button */
+.btn-minimal {
+    background: transparent;
+    border: none;
+    padding: 6px 8px;
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-minimal:hover {
+    background: var(--bg-hover);
+    color: var(--primary);
+}
+
+.btn-minimal i {
+    width: 14px;
+    height: 14px;
+}
+
+/* Specific Hover Colors */
+.danger-hover:hover {
+    color: var(--danger) !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+}
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    min-width: 700px; /* Ensure it doesn't squish on small screens */
+    table-layout: fixed; /* <--- THIS IS THE KEY TO EVEN COLUMNS */
+}
+
+/* Center align content for Time/Status columns */
+.report-table td:not(:first-child) {
+    text-align: center !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Specific tweaks for Status cells */
+.report-table td:nth-child(3),
+.report-table td:nth-child(5),
+.report-table td:nth-child(7),
+.report-table td:nth-child(9) {
+    background-color: rgba(0,0,0,0.02); /* Subtle Zebra striping for Status cols */
+    font-weight: 700;
+}
+/* =========================================
+   MINIMAL EDGE TRIGGERS
+   ========================================= */
+
+/* Common Trigger Style */
+.edge-trigger {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;  /* Very slim */
+    height: 60px; /* Tall enough to click easily */
+    background: transparent; /* Invisible by default */
+    cursor: pointer;
+    z-index: 3990;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    opacity: 0.3; /* Barely visible */
+}
+
+/* On Hover: Light up and show background */
+.edge-trigger:hover {
+    opacity: 1;
+    background: var(--bg-card);
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border: 1px solid var(--border);
+}
+
+.left-trigger {
+    top: 870px;
+    left: 0;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-left: none;
+}
+
+.right-trigger {
+    top: 870px;
+    right: 0;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+    border-right: none;
+}
+
+.edge-trigger svg {
+    width: 24px;
+    height: 24px;
+    fill: var(--text-muted); /* Uses the theme text color */
+}
+.edge-trigger:hover svg {
+    fill: var(--primary);
+}
+
+/* =========================================
+   MODIFIED MINI TOOLS DOCK
+   ========================================= */
+
+/* By default, push it off-screen to the right */
+.mini-tools-dock {
+    right: -60px; /* Hidden */
+    transition: right 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* When active, slide it in */
+.mini-tools-dock.active {
+    right: 0;
+}
+
+/* =========================================
+   SIMPLE ALARM TOOL STYLING
+   ========================================= */
+
+.alarm-ui-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+    padding: 10px;
+}
+
+.ac-big-display {
+    font-size: 36px;
+    font-weight: 800;
+    font-family: monospace;
+    color: var(--text);
+    background: var(--bg-hover);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.ac-input-group {
+    text-align: left;
+}
+.ac-input-group label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 5px;
+}
+
+.ac-status {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 5px;
+}
+
+.ac-big-display.active-alarm {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: rgba(37, 99, 235, 0.1);
+}
+
+.ac-big-display.ringing {
+    animation: flashRed 1s infinite;
+    color: var(--danger);
+    border-color: var(--danger);
+}
+
+@keyframes flashRed {
+    0%, 100% { background: var(--bg-card); }
+    50% { background: rgba(239, 68, 68, 0.2); }
+}
+/* --- ALARM TOOL SOUND SELECTOR --- */
+.ac-sound-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: 0.2s;
+    user-select: none;
+}
+
+.ac-sound-trigger:hover {
+    background: var(--bg-card);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* Ensure the menu sits correctly inside the tool */
+#ac-alarm-menu {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    max-height: 200px;
+    overflow-y: auto;
+}
+/* --- MUSIC SEARCH BAR --- */
+.music-search-box {
+    width: 100%;
+    display: flex;
+    gap: 5px;
+    margin-top: 5px; /* Push to next line if needed */
+}
+
+.music-search-box input {
+    flex: 1;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: var(--text);
+    outline: none;
+}
+.music-search-box input:focus {
+    border-color: var(--primary);
+}
+.music-search-box button {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0 8px;
+}
+.music-search-box button:hover {
+    color: var(--primary);
+}
+/* Remove spaces to select the button itself */
+.btn-xs.btn-outline.full-width {
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smooth physics */
+}
+
+.btn-xs.btn-outline.full-width:hover {
+    background: var(--bg-hover);
+    color: var(--primary);
+    
+    /* This makes it feel "Alive" */
+    transform: translateY(-2px); /* Lifts up slightly */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Casts a shadow */
+}
+
+.btn-xs.btn-outline.full-width:active {
+    transform: translateY(0); /* Pushes down when clicked */
+    box-shadow: none;
+}
+/* --- VIBE LIST ACTIONS --- */
+.vibe-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between Play and X */
+    flex-shrink: 0;
+}
+
+.btn-vibe-remove {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px;
+    opacity: 0.5;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.btn-vibe-remove:hover {
+    color: var(--danger); /* Turns Red */
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.bulletin-item:hover .btn-vibe-remove {
+    opacity: 1; /* Make it more visible when hovering the row */
+}
+/* --- THE EQUALIZER --- */
+.equalizer {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 16px;
+    padding-bottom: 2px;
+}
+
+.equalizer .bar {
+    width: 3px;
+    background: var(--primary);
+    border-radius: 2px;
+    animation: eq-bounce 1s infinite ease-in-out;
+}
+
+/* Stagger the animation so they move randomly */
+.equalizer .bar:nth-child(1) { height: 60%; animation-delay: 0s; }
+.equalizer .bar:nth-child(2) { height: 30%; animation-delay: 0.2s; }
+.equalizer .bar:nth-child(3) { height: 90%; animation-delay: 0.4s; }
+.equalizer .bar:nth-child(4) { height: 50%; animation-delay: 0.1s; }
+
+@keyframes eq-bounce {
+    0% { height: 20%; }
+    50% { height: 100%; background: #a855f7; /* Purple hint */ }
+    100% { height: 20%; }
+}
+.vibe-text {
+    background: linear-gradient(90deg, var(--text), var(--primary), #a855f7, var(--text));
+    background-size: 300%;
+    
+    /* 1. The Standard Way (Satisfies the Editor) */
+    background-clip: text;
+    
+    /* 2. The Practical Way (Required for Chrome/Safari to actually work) */
+    -webkit-background-clip: text;
+    
+    /* 3. Make text transparent so background shows through */
+    color: transparent; 
+    
+    /* 4. Webkit fallback for transparency */
+    -webkit-text-fill-color: transparent;
+
+    animation: vibe-flow 6s infinite linear;
+}
+
+@keyframes vibe-flow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+/* --- PULSING BORDER --- */
+.vibe-animated-border {
+    position: relative;
+    z-index: 1;
+    overflow: visible !important; /* Allow glow to spill out */
+}
+
+/* Create a soft glow behind the card */
+.vibe-animated-border::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    background: linear-gradient(45deg, var(--primary), #a855f7, var(--primary));
+    background-size: 200%;
+    filter: blur(8px); /* The "Glow" */
+    opacity: 0;
+    border-radius: 12px;
+    transition: opacity 0.5s;
+    animation: border-shift 3s infinite alternate;
+}
+
+/* Only show the glow on hover (Desktop) or if active */
+.vibe-animated-border:hover::after {
+    opacity: 0.4;
+}
+
+@keyframes border-shift {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+#vibe-reset-btn {
+    padding: 5px 5px;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Force hide everything including padding/borders */
+#vibe-reset-btn.hidden {
+    display: none !important;
+    padding: 0 !important;
+    border: none !important;
+}
+/* Chat Drag & Drop Visuals */
+.drag-active-chat {
+    border: 2px dashed var(--primary) !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    position: relative;
+}
+.drag-active-chat::after {
+    content: "Drop image to upload";
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--primary);
+    background: var(--bg-card);
+    padding: 10px 20px;
+    border-radius: 20px;
+    pointer-events: none;
+    font-weight: bold;
+}
+/* 1. Anchor the container */
+.search-container {
+    position: relative; /* Essential for the dropdown to sit relative to this */
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* 2. Style the Dropdown */
+#search-results {
+    position: absolute;
+    top: 100%; /* Push it to the bottom of the input */
+    left: 0;
+    width: 100%;
+    background-color: var(--bg-card, #ffffff); /* Fallback to white if var missing */
+    border: 1px solid var(--border, #ccc);
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    z-index: 9999; /* Float above everything */
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+
+.drop-item:hover {
+    background-color: var(--primary, #007bff);
+    color: #fff;
+}
+/* =========================================
+   MOBILE-ONLY TWEAKS (Max Width 768px)
+   ========================================= */
+@media (max-width: 768px) {
+
+    /* 1. BIGGER EDGE TRIGGERS (Centered for thumb reach) */
+    /* On desktop, they stay small/subtle. On mobile, we make them bigger/visible */
+    .edge-trigger {
+        top: 86% !important;        /* Force Center Vertical */
+        transform: translateY(-50%);
+        width: 40px !important;     /* Wider touch area */
+        height: 100px !important;   /* Taller touch area */
+        background: rgba(0,0,0,0.05); /* Slight tint so user sees them */
+        opacity: 0.5;
+        z-index: 4000;
+    }
+    
+    .edge-trigger:active {
+        top: 86% !important;
+        background: var(--primary); /* Feedback when touched */
+        opacity: 1;
+    }
+
+    /* 2. BACKGROUND FREEZE (Prevents scrolling behind modals) */
+    /* Only applies class when JS adds 'modal-open' */
+    body.modal-open {
+        overflow: hidden !important;   /* Hides scrollbars */
+        touch-action: none !important; /* Kills ALL touch gestures (scroll/zoom) */
+        position: relative;            /* Keeps it stable */
+    }
+
+    /* 2. RE-ENABLE SCROLLING INSIDE MODALS */
+    /* You must explicitly tell the browser "Touching HERE is okay" */
+    .modal-box, 
+    .chat-body, 
+    .reaction-list-scroll, 
+    .panel-content,
+    .bulletin-board {
+        touch-action: pan-y !important; /* Allows vertical scrolling only */
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+    }
+
+    /* 3. MOBILE Z-INDEX FIXES */
+    /* Ensure mini-tools sit properly on top of the chat/nav in mobile view */
+    .mini-tool-box {
+        z-index: 5005 !important;
+    }
+    
+    /* If dragging, go even higher */
+    .mini-tool-box.dragging {
+        z-index: 5010 !important;
+    }
+    
+    /* Ensure Sidebar/Settings panel covers everything on mobile */
+    .side-panel {
+        z-index: 6000 !important; 
+        width: 85% !important; /* Slightly smaller than full width */
+        left: 0;
+    }
+    .modal-content, .settings-card, .big-panel-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Ensure Monitor Grid is 2 columns on mobile */
+    .settings-card,.card {
+        width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-right: none !important;
+        box-shadow: none !important;
+    }
+    .card { margin-bottom: 10px !important;}
+    
+    /* Ensure Directory Cards are 2 columns on mobile */
+    body.admin-monitor-mode .admin-action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+body.admin-monitor-mode .mini-circle-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-main);
+    border: 1px solid transparent;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+
+body.admin-monitor-mode .mini-circle-btn:hover {
+    transform: scale(1.15);
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(var(--primary-rgb), 0.3);
+}
+
+/* Specific Button Colors on Hover */
+body.admin-monitor-mode .mini-circle-btn.danger:hover {
+    background: var(--danger);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+body.admin-monitor-mode .mini-circle-btn.success:hover {
+    background: var(--success);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+    /* Fix User Directory Card padding */
+    .suggestion-item {
+        padding: 10px 4px !important;
+    }
+    
+}
+
+.chat-window {
+    z-index: 9000 !important; 
+}
+
+/* Ensure the Mini Tools and Dock are also accessible if needed, or hidden */
+.mini-tools-dock, .chat-dock {
+    z-index: 9001 !important;
+}/* --- MUTED USER STYLES --- */
+
+/* Gray Badge for Search/Network */
+.badge-muted {
+    font-size: 10px; 
+    color: var(--text-muted); 
+    border: 1px solid var(--border); 
+    background: var(--bg-hover);
+    padding: 1px 6px; 
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Visual effect for the Avatar/Profile Card */
+.muted-visual {
+    filter: grayscale(100%); /* Makes it black and white */
+    opacity: 0.7;            /* Fades it slightly */
+}
+
+/* Specific styling for the Profile Sidebar when muted */
+.profile-muted-overlay {
+    position: relative;
+}
+.profile-muted-overlay::after {
+    content: "RESTRICTED";
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-10deg);
+    font-size: 24px;
+    font-weight: 900;
+    color: rgba(0,0,0,0.1);
+    border: 3px solid rgba(0,0,0,0.1);
+    padding: 5px 15px;
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: 0;
+}
+[data-theme="dark"] .profile-muted-overlay::after {
+    color: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.1);
+}
+/* Highlight the Mute button when user is suspended */
+.active-mute {
+    color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    background: rgba(37, 99, 235, 0.1) !important;
+}
+/* =========================================
+   COMPACT SIDEBAR RESTRUCTURE (Pure CSS)
+   ========================================= */
+
+/* 1. SHORTEN THE COVER PHOTO */
+.sidebar-cover {
+    height: 230px !important;
+    min-height: 70px !important;
+}
+
+/* 2. GRID LAYOUT FOR INFO SECTION */
+/* Transforms the vertical stack into a precision grid */
+.sidebar-info {
+    display: grid;
+    /* Columns: Avatar | Name/Info | Buttons */
+    grid-template-columns: auto 1fr auto; 
+    /* Rows: Name | Handle | Vibe Circle */
+    grid-template-rows: auto auto auto;
+    column-gap: 12px;
+    row-gap: 2px;
+    padding: 0 10px 10px 10px !important;
+    margin-top: 0 !important;
+    text-align: left !important;
+    align-items: center;
+}
+
+/* 3. AVATAR POSITIONING (Left) */
+.avatar-column {
+    grid-row: 1 / 3; /* Spans 2 rows (Name + Handle) */
+    grid-column: 1;
+    margin-top: -30px; /* Pull up to overlap cover slightly */
+    z-index: 5;
+    margin-left: 3px !important;
+}
+
+.avatar-lg {
+    width: 85px !important;
+    height: 85px !important;
+    border: 3px solid var(--bg-card) !important; /* White ring */
+    margin: 0 !important;   
+    object-fit: contain; /* 1. Crops the image to FILL the circle (No squishing/gaps) */
+    object-position: center;/* 2. Centers the face/image */
+    display: block;    
+}
+#quick-avatar.avatar-lg {
+    display: inline-block !important;
+}
+
+/* Hide the avatar upload buttons in this compact mode to prevent clutter */
+.sb-avatar-actions { display: none !important; }
+
+/* 4. TEXT POSITIONING (Middle) */
+#side-name {
+    grid-row: 1;
+    grid-column: 2;
+    align-self: end; /* Sit at bottom of Row 1 */
+    margin: 0 !important;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-top: 8px; /* Offset for the avatar overlap */
+}
+
+#side-account {
+    grid-row: 2;
+    grid-column: 2;
+    align-self: start; /* Sit at top of Row 2 */
+    font-size: 11px !important;
+    margin: 0 !important;
+    opacity: 0.8;
+    white-space: nowrap;       /* Keeps it on one line */
+    overflow: hidden;          /* Hides overflow */
+    text-overflow: ellipsis;   /* Adds '...' automatically */
+    max-width: 140px;          /* Force a width limit */
+    display: inline-block;     /* Required for width to work */
+}
+
+/* 5. BUTTONS POSITIONING (Right Most) */
+.sb-action-btns {
+    grid-row: 1 / 3; /* Center vertically against Avatar */
+    grid-column: 3;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    width: auto !important;
+    display: flex;
+    gap: 6px !important;
+    padding-top: 8px !important; /* Align with name */
+}
+
+/* FORCE ICON ONLY (Hide Text) */
+.sb-action-btns button span, 
+.sb-action-btns .btn span,
+#admin-controls-row button span {
+    display: none !important;
+}
+
+/* Make buttons compact circles/squares */
+.sb-action-btns button,
+#admin-controls-row button {
+    width: 16px !important;
+    height: 16px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px !important;
+    flex: none !important; /* Stop them from stretching */
+}
+
+/* Ensure Admin Row fits in the same spot */
+#admin-controls-row {
+    margin: 0 !important;
+    gap: 6px !important;
+    width: auto !important;
+}
+
+/* 6. VIBE CIRCLE (Bottom Row) */
+.vibe-circle-row {
+    grid-row: 3;
+    grid-column: 1 / -1; /* Span full width */
+}
+/* =========================================
+   SIDEBAR SPACING FIXES
+   ========================================= */
+
+/* 1. FIX VIBE CIRCLE SPACING */
+.vibe-circle-row {
+    display: flex !important;
+    justify-content: space-between !important; /* Push Text Left, Number Right */
+    align-items: center !important;
+    padding: 8px 12px !important; /* Add internal breathing room */
+    width: auto !important;
+    box-sizing: border-box !important;
+}
+
+/* 2. FIX BUTTONS LOOK (Icon Scaling) */
+.sb-action-btns button,
+#admin-controls-row button {
+    width: 36px !important;  /* Slightly bigger box */
+    height: 36px !important;
+    padding: 0 !important;   /* Keep padding 0 */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px !important;
+}
+
+/* CRITICAL: Shrink the Icon so it has "Visual Padding" inside the box */
+.sb-action-btns button svg,
+.sb-action-btns button i,
+#admin-controls-row button svg,
+#admin-controls-row button i {
+    width: 18px !important;  /* Force icon smaller */
+    height: 18px !important; /* Force icon smaller */
+    stroke-width: 2px !important;
+    margin: 0 !important;
+}
+#sidebar-card {
+    background: var(--bg-secondary) !important;
+    background-image: linear-gradient(160deg, var(--bg-secondary) 0%, var(--bg-main) 100%) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+}
+
+/* 2. DARK MODE SPECIFIC GRADIENT */
+[data-theme="dark"] #sidebar-card {
+    /* DARK MODE: Dark Grey top -> fading into Deep Midnight Blue */
+    background: linear-gradient(
+        180deg, 
+        var(--bg-card) 40%, 
+        rgba(37, 99, 235, 0.2) 100%
+    ) !important;
+    
+    border-bottom: 2px solid var(--primary);
+}
+
+/* 3. OPTIONAL: Add a "Glass" feel to the info area specifically */
+.sidebar-info {
+    position: relative;
+    z-index: 2;
+    /* This ensures the text sits crisply on top of the gradient */
+}
+.vibe-circle-row {
+    /* 1. GLASS EFFECT (Allows the card gradient to show through) */
+    background: rgba(255, 255, 255, 0.4) !important; 
+    backdrop-filter: blur(8px); /* The "Frost" blur */
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border-radius: 12px !important; 
+    color: var(--primary) !important; /* Make text pop with brand color */
+    font-weight: 800 !important;
+    letter-spacing: 0.5px;
+    margin-top: 10px !important; /* Give it space from the buttons */
+    margin-bottom: 5px !important;
+}
+
+/* --- DARK MODE ADJUSTMENTS --- */
+[data-theme="dark"] .vibe-circle-row {
+    /* Dark Glass */
+    background: rgba(0, 0, 0, 0.3) !important; 
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Optional: Animated Hover Glow */
+.vibe-circle-row:hover {
+    border-color: var(--primary) !important;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+.editing-post {
+    border: 1px dashed var(--primary);
+    background: var(--bg-hover);
+    padding: 8px;
+    border-radius: 6px;
+    outline: none;
+    min-height: 30px;
+    cursor: text;
+}
+/* 1. THE SWITCH TRACK */
+.toggle-switch {
+    width: 40px; 
+    height: 22px;
+    background: var(--bg-hover);
+    border-radius: 20px;
+    position: relative;
+    border: 1px solid var(--border);
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    cursor: pointer;
+}
+
+/* 2. THE BOUNCY CIRCLE (THUMB) */
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 3px;
+    width: 16px; height: 16px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    /* Bouncy Spring Bezier Curve */
+    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* 3. HOVER EFFECTS */
+.setting-row:hover .toggle-switch {
+    transform: scale(1.05); /* Slight grow */
+    border-color: var(--text-muted);
+}
+
+/* 4. ACTIVE STATE (DARK MODE) */
+[data-theme="dark"] .toggle-switch {
+    background: var(--primary);
+    border-color: var(--primary);
+    /* Neon Glow in Dark Mode */
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.4); 
+}
+
+/* Move the circle to the right */
+[data-theme="dark"] .toggle-switch::after {
+    transform: translateX(18px);
+    background: #fff;
+}
+
+/* 5. ICON ROTATION ANIMATION */
+.set-label i {
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Spin the moon icon when dark mode is active */
+[data-theme="dark"] .set-label i {
+    transform: rotate(360deg);
+    color: var(--primary); /* Highlight the icon too */
+}
+.btn-avatar-upload, .btn-avatar-delete {
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 1px solid var(--border);
+    background: var(--bg-card); /* Default background */
+    color: var(--text-muted);
+}
+
+/* --- 1. CAMERA BUTTON (Upload) --- */
+.btn-avatar-upload:hover {
+    background: var(--bg-hover);
+    color: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-3px) scale(1.05); /* Lifts up */
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); /* Blue Glow */
+}
+
+.btn-avatar-upload:active {
+    transform: scale(0.95);
+}
+
+/* --- 2. TRASH BUTTON (Delete) --- */
+.btn-avatar-delete:hover {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+    transform: rotate(5deg) scale(1.1); /* Slight tilt "danger" feel */
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); /* Red Glow */
+}
+
+.btn-avatar-delete:active {
+    transform: scale(0.9);
+}
+
+/* --- DARK MODE ADJUSTMENTS --- */
+[data-theme="dark"] .btn-avatar-upload {
+    background: var(--bg-hover);
+    color: #fff;
+}
+[data-theme="dark"] .btn-avatar-upload:hover {
+    background: var(--primary);
+}
+
+/* Pop In Animation */
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+}
+.pinned-post {
+    /* Force solid background so it doesn't blend/die */
+    background: var(--bg-card) !important; 
+    border: 1px solid var(--primary) !important;
+    border-left: 5px solid var(--primary) !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08) !important; /* Lift it up */
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+.pinned-post::after {
+    content: "📌"; 
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 20px;
+    opacity: 0.1;
+    pointer-events: none;
+}
+.pinned-post::before {
+    content: "\f08d"; /* FontAwesome pin unicode or similar, or just a shape */
+    font-family: feather; /* Assuming feather icons font is loaded, else use shape */
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 80px;
+    color: var(--primary);
+    opacity: 0.05;
+    transform: rotate(45deg);
+    pointer-events: none;
+}
+.pinned-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Specific icon style for the pin button */
+.btn-pin.active {
+    color: var(--primary);
+    fill: rgba(37, 99, 235, 0.2);
+}
+/* --- CREATE POST TEXTAREA --- */
+#new-post-text {
+    flex: 1;
+    border: none;
+    background: transparent;
+    resize: none; /* Disable manual drag handle (we will auto-grow) */
+    font-family: inherit;
+    color: var(--text);
+    padding-top: 8px;
+    font-size: 13px;
+    
+    /* SCROLLING LOGIC */
+    min-height: 40px;      /* Start size */
+    max-height: 200px;     /* Stop growing here and show scrollbar */
+    overflow-y: hidden;    /* Hide scrollbar until max-height hit */
+    line-height: 1.4;
+}
+
+/* Optional: If it hits max-height, show scrollbar */
+#new-post-text:focus {
+    overflow-y: auto; 
+}
+#new-post-text {
+    resize: vertical; /* Allows dragging up/down */
+    min-height: 40px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+.bt-flex-btn {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100%;
+    padding: 8px 12px !important; /* Slightly more padding */
+}
+
+/* The Time/Status Badge on the right */
+.bt-time-badge {
+    background: var(--bg-hover); /* Subtle background */
+    color: var(--text-muted);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 35px;
+    text-align: center;
+}
+
+/* When the button is disabled/done */
+.btn:disabled .bt-time-badge {
+    background: transparent;
+    color: inherit;
+}
+/* --- ACCENT COLOR APPLICATIONS --- */
+
+/* 1. Vibe Circle Count (The Number) */
+.count-badge, 
+#side-friends-count {
+    background: var(--accent) !important;
+    color: white !important;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.dock-badge {
+    position: absolute;
+    display: none; /* Hidden by default */
+    top: -7px; /* Adjusted slightly */
+    right: 35px;   /* Negative value moves it to the top-right corner edge */    
+    background: var(--danger) !important; /* Usually red for notifications */
+    border: 2px solid var(--bg-card);
+    border-radius: 50%; /* Perfect circle */
+    min-width: 22px; 
+    height: 22px;
+    padding: 0 4px; /* Padding for double digits like "99+" */
+    
+    color: white !important;
+    font-size: 10px;
+    font-weight: 700;
+    z-index: 10;
+    pointer-events: none; /* Lets clicks pass through to the chat head */
+}
+
+/* 2. Notification Badges (Chat/Dock) */
+.dock-item.unread .dock-badge {
+    display: flex; /* Only becomes Flex when parent is unread */
+    align-items: center;
+    justify-content: center;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Optional: Cute Pop Animation */
+@keyframes popIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+}
+
+/* 3. "Connect" Icon highlight (Optional) */
+.mini-circle-btn.success {
+    color: var(--primary) !important;
+    border-color: var(--border) !important;
+}
+.mini-circle-btn.success:hover {
+    background: var(--primary) !important;
+    color: white !important;
+}
+.sticky-header {
+    background-color: var(--bg-card) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05); /* Subtle shadow lift */
+    border-bottom: 1px solid var(--border);
+}
+
+/* Make the Brand Text "SOS Blue" */
+.brand {
+    color: var(--primary);
+}
+/* 4. Active Nav Link (Bottom Border) */
+/* This makes the active tab look more like a corporate portal */
+@media (min-width: 769px) {
+    .nav-btn.active {
+        background: transparent !important;
+        color: var(--primary) !important;
+        border-bottom: 2px solid var(--accent) !important;
+        border-radius: 0 !important;
+    }
+}
+#side-name {
+    font-size: 14px !important;
+    font-weight: 800;
+    margin-bottom: 2px;
+    color: var(--text-main);
+}
+#side-account {
+    font-size: 12px !important;
+    font-weight: 600;
+    color: var(--primary); /* Makes it pop */
+    margin: 0;
+}
+#side-role {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 2px;
+    margin-bottom: 2px !important; /* Spacing before the Vibe Circle count */
+}
+:focus-visible {
+    outline: 3px solid var(--primary) !important; /* Thick theme-colored line */
+    outline-offset: 3px;                          /* Gap between button and line */
+    box-shadow: 0 0 15px var(--primary);          /* Neon Glow effect */
+    transition: none;                             /* Instant feedback */
+    z-index: 10000;                               /* Ensure ring is on top */
+}
+
+/* 2. Fix for Circular Buttons (make the ring round) */
+.icon-btn:focus-visible,
+.icon-btn-tiny:focus-visible,
+.nav-btn:focus-visible,
+.mini-circle-btn:focus-visible,
+.mob-btn:focus-visible,
+.avatar-sm:focus-visible, 
+.avatar-lg:focus-visible {
+    border-radius: 50%;
+    outline-offset: 2px;
+}
+
+/* 3. Fix for Inputs (remove default browser blue ring) */
+input:focus-visible, 
+textarea:focus-visible, 
+select:focus-visible {
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 0; /* Attach directly to input border */
+    box-shadow: none;  /* Keep inputs cleaner */
+}
+#side-actions {
+    display: flex;
+    justify-content: right;
+    align-items: center; /* Prevents vertical stretching */
+    width: auto !important;
+    margin-top: -20px !important;
+    margin-right: auto !important;
+    flex-wrap: nowrap; /* Wraps to next line if screen is too small, preventing cutoff */
+}
+.profile-text-stack { margin-left: -8px !important}
+.mini-circle-btn {
+    width: 22px !important;      /* Rigid Width */
+    height: 22px !important;     /* Rigid Height */
+    min-width: 22px !important;  /* Prevent squishing */
+    min-height: 22px !important; /* Prevent squishing */
+    
+    border-radius: 50% !important;
+    padding: 0 !important;       /* Remove padding that distorts shape */
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    flex-shrink: 0;              /* Tell Flexbox: "DO NOT SHRINK ME" */
+    aspect-ratio: 1 / 1;         /* Enforces 1:1 square ratio */
+}
+
+/* Optional: Ensure icons inside are centered */
+.mini-circle-btn svg {
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+}
+.admin-action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr; /* 4 Columns */
+    gap: 2px;                       
+    margin-top: 8px;
+    width: 100%;
+    justify-items: center;
+}
+.network-user-actions {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    margin-top: 8px;
+    
+    /* Reset any grid specific properties that might leak in */
+    grid-template-columns: none !important;
+}
+/* --- VIBE MONITOR GRID (Gradient Cards) --- */
+
+/* 1. Layout Logic */
+body.admin-monitor-mode .col-right { display: none !important; }
+body.admin-monitor-mode .col-center { grid-column: 2 / -1; }
+
+body.admin-monitor-mode #suggestions-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 15px !important; /* Spacing for the shadows to breathe */
+    padding: 10px; /* Padding inside container so shadows don't clip */
+}
+
+/* 2. THE CARD (Gradient & Floating) */
+body.admin-monitor-mode .suggestion-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    
+    height: 100%;
+    width: 107%;
+    padding: 15px 4px;
+    
+    /* THE GRADIENT BACKGROUND */
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-main) 100%);
+    
+    /* Make it look like a physical card */
+    border: 1px solid var(--border);
+    border-top: 1px solid rgba(255,255,255, 0.5); /* Highlight top edge for 3D effect */
+    border-radius: 16px; /* Rounder, friendlier corners */
+    
+    /* Lift it off the floor */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
+    
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy transition */
+    
+    /* Animation Entrance */
+    animation: cardPop 0.4s ease-out backwards;
+}
+
+/* Stagger animation */
+body.admin-monitor-mode .suggestion-item:nth-child(odd) { animation-delay: 0.05s; }
+body.admin-monitor-mode .suggestion-item:nth-child(even) { animation-delay: 0.1s; }
+
+@keyframes cardPop {
+    from { opacity: 0; transform: translateY(20px) scale(0.9); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 3. HOVER PHYSICS (Float Up & Glow) */
+body.admin-monitor-mode .suggestion-item:hover {
+    transform: translateY(-6px); /* Physically lift up */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15); /* Shadow grows/diffuses */
+    border-color: var(--primary); /* subtle glow on border */
+    
+    /* Lighten the gradient slightly on hover */
+    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-secondary)); 
+}
+
+/* 4. AVATAR Styling */
+body.admin-monitor-mode .suggestion-item .avatar-sm {
+    width: 46px; 
+    height: 46px;
+    border-radius: 50%;
+    border: 3px solid var(--bg-main); /* Ring around avatar */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    object-fit: cover;
+    margin-bottom: 8px;
+    transition: transform 0.3s ease;
+}
+
+body.admin-monitor-mode .suggestion-item:hover .avatar-sm {
+    transform: scale(1.1) rotate(2deg); /* Playful tilt */
+    border-color: var(--primary);
+}
+
+/* 5. TEXT STYLING */
+body.admin-monitor-mode .suggestion-item div {
+    text-align: center;
+    width: 100%;
+}
+
+/* Name */
+body.admin-monitor-mode .suggestion-item div:first-of-type {
+    font-size: 12px !important;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Account/Username */
+body.admin-monitor-mode .suggestion-item div[style*="text-muted"] {
+    font-size: 9px !important;
+    opacity: 0.8;
+    background: rgba(0,0,0,0.03); /* Tiny badge background */
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    display: inline-block;
+}
+
+/* 6. BUTTON ACTIONS */
+body.admin-monitor-mode .admin-action-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 4px !important;
+    padding: 10px 0;
+    margin-top: 10px;
+}
+
+body.admin-monitor-mode .mini-circle-btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    margin: 0 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-main);
+    border: 1px solid transparent;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.2s;
+}
+
+body.admin-monitor-mode .mini-circle-btn:hover {
+    transform: scale(1.15);
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(var(--primary-rgb), 0.3);
+}
+
+/* Specific Button Colors on Hover */
+body.admin-monitor-mode .mini-circle-btn.danger:hover {
+    background: var(--danger);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+body.admin-monitor-mode .mini-circle-btn.success:hover {
+    background: var(--success);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+.big-panel-card {
+    background: var(--bg-secondary);
+    /* The Gradient Container you wanted */
+    background-image: linear-gradient(160deg, var(--bg-secondary) 0%, var(--bg-main) 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.big-panel-card h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--primary);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+}
+
+/* Ensure the Grid inside fits nicely */
+.monitor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 20px!important;
+}
+
+/* --- 2. SETTINGS MODAL MOBILE FIX --- */
+/* Force modal content to be responsive */
+.modal-content {
+    width: 500px;
+    max-width: 95%; /* Fixes the shrinking on mobile */
+    margin: 10% auto;
+}
+
+/* --- 3. NOTES SELECTION UI --- */
+.note-checkbox {
+    display: none;
+    margin-right: 12px;
+    transform: scale(1.3);
+    accent-color: var(--danger);
+}
+.notes-select-mode .note-checkbox { display: block; }
+.notes-select-mode .icon-btn-tiny.danger { display: none; } /* Hide individual delete in select mode */
+
+/* 1. READY STATE (Gray/Clean) */
+.bt-status-ready {
+    background: var(--bg-hover) !important;
+    border: 2px solid var(--border) !important;
+    color: var(--text-muted) !important;
+    font-weight: 700 !important;
+}
+
+/* ACTIVE BREAK (Bold Blue Pulse) */
+.bt-status-active {
+    background: rgba(37, 99, 235, 0.05) !important;
+    border: 2px solid var(--primary) !important;
+    color: var(--primary) !important;
+    font-weight: 900 !important; /* EXTRA BOLD */
+    box-shadow: 0 0 15px rgba(37, 99, 235, 0.15);
+    animation: pulseBlue 1s infinite;
+}
+
+/* OVERTIME (Bold Red Pulse) */
+.bt-status-over {
+    background: rgba(239, 68, 68, 0.05) !important;
+    border: 2px solid var(--danger) !important;
+    color: var(--danger) !important;
+    font-weight: 900 !important; /* EXTRA BOLD */
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+    animation: pulseRed 1s infinite;
+}
+
+/* Animations for the Pulse */
+@keyframes pulseBlue {
+    0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+@keyframes pulseRed {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Start Time Display */
+.bt-start-time-display {
+    font-size: 11px;
+    font-family: monospace;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: -5px;
+    margin-bottom: 10px;
+    padding: 2px 8px;
+    background: var(--bg-hover);
+    border-radius: 10px;
+    display: inline-block;
+}
+#bt-mini-widget {
+    position: fixed;
+    /* 1. Use JS for centering (see below) to avoid Drag conflicts */
+    bottom: 30px; 
+    /* left: 50%; <--- REMOVE THIS */
+    /* transform: translateX(-50%); <--- REMOVE THIS */
+    
+    background: var(--bg-card);
+    padding: 8px 20px;
+    border-radius: 30px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 9999;
+    cursor: grab; /* Shows it is draggable */
+    border: 2px solid var(--primary);
+    
+    /* 2. FIX THE STRETCHING: Force strict dimensions */
+    height: 45px !important; 
+    width: fit-content !important;
+    box-sizing: border-box;
+
+    /* 3. MOBILE OPTIMIZATIONS */
+    -webkit-user-select: none;
+    user-select: none;
+    white-space: nowrap;
+    touch-action: none;
+    
+    /* 4. ANIMATION (Optional - ensure keyframes don't scale Y) */
+    animation: slideUpWidget 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: box-shadow 0.2s; /* Removed transform transition to make dragging snappy */
+}
+
+#bt-mini-widget:hover {
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 8px 25px rgba(37,99,235,0.3);
+}
+
+#bt-mini-widget.hidden {
+    display: none !important;
+}
+
+/* Overtime State (Red) */
+#bt-mini-widget.widget-overtime {
+    border-color: var(--danger);
+    background: #fff0f0; /* Light red tint */
+    animation: pulseWidgetRed 1s infinite;
+}
+#bt-mini-widget.widget-overtime span {
+    color: var(--danger) !important;
+}
+
+/* Text Styles */
+#bt-widget-time {
+    font-family: monospace;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text);
+}
+
+#bt-widget-icon {
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+}
+
+@keyframes slideUpWidget {
+    from { bottom: -50px; opacity: 0; }
+    to   { bottom: 30px; opacity: 1; }
+}
+
+@keyframes pulseWidgetRed {
+    0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+    100% { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+}
+.admin-action-grid .mini-circle-btn{
+    width: 25px !important;
+    height: 25px !important;
+    gap: 2px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+@media (max-width: 768px) {
+    /* Assuming your directory link has a specific class or ID, 
+       if not, add class="nav-dir-link" to that <a> tag in HTML */
+    .nav-dir-link, 
+    a[onclick="router('network')"] { display: none !important; }
+}
+
+/* Draggable Widget Fix */
+#bt-mini-widget {
+    position: fixed; /* Ensure it floats */
+    cursor: grab;
+    z-index: 99999;
+    /* Add touch-action to prevent scrolling while dragging */
+    touch-action: none; 
+}
+#bt-mini-widget:active {
+    cursor: grabbing;
+}
+#suggestions-list .suggestion-item {
+    /* Same animation as Network Hub */
+    animation: cardPop 0.4s ease-out backwards;
+}
+
+
+/* 2. THE "WATERFALL" STAGGER EFFECT */
+/* This makes them pop in one by one down the list */
+#suggestions-list .suggestion-item:nth-child(1) { animation-delay: 0.10s; }
+#suggestions-list .suggestion-item:nth-child(2) { animation-delay: 0.15s; }
+#suggestions-list .suggestion-item:nth-child(3) { animation-delay: 0.20s; }
+#suggestions-list .suggestion-item:nth-child(4) { animation-delay: 0.25s; }
+#suggestions-list .suggestion-item:nth-child(5) { animation-delay: 0.30s; }
+#suggestions-list .suggestion-item:nth-child(6) { animation-delay: 0.35s; }
+#suggestions-list .suggestion-item:nth-child(7) { animation-delay: .45s; }
+#suggestions-list .suggestion-item:nth-child(8) { animation-delay: .50s; }
+#suggestions-list .suggestion-item:nth-child(n+9) { animation-delay: 1s; }
+.comment-section {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-hover);
+    margin: 10px -15px -15px -15px; /* Stretch to edges */
+    padding: 10px 15px;
+    border-top: 1px solid var(--border);
+    animation: slideDown 0.2s ease;
+}
+
+.comment-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    position: relative; /* For hover effects */
+}
+
+.avatar-xs {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border);
+}
+.avatar-xs {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* Reply Avatar (Smaller) */
+.avatar-reply {
+    width: 24px; height: 24px; /* Tiny */
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    margin-top: 2px; /* Align with top of bubble */
+}
+.comment-bubble {
+    background: var(--bg-card);
+    padding: 8px 12px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    line-height: 1.4;
+    position: relative;
+    word-break: break-word; /* Prevent long text breaking layout */
+}
+.reply-bubble {
+    background: var(--bg-hover); /* Slightly darker/different to distinguish */
+    padding: 6px 10px;           /* More compact */
+    font-size: 12px;             /* Smaller text */
+    border-radius: 12px;         /* Sharper corners */
+}
+
+/* Ensure images inside ANY bubble don't overflow */
+.comment-bubble img, 
+.reply-bubble img {
+    max-width: 100% !important;
+    height: auto !important;
+    border-radius: 6px;
+    margin-top: 6px;
+    display: block;
+}
+
+.comment-input-wrapper {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.comment-input-wrapper input {
+    flex: 1;
+    padding: 6px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    background: var(--bg-card);
+    color: var(--text);
+}
+
+.comment-input-wrapper button {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+}
+.comment-actions {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: none; /* Hidden */
+    background: var(--bg-card);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+.comment-bubble:hover .comment-actions {
+    display: flex; /* Show on hover */
+}
+
+.c-action-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--text-muted);
+    transition: 0.2s;
+}
+.c-action-btn:hover { color: var(--primary); }
+.c-action-btn.danger:hover { color: var(--danger); }
+
+/* Images inside Comments */
+.comment-img {
+    display: block;
+    max-width: 150px; /* Keep them small */
+    border-radius: 6px;
+    margin-top: 5px;
+    cursor: zoom-in;
+    border: 1px solid var(--border);
+}
+
+/* Drag & Drop Visuals for Input */
+.comment-input-wrapper {
+    position: relative;
+    transition: 0.2s;
+    border: 1px solid transparent; /* Prepare for border change */
+    border-radius: 20px;
+}
+.comment-input-wrapper.drag-active {
+    background: rgba(37, 99, 235, 0.1); /* Blue Tint */
+    border-color: var(--primary);        /* Blue Border */
+    box-shadow: 0 0 10px rgba(37, 99, 235, 0.2);
+}
+.comment-input-wrapper.drag-active input {
+    background: rgba(37, 99, 235, 0.1);
+    border-color: var(--primary);
+}
+.comment-preview-area {
+    /* Make it tight and small */
+    padding: 4px 10px;
+    margin: 4px 15px 0 15px; 
+    background: transparent;
+    border: none;
+    display: flex;
+    gap: 10px;
+}
+
+.comment-preview-item {
+    position: relative;
+    display: inline-block;
+}
+
+.comment-preview-item img {
+    height: 40px !important; /* Tiny thumbnail size */
+    width: auto;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.btn-preview-remove {
+    position: absolute;
+    top: -5px; right: -5px;
+    width: 16px; height: 16px;
+    background: var(--danger);
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    border: 1px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.btn-preview-remove i { width: 10px; height: 10px; }
+.comment-preview-item button {
+    position: absolute;
+    top: -5px; right: -5px;
+    background: var(--danger);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+.reply-row {
+    /* Push the whole row to the right */
+    margin-left: 45px !important;
+    
+    /* Ensure it fills the remaining space, minus the margin */
+    width: calc(100% - 45px) !important;
+    
+    /* Essential for positioning the connector line */
+    position: relative;
+    
+    /* Optional: Tighten vertical space between parent and reply */
+    margin-top: 0px; 
+    padding-top: 4px; 
+    box-sizing: border-box;
+}
+.comment-bubble img,
+.comment-bubble .post-img-embed {
+    max-height: 120px !important; /* Cap height to 120px */
+    max-width: 100% !important;   /* Don't overflow width */
+    width: auto !important;       /* Allow aspect ratio to maintain */
+    border-radius: 8px;
+    margin-top: 6px;
+    cursor: zoom-in;              /* Keep the lightbox cursor */
+    display: block;
+}
+
+/* Visual connector line (Optional but looks pro) */
+.reply-row::before {
+    content: '';
+    position: absolute;
+    
+    /* Position the line in the empty space created by margin-left */
+    left: -25px; 
+    top: -15px; /* Starts from the row above */
+    
+    /* Size of the connector */
+    width: 20px; 
+    height: 35px; /* Tall enough to reach the avatar center */
+    
+    /* Draw the line */
+    border-left: 2px solid var(--border);    /* Vertical line */
+    border-bottom: 2px solid var(--border);  /* Horizontal line */
+    
+    /* Make it look like a smooth curve */
+    border-bottom-left-radius: 12px;
+    
+    /* Ensure it doesn't block clicks */
+    pointer-events: none;
+    opacity: 0.6;
+}
+.reply-row .avatar-reply {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px; /* Prevent squishing */
+    border-radius: 50%;
+    margin-right: 8px;
+    border: 1px solid var(--border);
+    z-index: 2; /* Sit on top of the connector line */
+    background: var(--bg-card); /* Hide line behind avatar */
+}
+
+/* Comment Footer (Like | Reply | Time) */
+.comment-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+    margin-left: 4px;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.c-footer-btn {
+    cursor: pointer;
+    transition: 0.2s;
+    background: none; border: none; padding: 0;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 600;
+}
+.c-footer-btn:hover { color: var(--primary); text-decoration: underline; }
+
+/* Active Like State */
+.c-footer-btn.liked {
+    color: var(--primary) !important; /* Turn Blue */
+    font-weight: 800;
+}
+
+/* Hidden Reply Input (Toggles Open) */
+.reply-input-box {
+    margin-left: 40px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 5px;
+}
+.comment-react-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+/* The Popup Menu (Mini Version) */
+.comment-react-menu {
+    position: absolute;
+    bottom: 20px; /* Pop UP above the text */
+    left: -10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 4px 8px;
+    border-radius: 20px;
+    display: flex;
+    gap: 4px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    z-index: 100;
+    
+    /* Animation */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(5px);
+    transition: all 0.2s ease;
+}
+
+/* Show Menu on Hover */
+.comment-react-wrapper:hover .comment-react-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Hover Icons inside Comment Menu */
+.comment-react-menu .icon-opt {
+    padding: 2px;
+}
+.comment-react-menu .icon-opt svg {
+    width: 18px; /* Slightly smaller than main feed */
+    height: 18px;
+}
+
+/* Active Colors for the Text Button */
+.c-footer-btn.love { color: #ef4444; font-weight: 800; }
+.c-footer-btn.joy  { color: #0ea5e9; font-weight: 800; }
+.c-footer-btn.sad  { color: #8b5cf6; font-weight: 800; }
+.c-footer-btn.mad  { color: #f97316; font-weight: 800; }
+.c-footer-btn.fire { color: #eab308; font-weight: 800; }
+.c-footer-btn.like { color: var(--primary); font-weight: 800; }
+.reply-indicator {
+    background: var(--bg-hover);
+    padding: 6px 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+    border-radius: 8px; /* Rounded top corners if placed right above input */
+    margin: 0 15px 5px 15px; /* Align with input */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 3px solid var(--primary);
+    animation: slideDown 0.2s ease;
+}
+
+.reply-indicator span {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.reply-indicator button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+}
+.reply-indicator button:hover {
+    color: var(--danger);
+    background: rgba(0,0,0,0.05);
+    border-radius: 50%;
+}
+@media (min-width: 769px) {
+    .col-center {
+        /* Forces feed to stay wide. 
+           If screen is too small, the whole BROWSER will scroll (preserving sticky sidebars). */
+        min-width: 500px; 
+    }
+    
+    .main-grid {
+        display: grid;
+        /* Fixed Left (300px) | Flexible Center | Fixed Right (260px) */
+        grid-template-columns: 300px 1fr 260px; 
+        gap: 20px;
+        max-width: 1300px; 
+        margin: 76px auto 20px;
+        padding: 0 20px 20px 20px;
+        
+        /* REMOVED overflow-x: auto (It kills sticky sidebars) */
+        /* REMOVED align-items: start (It shifts columns up unnecessarily) */
+    }
+}
+
+/* Mobile stays fluid */
+@media (max-width: 768px) {
+    .col-center {
+        min-width: 0; /* Allow shrinking to fit phone screen */
+        width: 100%;
+    }
+}
+.report-table td:nth-child(3),
+.report-table td:nth-child(4) {
+    text-align: left !important;
+    padding-left: 10px; /* Add spacing so it doesn't touch the border */
+}
+
+/* Optional: If you want the Headers to match (Left Align) */
+.report-table th:nth-child(3),
+.report-table th:nth-child(4) {
+    text-align: left !important;
+    padding-left: 10px;
+}

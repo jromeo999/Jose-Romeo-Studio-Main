@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <title>Vibe Hub</title>
+  
+  <!-- ICONS -->
+  <script src="https://unpkg.com/feather-icons"></script>
+  
+  <!-- FIREBASE V8 (Classic - Fixes "firebase is not defined") -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  
+  <!-- YOUTUBE API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+ <body>
+  <div class="edge-trigger left-trigger" onclick="toggleUtilityPanel()">
+   <svg viewBox="0 0 24 24">
+    <path d="M8.59,16.59L13.17,12L8.59,7.41L10,6l6,6l-6,6L8.59,16.59z"></path>
+   </svg>
+  </div>
+  <!-- RIGHT TRIGGER (Reveals Mini Tools Dock) -->
+  <div class="edge-trigger right-trigger" onclick="toggleToolsDock()">
+   <svg viewBox="0 0 24 24" style="transform: rotate(180deg);">
+    <path d="M8.59,16.59L13.17,12L8.59,7.41L10,6l6,6l-6,6L8.59,16.59z"></path>
+   </svg>
+  </div>
+  <!-- 1. REACTION SPOTLIGHT MODAL -->
+  <div id="reaction-modal" class="modal-overlay hidden">
+   <div class="modal-box" style="max-width: 350px;">
+    <div class="modal-header">
+     <h3>Vibed by</h3>
+     <button class="icon-btn" onclick="closeModal('reaction-modal')">
+      <i data-feather="x"></i>
+     </button>
+    </div>
+    <div id="reaction-list-content" class="reaction-list-scroll"></div>
+   </div>
+  </div>
+  <!-- NOTIFICATIONS & TRASH -->
+  <div id="notification-stack" class="notify-stack"></div>
+  <!-- 7. DRAG TO CLOSE TRASH BIN (Mobile) -->
+  <div id="chat-trash" class="chat-trash">
+   <div class="trash-zone">
+    <i data-feather="x-circle"></i>
+   </div>
+  </div>
+  <!-- ADMIN: MUTE DURATION MODAL -->
+<div id="mute-modal" class="modal-overlay hidden" style="z-index: 9999;">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Suspend User</h3>
+            <button class="icon-btn" onclick="closeModal('mute-modal')"><i data-feather="x"></i></button>
+        </div>
+        <p class="text-muted" style="font-size:12px; margin-bottom:15px;">
+            Select suspension duration. The user will be logged out and unable to access the feed.
+        </p>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:15px;">
+            <button class="btn btn-outline" onclick="confirmMute(24)">24 Hrs</button>
+            <button class="btn btn-outline" onclick="confirmMute(36)">36 Hrs</button>
+            <button class="btn btn-outline" onclick="confirmMute(48)">48 Hrs</button>
+        </div>
+        <div class="input-group">
+            <input type="text" id="mute-reason" placeholder=" ">
+            <label>Reason (Optional)</label>
+        </div>
+    </div>
+</div>
+<div id="delete-account-modal" class="modal-overlay hidden">
+   <div class="modal-box">
+      <div class="modal-header">
+         <h3 style="color:var(--danger)">Delete Account</h3>
+         <button class="icon-btn" onclick="closeModal('delete-account-modal')">
+            <i data-feather="x"></i>
+         </button>
+      </div>
+      <p style="color:var(--text-muted); font-size:13px; margin-bottom:15px;">
+         WARNING: This cannot be undone. All posts, messages, and connections will be permanently deleted.
+      </p>
+      <div class="input-group">
+         <!-- This input replaces the browser prompt -->
+         <input type="text" id="del-acc-input" placeholder=" ">
+         <label>Type your username to confirm</label>
+      </div>
+      <button class="btn btn-danger full-width" onclick="executeDeleteAccount()">Permanently Delete</button>
+   </div>
+</div>
+
+<!-- USER: SUSPENDED SCREEN (Overlay) -->
+<div id="suspended-view" class="hidden" style="position:fixed; inset:0; background:var(--bg); z-index:8000; align-items:center; text-align:center; padding:20px;">
+    <div style="width:80px; height:80px; background:rgba(239,68,68,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:20px; color:var(--danger);">
+        <i data-feather="slash" style="width:40px; height:40px;"></i>
+    </div>
+    <h1 style="margin:0; font-size:24px;">Account Suspended</h1>
+    <p style="color:var(--text-muted); max-width:400px; margin-top:10px;">
+        Your account has been temporarily muted due to a violation of our policy guidelines.
+    </p>
+    <div class="card" style="margin-top:20px; padding:15px; border:1px solid var(--danger); background:rgba(239,68,68,0.05);">
+        <strong>Lift Date:</strong> <span id="suspend-lift-time">--</span>
+    </div>
+    <p style="font-size:12px; margin-top:30px; color:var(--text-muted);">
+        To make an appeal, please contact support.
+    </p>
+    <div style="display:flex; gap:10px; margin-top:10px;">
+        <button class="btn btn-primary" onclick="contactAdminForAppeal()">Contact Admin</button>
+        <button class="btn btn-outline" onclick="handleLogout()">Logout</button>
+    </div>
+</div>
+  <div id="toast-container"></div>
+  <!-- LANDING VIEW -->
+  <div id="landing-view" class="landing-container">
+   <div class="landing-box">
+    <div class="brand-hero">
+     <img src="assets/icon.png" onerror="this.style.display='none'">
+     <span>VIBE.</span>
+    </div>
+    <h1>Connect. Engage. Belong.</h1>
+    <div class="landing-buttons">
+<button class="btn btn-primary" onclick="openModal('login-modal'); checkLastUser()">Access</button>     
+<button class="btn btn-outline" onclick="openModal('register-modal')">Join</button>
+    </div>
+   </div>
+  </div>
+  <!-- MODALS -->
+  <!-- 1. LOGIN -->
+  <div id="login-modal" class="modal-overlay hidden">
+   <div class="modal-box">
+      <div class="modal-header">
+         <h3>Vibe Back In</h3>
+         <button class="icon-btn" onclick="closeModal('login-modal')">
+            <i data-feather="x"></i>
+         </button>
+      </div>
+
+      <!-- A. QUICK LOGIN (Side-by-Side Buttons) -->
+      <div id="login-quick-view" class="hidden" style="text-align:center; padding:10px 0;">
+         <img id="quick-avatar" src="" class="avatar-lg" style="width:80px; height:80px; margin-bottom:10px;">
+         <h3 id="quick-name" style="margin:0; font-size:18px;">User</h3>
+         <p id="quick-username" style="color:var(--text-muted); font-size:12px; margin-bottom:20px;">@username</p>
+         
+         <!-- Only Password Needed -->
+         <div class="input-group">
+            <input type="password" id="quick-pass" placeholder=" ">
+            <label>Access Code</label>
+         </div>
+
+         <!-- SIDE BY SIDE BUTTONS -->
+         <div style="display: flex; gap: 10px; margin-top: 15px;">
+             <button class="btn btn-outline" style="flex: 1;" onclick="toggleLoginMode('standard')">Switch</button>
+             <button class="btn btn-primary" style="flex: 1;" onclick="handleQuickLogin()">Continue</button>
+         </div>
+
+         <!-- Footer maintained -->
+         <div style="margin-top:15px; text-align:center; font-size:12px; color:var(--text-muted);"> 
+            No vibe yet? <span onclick="switchModal('login-modal', 'register-modal')" style="cursor:pointer; color:var(--text); font-weight:600;">Join</span>
+         </div>
+      </div>
+
+      <!-- B. STANDARD LOGIN -->
+      <div id="login-standard-view">
+         <div class="input-group">
+            <input type="text" id="login-user" placeholder=" " autocomplete="username">
+            <label>Username</label>
+         </div>
+         <div class="input-group">
+            <input type="password" id="login-pass" placeholder=" " autocomplete="current-password">
+            <label>Access Code</label>
+         </div>
+         <button class="btn btn-primary full-width" onclick="handleLogin()">Enter</button>
+         
+         <div style="margin-top:15px; text-align:center; font-size:12px; color:var(--text-muted);"> 
+            No vibe yet? <span onclick="switchModal('login-modal', 'register-modal')" style="cursor:pointer; color:var(--text); font-weight:600;">Join</span>
+         </div>
+         
+         <!-- Link to go back to Quick Login if available -->
+         <div id="btn-back-quick" class="hidden" style="margin-top:10px; text-align:center;">
+             <span onclick="toggleLoginMode('quick')" style="cursor:pointer; font-size:11px; color:var(--primary);">Back to last user</span>
+         </div>
+      </div>
+   </div>
+</div>
+  <!-- 2. REGISTER -->
+  <div id="register-modal" class="modal-overlay hidden">
+   <div class="modal-box">
+    <div class="modal-header">
+     <h3>New Identity</h3>
+     <button class="icon-btn" onclick="closeModal('register-modal')">
+      <i data-feather="x"></i>
+     </button>
+    </div>
+    <div class="input-group">
+     <input type="text" id="reg-name" placeholder=" ">
+     <label>Display Name</label>
+    </div>
+    <div class="input-group">
+     <input type="text" id="reg-account" placeholder=" ">
+     <label>Account</label>
+    </div><div class="input-group">
+     <input type="text" id="reg-role" placeholder=" ">
+     <label>Role</label>
+    </div>
+    <div class="input-group">
+     <input type="text" id="reg-user" placeholder=" ">
+     <label>Username</label>
+    </div>
+    <div class="input-group">
+     <input type="password" id="reg-pass" placeholder=" ">
+     <label>Access Code / Password</label>
+    </div>
+    <button class="btn btn-primary full-width" onclick="handleRegister()">Join</button>
+   </div>
+  </div>
+  <!-- 3. CONFIRMATION -->
+  <div id="confirm-modal" class="modal-overlay hidden">
+   <div class="modal-box" style="max-width: 300px; text-align: center;">
+    <h3 id="confirm-title" style="margin-top:0">Are you sure?</h3>
+    <p id="confirm-msg" style="color:var(--text-muted); font-size:13px; margin-bottom:20px;"></p>
+    <div style="display: flex; gap: 10px; justify-content: center;">
+     <button class="btn btn-outline" onclick="closeModal('confirm-modal')">Cancel</button>
+     <button id="confirm-btn-yes" class="btn btn-primary">Confirm</button>
+    </div>
+   </div>
+  </div>
+  <!-- 4. UPDATE PASSWORD -->
+  <div id="update-pass-modal" class="modal-overlay hidden">
+   <div class="modal-box">
+    <div class="modal-header">
+     <h3>New Access Code</h3>
+     <button class="icon-btn" onclick="closeModal('update-pass-modal')">
+      <i data-feather="x"></i>
+     </button>
+    </div>
+    <p style="color:var(--text-muted); font-size:12px; margin-bottom:15px;">Enter current code to verify.</p>
+    <div class="input-group">
+     <input type="password" id="upd-current-pass" placeholder=" ">
+     <label>Current Code</label>
+    </div>
+    <div class="input-group">
+     <input type="password" id="upd-new-pass" placeholder=" ">
+     <label>New Code</label>
+    </div>
+    <button class="btn btn-primary full-width" onclick="handleUpdatePassword()">Update</button>
+   </div>
+  </div>
+  <!-- MAIN APP VIEW -->
+  <div id="app-view" class="app-container hidden">
+   <!-- HEADER -->
+   <header class="sticky-header">
+    <div class="brand" onclick="router('home')">
+     <img src="assets/icon.png" onerror="this.style.display='none'" id="brand-img">
+     <span>VIBE.</span>
+    </div>
+    <div class="search-container">
+     <i data-feather="search" class="search-icon"></i>
+     <input type="text" placeholder="Search..." onkeyup="handleGlobalSearch(this.value)">
+     <div id="search-results" class="search-dropdown hidden"></div>
+    </div>
+    <!-- DESKTOP NAV -->
+    <nav class="desktop-nav">
+     <button class="nav-btn active" data-target="home" onclick="router('home')">
+      <i data-feather="home"></i>
+     </button>
+     <button class="nav-btn" data-target="network" onclick="router('network')">
+      <i data-feather="users"></i>
+     </button>
+     <img id="nav-profile-img" src="" class="avatar-sm" onclick="viewProfile(currentUser.id)">
+     <div class="dropdown">
+      <button class="nav-btn" onclick="toggleDropdown('settings-menu')">
+       <i data-feather="settings"></i>
+      </button>
+      <div id="settings-menu" class="dropdown-content hidden" style="width: 220px;">
+        <div id="admin-report-btn" class="setting-row hidden" onclick="openAdminReportModal()">
+    <div class="set-label">
+        <i data-feather="clipboard"></i> Admin Reports
+    </div>
+</div>
+        <div class="setting-row" style="padding: 10px;" onclick="toggleTheme()">
+        <div class="set-label">
+         <i data-feather="moon"></i> Dark Mode
+        </div>
+        <div class="toggle-switch"></div>
+       </div>
+       <!-- Security Accordion -->
+       <div class="drop-item accordion-header" onclick="toggleAccordion('desk-sec-acc', 'desk-sec-icon')">
+        <i data-feather="shield"></i>
+        <span>Security</span>
+        <i data-feather="chevron-down" id="desk-sec-icon" class="acc-icon"></i>
+       </div>
+       <div id="desk-sec-acc" class="accordion-body hidden">
+        <div class="drop-item sub-item" onclick="toggleUpdateCode()">
+         <i data-feather="lock"></i> Update Code
+        </div>
+        <div class="drop-item sub-item text-warning" onclick="deactivateAccount()">
+         <i data-feather="eye-off"></i> Deactivate
+        </div>
+        <div class="drop-item sub-item text-danger" onclick="deleteAccount()">
+         <i data-feather="trash-2"></i> Delete Account
+        </div>
+       </div>
+       <div class="drop-divider"></div>
+       <div class="drop-item" onclick="handleLogout()">
+        <i data-feather="log-out"></i> Logout
+       </div>
+      </div>
+     </div>
+    </nav>
+   </header>
+   <main class="main-grid">
+    <!-- LEFT COLUMN (Sidebar) -->
+    <aside class="col-left sticky-col">
+     <div class="card profile-card" id="sidebar-card">
+      <div class="cover-photo-wrapper sidebar-cover" id="sidebar-cover-wrap">
+       <div class="cover-photo" id="side-cover"></div>
+       <div class="sb-edit-controls">
+        <button id="sb-edit-pen" class="mini-circle-btn glass" onclick="event.stopPropagation(); toggleSidebarEdit(true)">
+         <i data-feather="edit-2"></i>
+        </button>
+        <div id="sb-save-cancel" class="hidden" style="display: flex; gap: 8px;">
+         <button class="mini-circle-btn danger" onclick="toggleSidebarEdit(false)">
+          <i data-feather="x"></i>
+         </button>
+         <button class="mini-circle-btn success" onclick="saveSidebarChanges()">
+          <i data-feather="check"></i>
+         </button>
+        </div>
+       </div>
+       <div id="sb-cover-actions" class="sb-cover-actions hidden">
+        <div class="drag-handle-btn" onmousedown="startDragCover(event)">
+         <i data-feather="move"></i>
+        </div>
+        <div style="background:rgba(0,0,0,0.5); border-radius:15px; padding:0 8px; display:flex; align-items:center; height:30px;">
+         <i data-feather="zoom-in" style="width:12px; color:white; margin-right:5px"></i>
+         <input type="range" id="cover-zoom" min="50" max="200" value="100" step="5" style="width:60px; height:4px;" oninput="updateCoverZoom(this.value)">
+        </div>
+        <button class="mini-circle-btn glass" onclick="triggerUpload('cover')">
+         <i data-feather="camera"></i>
+        </button>
+        <button class="mini-circle-btn glass danger" onclick="removeCover()">
+         <i data-feather="trash-2"></i>
+        </button>
+       </div>
+      </div>
+      <div class="profile-info sidebar-info">
+       <div class="avatar-column">
+        <div class="avatar-wrapper-sb">
+         <img id="side-avatar" class="avatar-lg" onclick="event.stopPropagation(); openLightbox(this.src)">
+        </div>
+        <div id="sb-avatar-actions" class="sb-avatar-actions hidden" style="display:flex; gap:5px; justify-content:center; margin-top:5px;">
+         <button class="mini-circle-btn" onclick="triggerUpload('avatar')">
+          <i data-feather="upload"></i>
+         </button>
+         <button class="mini-circle-btn danger" onclick="removeAvatar()">
+          <i data-feather="trash-2"></i>
+         </button>
+        </div>
+       </div>
+       <div class="profile-text-stack">
+       <h3 id="side-name" class="editable-text">...</h3>
+       <p id="side-account" class="editable-text text-muted">...</p>
+       <p id="side-role" class="editable-text profile-role">...</p>
+       </div>
+       
+       <div id="side-actions" class="sb-action-btns hidden">
+        <button id="btn-side-connect" class="btn btn-sm btn-outline btn-danger"></button>
+        <button id="btn-side-msg" class="btn btn-sm btn-primary">
+         <i data-feather="message-circle"></i>
+        </button>
+       </div>
+       <div class="vibe-circle-row" onclick="router('network')">
+        <span>Vibe Circle</span>
+        <span class="count-badge" id="side-friends-count">0</span>
+       </div>
+      </div>
+     </div>
+     <div class="card music-card vibe-animated-border">
+    <div class="card-head" style="flex-wrap: wrap; gap: 10px; padding: 15px;">
+        <div style="display:flex; align-items:center; gap:10px; flex:1;">
+            <h3 class="vibe-text">Vibe Station</h3>
+            
+            <!-- EQUALIZER -->
+            <div class="equalizer">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+        </div>
+        
+        <!-- PLAYER TOGGLE BUTTON (ID MUST BE 'player-icon') -->
+        <button class="icon-btn" onclick="togglePlayer()">
+            <i data-feather="chevron-down" id="player-icon"></i>
+        </button>
+        <!-- BACK BUTTON (Cleaned up) -->
+    <div id="vibe-reset-btn" class="hidden">
+        <button class="btn btn-sm btn-outline full-width" onclick="renderVibeStation()">
+            <i data-feather="arrow-left" style="width:12px"></i>
+        </button>
+    </div>
+        <!-- SEARCH BAR -->
+        <div class="music-search-box">
+            <input type="text" id="vibe-search-input" placeholder="Search track... ( Youtube Maybe? 😉)" onkeypress="handleMusicKey(event)">
+            <button onclick="searchVibeMusic()"><i data-feather="search" style="width:14px;"></i></button>
+        </div>
+    </div>
+
+    <div id="yt-player-wrapper" class="hidden">
+        <div class="video-container">
+            <iframe id="yt-iframe" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+    </div>
+    
+    <!-- Playlist Container -->
+    <div class="bulletin-board" id="vibe-playlist" style="max-height: 350px; overflow-y: auto;"></div>
+    
+    <!-- BACK BUTTON (Cleaned up) -->
+    <div id="vibe-reset-btn" class="hidden">
+        <button class="btn btn-sm btn-outline full-width" onclick="renderVibeStation()">
+            <i data-feather="arrow-left" style="width:12px"></i>
+        </button>
+    </div>
+</div>
+    </aside>
+    <!-- CENTER COLUMN -->
+    <section class="col-center">
+     <!-- HOME PAGE -->
+     <div id="page-home" class="view-section">
+      <!-- CREATE POST BOX -->
+<div class="card create-post-box">
+    <div class="cp-top">
+        <img id="create-post-avatar" class="avatar-sm">
+        
+        <!-- Added oninput listener to detect links while typing/pasting -->
+        <textarea id="new-post-text" placeholder="What's the vibe? Paste a link..." rows="1" oninput="handlePostInput(this)"></textarea>
+    </div>
+
+    <!-- NEW: LIVE LINK PREVIEW CONTAINER -->
+    <div id="link-preview-area" class="link-preview-area hidden">
+        <!-- JS will inject the image here -->
+    </div>
+
+    <!-- Existing File Attachment Preview -->
+    <div id="attachment-preview" class="attachment-grid hidden"></div>
+
+    <div class="cp-bottom">
+        <div class="cp-tools"> 
+            <label title="Image"><i data-feather="image"></i><input type="file" hidden accept="image/*" multiple onchange="handlePostFiles(this.files)"></label>
+            <label title="File"><i data-feather="paperclip"></i><input type="file" hidden multiple onchange="handlePostFiles(this.files)"></label>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="createPost()">Post</button>
+    </div>
+</div>
+      <div id="feed-container" class="feed-list"></div>
+     </div>
+     <!-- PROFILE PAGE -->
+     <div id="page-profile" class="view-section hidden">
+      <div class="profile-feed-header card">
+       <button class="modern-back-btn" onclick="router('home')">
+        <svg class="modern-arrow" viewBox="0 0 24 24">
+         <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+        <span></span>
+       </button>
+      </div>
+      <div id="profile-feed-container" class="feed-list"></div>
+     </div>
+     <!-- NETWORK PAGE -->
+     <div id="page-network" class="view-section hidden">
+      <div class="card">
+       <div class="card-head">
+        <h3>My Circle</h3>
+       </div>
+       <div id="network-grid" class="network-grid"></div>
+      </div>
+     </div>
+    </section>
+    <!-- RIGHT COLUMN -->
+    <aside class="col-right sticky-col">
+     <div id="user-directory" class="card">
+      <div class="card-head">
+       <h3>User Directory</h3> 
+      </div>
+      <div id="suggestions-list" class="suggestion-list"></div>
+     </div>
+
+     <div class="card settings-card">
+      <div class="card-head">
+       <h3>Settings</h3>
+       <i data-feather="sliders" style="width:16px; color:var(--text-muted)"></i>
+      </div>
+      <div class="settings-list">
+       <div class="setting-row" onclick="toggleTheme()">
+        <div class="set-label">
+         <i data-feather="moon"></i> Dark Mode
+        </div>
+        <div class="toggle-switch"></div>
+       </div>
+       <div class="setting-accordion-wrap">
+        <div class="setting-row" onclick="toggleAccordion('mob-sec-acc', 'mob-sec-icon')">
+         <div class="set-label">
+          <i data-feather="shield"></i> Account Security
+         </div>
+         <i data-feather="chevron-down" id="mob-sec-icon" class="acc-icon"></i>
+        </div>
+        <div id="mob-sec-acc" class="accordion-body hidden">
+         <button class="btn btn-outline full-width" style="margin-bottom:8px" onclick="toggleUpdateCode()">Update Access Code</button>
+         <button class="btn btn-warning full-width" style="margin-bottom:8px" onclick="deactivateAccount()">Deactivate Account</button>
+         <button class="btn btn-danger full-width" onclick="deleteAccount()">Delete Account</button>
+        </div>
+       </div>
+       <div class="setting-row text-danger" onclick="handleLogout()" style="margin-top:10px; border-top:1px solid var(--border)">
+        <div class="set-label">
+         <i data-feather="log-out"></i> Log Out
+        </div>
+       </div>
+      </div>
+     </div>
+    </aside>
+   </main>
+   <!-- MOBILE BOTTOM NAV -->
+   <nav class="mobile-nav">
+    <button class="mob-btn active" data-target="home" onclick="router('home')">
+     <i data-feather="home"></i>
+    </button>
+    <button class="mob-btn" data-target="network" onclick="router('network')">
+     <i data-feather="users"></i>
+    </button>
+    <button class="mob-btn" data-target="vibes" onclick="router('vibes')">
+     <i data-feather="settings"></i>
+    </button>
+    <button class="mob-btn" onclick="viewProfile(currentUser.id)">
+     <img id="mobile-nav-img" src="" class="avatar-xs">
+    </button>
+   </nav>
+   <!-- CHAT -->
+   <div id="chat-window" class="chat-window hidden">
+    <div class="chat-header" onclick="closeChat()">
+     <div class="chat-user-info">
+      <img id="chat-header-img" src="">
+      <span id="chat-header-name">User</span>
+     </div>
+     <button class="icon-btn-tiny" onclick="event.stopPropagation(); closeChat()">
+      <i data-feather="x"style="width:16px; height:16px;"></i>
+     </button>
+    </div>
+    <div id="chat-body" class="chat-body"></div>
+    <div class="dock-input-area">
+     <input type="text" id="chat-input" class="dock-input" placeholder="Type a message..." autocomplete="off">
+     <button class="send-dock-btn" onclick="sendMessage()">
+      <i data-feather="arrow-up"></i>
+     </button>
+    </div>
+   </div>
+   <div id="chat-dock" class="chat-dock"></div>
+   <input type="file" id="upload-avatar" hidden accept="image/*" onchange="handleSidebarUpload('avatar', this)">
+   <input type="file" id="upload-cover" hidden accept="image/*" onchange="handleSidebarUpload('cover', this)">
+   <div id="lightbox" class="lightbox hidden" onclick="this.classList.add('hidden')">
+    <img id="lightbox-img" src="">
+   </div>
+   <!-- ========================================= -->
+   <!-- UPDATED SIDE PANEL (VIBE DECK) - ALL 6 LINKS -->
+   <!-- ========================================= -->
+   <div id="utility-panel" class="side-panel">
+    <div class="panel-header">
+     <div style="display:flex; flex-direction:column;">
+      <h4 class="panel-title">Vibe Deck</h4>
+      <span style="font-size:9px; color:var(--text-muted);">Command Center</span>
+     </div>
+     <div style="display:flex; align-items:center; gap:15px;">
+      <!-- Notification Toggle -->
+      <div class="notify-toggle-wrap" title="Enable Desktop Notifications">
+       <span style="font-size:10px; font-weight:600; color:var(--text-muted);">Alerts</span>
+       <label class="switch">
+        <input type="checkbox" id="global-notify-toggle" onchange="toggleGlobalNotifications(this)">
+        <span class="slider round"></span>
+       </label>
+      </div>
+      <!-- Chevron Close (Pointing Left) -->
+      <button class="icon-btn" onclick="toggleUtilityPanel()">
+       <i data-feather="chevron-left"></i>
+      </button>
+     </div>
+    </div>
+    <div class="panel-content">
+     <!-- QUICK ACCESS (Vertical Stack with 6 Links) -->
+     <div class="panel-section">
+      <h4 class="panel-sub-title">Quick Access</h4>
+      <div class="ql-list-vertical">
+       <!-- 1. Call-In -->
+       <a href="#" class="ql-card" onclick="window.open('https://forms.monday.com/forms/e8b1e434735df558cc3f2f8769b9a887?r=use1&fbclid=IwY2xjawOkBT1leHRuA2FlbQIxMQBzcnRjBmFwcF9pZAwzNTA2ODU1MzE3MjgAAR5ZudqagXvXTGNh9jP-pnF4voCudoxiBCnbkECd5dG3WumkSHLoLlVx411cwA_aem_YDzaTBvjuEAzPL7CAaFSDg')">
+        <div class="ql-icon">
+         <i data-feather="phone-call"></i>
+        </div>
+        <div class="ql-info">
+         <span>Call-In Form</span>
+         <small>Report absences</small>
+        </div>
+        <i data-feather="external-link" class="ql-arrow"></i>
+       </a>
+       <a href="#" class="ql-card" onclick="window.open('https://forms.monday.com/forms/e8bf8c3e472724367920aec0e79818b3?r=use1')">
+        <div class="ql-icon">
+         <i data-feather="thumbs-up"></i>
+        </div>
+        <div class="ql-info">
+         <span>SOS Leave Requests</span>
+         <small>File leaves</small>
+        </div>
+        <i data-feather="external-link" class="ql-arrow"></i>
+       </a>
+       <!-- 2. HR -->
+       <a href="#" class="ql-card" onclick="window.open('https://forms.monday.com/forms/c207fe9d9caa797b9095bf75220770cc?r=use1')">
+        <div class="ql-icon">
+         <i data-feather="users"></i>
+        </div>
+        <div class="ql-info">
+         <span>HR Portal</span>
+         <small>File requests</small>
+        </div>
+        <i data-feather="external-link" class="ql-arrow"></i>
+       </a>
+       <!-- 3. Accounting (Restored) -->
+       <a href="#" class="ql-card" onclick="window.open('https://forms.monday.com/forms/84c62c9e68f4cf6cacc10a8b46e73d47?r=use1')">
+        <div class="ql-icon">
+         <i data-feather="dollar-sign"></i>
+        </div>
+        <div class="ql-info">
+         <span>Accounting</span>
+         <small>Payroll & Finance</small>
+        </div>
+        <i data-feather="external-link" class="ql-arrow"></i>
+       </a>
+       <!-- 4. Medical Cert -->
+       <a href="#" class="ql-card" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLScQ37O6IO7fcBWFd6f4S1ofzhTc_i4EjlIYwuDpLd2LrgwpnQ/viewform')">
+        <div class="ql-icon">
+         <i data-feather="activity"></i>
+        </div>
+        <div class="ql-info">
+         <span>MedCert Validation</span>
+         <small>Upload docs</small>
+        </div>
+        <i data-feather="external-link" class="ql-arrow"></i>
+       </a>
+       <!-- 5. Referral Form (Restored) -->
+       <a href="#" class="ql-card" onclick="window.open('https://docs.google.com/forms/d/e/1FAIpQLSdCpVaauSezReEwemDJ3NcKhSv03PSHu_4lcx6N9drbYc5-8g/viewform')">
+        <div class="ql-icon">
+         <i data-feather="user-plus"></i>
+        </div>
+        <div class="ql-info">
+         <span>Referral Form</span>
+         <small>Refer a friend</small>
+        </div>
+        <i data-feather="external-link" class="ql-arrow"></i>
+       </a>
+       <!-- 6. SOS Marketplace -->
+       <a href="#" class="ql-card" onclick="window.open('https://sosmarketplace.netlify.app/')">
+        <div class="ql-icon">
+         <i data-feather="shopping-bag"></i>
+        </div>
+        <div class="ql-info">
+         <span>SOS Marketplace</span>
+         <small>Shop items</small>
+        </div>
+        <i data-feather="external-link" class="ql-arrow"></i>
+       </a>
+       <a href="#" class="ql-card" onclick="window.open('https://sosph.hrhub.ph/EmployeeDashboard.aspx')">
+    <div class="ql-icon">
+        <!-- Replaced Feather Icon with your Custom SVG -->
+        <img src="assets/sprout-logo-card.svg" style="width: 20px; height: 20px; object-fit: contain;">
+    </div>
+    <div class="ql-info">
+        <span>Sprout</span>
+        <small>Clock IN/OUT, Payslips</small>
+    </div>
+    <i data-feather="external-link" class="ql-arrow"></i>
+</a>
+       <div class="ql-card" onclick="toggleMiniTool('break'); toggleUtilityPanel();" style="cursor: pointer;">
+        <div class="ql-icon" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">
+            <i data-feather="clock"></i>
+        </div>
+        <div class="ql-info">
+            <span>Personal Break Tracker</span>
+            <small>Launch App</small>
+        </div>
+        <i data-feather="play-circle" class="ql-arrow" style="color: #f59e0b;"></i>
+    </div>
+      </div>
+     </div>
+    </div>
+   </div>
+   <!-- ATTENDANCE MODALS -->
+   <div id="attendance-summary-modal" class="modal-overlay hidden" style="z-index: 5010;">
+    <div class="modal-box" style="max-width: 900px; width: 95%;">
+     <div class="modal-header">
+      <h3>My Attendance Summary</h3>
+      <div style="display:flex; gap:5px;">
+       <!-- NEW EXPORT BUTTON -->
+       <button class="icon-btn" onclick="exportAttendanceCSV()" title="Export CSV">
+        <i data-feather="download"></i>
+       </button>
+       <button class="icon-btn" onclick="closeModal('attendance-summary-modal')">
+        <i data-feather="x"></i>
+       </button>
+      </div>
+     </div>
+     <!-- FILTER BOX -->
+     <div class="att-filter-box">
+      <!-- 1. SHIFT TYPE -->
+      <div style="margin-bottom: 10px; display: flex; gap: 15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+       <label class="radio-label">
+        <input type="radio" name="attPeriodType" value="standard" checked onchange="toggleAttDateInputs()"> Standard (1-15 / 16-30) </label>
+       <label class="radio-label">
+        <input type="radio" name="attPeriodType" value="irregular" onchange="toggleAttDateInputs()"> Irregular (26-10 / 11-25) </label>
+      </div>
+      <!-- 2. IRREGULAR CYCLE DROPDOWN (The missing piece) -->
+      <div id="att-cycle-wrapper" class="hidden" style="margin-bottom:10px;">
+       <label style="font-size:11px; font-weight:700; color:var(--text-muted);">Select Cut-off:</label>
+       <select id="att-cycle-select" class="mini-input" style="width:100%; margin-top:5px;" onchange="applyCycleDates()">
+        <!-- JS fills this -->
+       </select>
+      </div>
+      <!-- 3. DATE DISPLAY -->
+      <div id="att-date-wrapper" class="date-wrapper-smart">
+       <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+        <label style="font-size:11px; font-weight:700;">Range:</label>
+        <span id="lbl-smart-range" style="font-size:10px; color:var(--primary); font-weight:700;">--</span>
+       </div>
+       <!-- Inputs visible for verification -->
+       <div style="display:flex; gap:10px; width:100%;">
+        <input type="date" id="att-start-date" class="mini-input" style="flex:1;">
+        <span style="align-self:center; font-weight:bold; font-size:10px;">TO</span>
+        <input type="date" id="att-end-date" class="mini-input" style="flex:1;">
+       </div>
+      </div>
+      <button class="btn btn-primary full-width" style="margin-top:10px;" onclick="generateAttendanceReport()">Generate Report</button>
+     </div>
+     <!-- TABLE -->
+     <div class="table-responsive">
+      <table class="report-table">
+       <thead>
+        <tr>
+         <th>Name</th>
+         <th>Days Present</th>
+         <th>Days Absent</th>
+         <th>Late (Mins)</th>
+         <th>Undertime</th>
+         <th>Total Hours</th>
+        </tr>
+       </thead>
+       <tbody id="att-summary-body"></tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <div id="attendance-detail-modal" class="modal-overlay hidden" style="z-index: 5010;">
+    <div class="modal-box" style="max-width: 1000px; width: 95%; height: 80vh; display:flex; flex-direction:column;">
+     <div class="modal-header">
+      <h3 id="att-detail-title">Detailed Attendance</h3>
+      <div style="display:flex; gap:5px;">
+       <button class="icon-btn" onclick="copyAttendanceDetail()" title="Copy">
+        <i data-feather="copy"></i>
+       </button>
+       <button class="icon-btn" onclick="closeModal('attendance-detail-modal')">
+        <i data-feather="x"></i>
+       </button>
+      </div>
+     </div>
+     <div class="table-responsive" style="flex:1; overflow-y:auto;">
+      <table class="report-table">
+       <thead>
+        <tr>
+         <th>Date</th>
+         <th>Day</th>
+         <th>Shift Schedule</th>
+         <th>Biologs</th>
+         <th>Late</th>
+         <th>Hours</th>
+        </tr>
+       </thead>
+       <tbody id="att-detail-body"></tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+   <!-- ========================================= -->
+   <!-- DRAGGABLE MINI TOOLS                      -->
+   <!-- ========================================= -->
+   <div id="mini-tools-dock" class="mini-tools-dock">
+    <div class="mt-icon" onclick="toggleMiniTool('notepad')" title="Notepad">
+     <i data-feather="file-text"></i>
+    </div>
+    <div class="mt-icon" onclick="toggleMiniTool('calc')" title="Calculator">
+     <i data-feather="hash"></i>
+    </div>
+    <div class="mt-icon" onclick="toggleMiniTool('alarm')" title="Simple Alarm">
+     <i data-feather="bell"></i>
+    </div>
+   </div>
+   <!-- 1. NOTEPAD -->
+   <div id="tool-notepad" class="mini-tool-box draggable hidden">
+    <!-- Header (Fixed at Top) -->
+    <div class="mt-header drag-handle">
+     <span>Quick Notes</span>
+     <div class="mt-controls">
+      <i data-feather="list" onclick="toggleNoteList()" title="Saved Notes"></i>
+      <i data-feather="x" onclick="toggleMiniTool('notepad')"></i>
+     </div>
+    </div>
+    <!-- Text Area (Grows to fill space) -->
+    <textarea id="mt-notepad-area" class="mt-notepad" placeholder="Type here..." oninput="localStorage.setItem('vibe_notes', this.value)"></textarea>
+    <!-- Actions (Fixed at Bottom) -->
+    <div class="mt-actions">
+     <button class="btn-xs btn-outline" onclick="copyNote()" title="Copy">
+      <i data-feather="copy"></i>
+     </button>
+     <button class="btn-xs btn-outline" onclick="saveNote()" title="Save">
+      <i data-feather="save"></i>
+     </button>
+     <button class="btn-xs btn-danger" onclick="clearNote()" title="Clear">
+      <i data-feather="trash-2"></i>
+     </button>
+    </div>
+    <!-- Saved List Overlay (Absolute Position) -->
+    <div id="mt-note-list" class="mt-note-list hidden">
+     <div class="mt-list-header">
+      <span>Saved</span>
+      <i data-feather="arrow-left" onclick="toggleNoteList()"></i>
+     </div>
+     <div id="saved-notes-container"></div>
+    </div>
+   </div>
+   <!-- 2. CALCULATOR -->
+   <div id="tool-calc" class="mini-tool-box draggable hidden">
+    <div class="mt-header drag-handle">Calc <i data-feather="x" onclick="toggleMiniTool('calc')"></i>
+    </div>
+    <input type="text" id="calc-display" class="calc-display" readonly>
+    <div class="calc-grid">
+     <button onclick="calcInput('7')">7</button>
+     <button onclick="calcInput('8')">8</button>
+     <button onclick="calcInput('9')">9</button>
+     <button class="op" onclick="calcInput('/')">÷</button>
+     <button onclick="calcInput('4')">4</button>
+     <button onclick="calcInput('5')">5</button>
+     <button onclick="calcInput('6')">6</button>
+     <button class="op" onclick="calcInput('*')">×</button>
+     <button onclick="calcInput('1')">1</button>
+     <button onclick="calcInput('2')">2</button>
+     <button onclick="calcInput('3')">3</button>
+     <button class="op" onclick="calcInput('-')">-</button>
+     <button onclick="calcInput('0')">0</button>
+     <button onclick="calcInput('.')">.</button>
+     <button class="eq" onclick="calcEval()">=</button>
+     <button class="op" onclick="calcInput('+')">+</button>
+     <button class="clear" onclick="document.getElementById('calc-display').value=''" style="grid-column:span 4">C</button>
+    </div>
+   </div>
+   <!-- 4. SIMPLE ALARM CLOCK (Updated with Sound Selector) -->
+<div id="tool-alarm" class="mini-tool-box draggable hidden" style="width: 280px; min-height: 320px;">
+    <div class="mt-header drag-handle">
+        <span>Alarm Clock</span>
+        <i data-feather="x" onclick="toggleMiniTool('alarm')"></i>
+    </div>
+    
+    <div class="alarm-ui-content">
+        <!-- Time Display -->
+        <div id="ac-current-time" class="ac-big-display">--:--</div>
+        
+        <!-- Input Area -->
+        <div class="ac-input-group">
+            <label>Set Alarm Time</label>
+            <input type="time" id="ac-input" class="bt-time-input" style="font-size: 16px; height: 40px; text-align:center;">
+        </div>
+
+        <!-- NEW: Alarm Sound Selector -->
+        <div class="ac-input-group" style="position: relative;">
+            <label>Alarm Sound</label>
+            <div class="ac-sound-trigger" onclick="toggleAcAlarmMenu()">
+                <i data-feather="volume-2" style="width:16px;"></i>
+                <span id="ac-alarm-label">Beep</span>
+                <i data-feather="chevron-down" style="width:14px; margin-left:auto;"></i>
+            </div>
+
+            <!-- The Dropdown Menu (Reusing existing logic) -->
+            <div id="ac-alarm-menu" class="alarm-menu hidden" style="width: 100%; top: 60px; z-index: 50;">
+                <div class="alarm-opt-row" data-type="beep" onclick="setAlarmType('beep')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)"><span>🔊 Beep</span><button class="test-btn hidden" onclick="event.stopPropagation(); testSound('beep', this)">Test</button></div>
+                <div class="alarm-opt-row" data-type="rooster" onclick="setAlarmType('rooster')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)"><span>🐓 Rooster</span><button class="test-btn hidden" onclick="event.stopPropagation(); testSound('rooster', this)">Test</button></div>
+                <div class="alarm-opt-row" data-type="school" onclick="setAlarmType('school')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)"><span>🔔 School</span><button class="test-btn hidden" onclick="event.stopPropagation(); testSound('school', this)">Test</button></div>
+                <div class="alarm-opt-row" data-type="cuckoo" onclick="setAlarmType('cuckoo')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)"><span>🐦 Cuckoo</span><button class="test-btn hidden" onclick="event.stopPropagation(); testSound('cuckoo', this)">Test</button></div>
+                <div class="alarm-opt-row" data-type="elise" onclick="setAlarmType('elise')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)"><span>🎹 Fur Elise</span><button class="test-btn hidden" onclick="event.stopPropagation(); testSound('elise', this)">Test</button></div>
+                <!-- Slots -->
+                <div class="alarm-opt-row" data-type="slot1" onclick="setAlarmType('slot1')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)"><span>💿 Slot 1</span><button class="test-btn hidden" onclick="event.stopPropagation(); testSound('slot1', this)">Test</button></div>
+                <div class="alarm-opt-row" data-type="slot2" onclick="setAlarmType('slot2')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)"><span>💿 Slot 2</span><button class="test-btn hidden" onclick="event.stopPropagation(); testSound('slot2', this)">Test</button></div>
+                <div class="alarm-opt-row" data-type="slot3" onclick="setAlarmType('slot3')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)"><span>💿 Slot 3</span><button class="test-btn hidden" onclick="event.stopPropagation(); testSound('slot3', this)">Test</button></div>
+                <div class="alarm-opt-row" data-type="slot4" onclick="setAlarmType('slot4')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)"><span>💿 Slot 4</span><button class="test-btn hidden" onclick="event.stopPropagation(); testSound('slot4', this)">Test</button></div>              
+            </div>
+        </div>
+
+        <div class="ac-input-group">
+            <label>Label (Optional)</label>
+            <input type="text" id="ac-label" class="bt-input-minimal" placeholder="Meeting, Meds, etc.">
+        </div>
+
+        <!-- Controls -->
+        <div class="ac-controls">
+            <button id="btn-set-alarm" class="btn btn-primary full-width" onclick="setSimpleAlarm()">SET ALARM</button>
+            <button id="btn-stop-alarm" class="btn btn-danger full-width hidden" onclick="stopSimpleAlarm()">STOP / CLEAR</button>
+        </div>
+
+        <!-- Status -->
+        <div id="ac-status" class="ac-status">No alarm set</div>
+    </div>
+</div>
+   <!-- 3. BREAK TRACKER (Movable/Resizable) -->
+   <div id="tool-break" class="mini-tool-box draggable hidden" style="width: 420px; min-height: 550px;">
+    <div class="mt-header drag-handle">
+     <span>Break Tracker</span>
+     <i data-feather="x" onclick="toggleMiniTool('break')"></i>
+    </div>
+    <div class="bt-card" style="border:none; padding:0; height:100%; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
+     <!-- 1. Identity Inputs -->
+     <div>
+      <input type="text" id="panel-company" class="company-input no-border" placeholder="Company Name" onkeyup="debouncedSave()">
+      <div class="bt-identity-stack">
+       <input type="text" id="bt-role" class="bt-input-minimal" placeholder="Role / Title" onkeyup="debouncedSave()">
+       <input type="text" id="bt-account" class="bt-input-minimal" placeholder="Account / Client" onkeyup="debouncedSave()">
+      </div>
+     </div>
+     <div class="bt-live-row">
+      <span id="bt-status" class="bt-status-ready">READY</span>
+      <span id="bt-realtime" class="bt-clock">00:00:00</span>
+      <button id="bt-login-btn" class="bt-login-btn" onclick="toggleBtLogin()">Clock IN</button>
+     </div>
+     <!-- 2. Timer Box -->
+     <div id="bt-timer-box" class="bt-display-box" style="position:relative; margin-bottom:0;">
+      <div id="bt-alarm-toggle" class="alarm-icon" onclick="toggleAlarmMenu()">
+       <i data-feather="bell" style="width:14px; height:14px;"></i>
+       <span id="bt-alarm-label">Beep</span>
+      </div>
+      <!-- ALARM MENU -->
+      <div id="bt-alarm-menu" class="alarm-menu hidden">
+       <!-- Row 1 -->
+       <div class="alarm-opt-row" data-type="beep" onclick="setAlarmType('beep')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)">
+        <span>🔊 Beep</span>
+        <!-- stopPropagation prevents the Test click from triggering the Row click -->
+        <button class="test-btn hidden" onclick="event.stopPropagation(); testSound('beep', this)">Test</button>
+       </div>
+       <!-- Row 2 -->
+       <div class="alarm-opt-row" data-type="rooster" onclick="setAlarmType('rooster')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)">
+        <span>🐓 Rooster</span>
+        <button class="test-btn hidden" onclick="event.stopPropagation(); testSound('rooster', this)">Test</button>
+       </div>
+       <!-- Row 3 -->
+       <div class="alarm-opt-row" data-type="school" onclick="setAlarmType('school')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)">
+        <span>🔔 School</span>
+        <button class="test-btn hidden" onclick="event.stopPropagation(); testSound('school', this)">Test</button>
+       </div>
+       <!-- Row 4 -->
+       <div class="alarm-opt-row" data-type="cuckoo" onclick="setAlarmType('cuckoo')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)">
+        <span>🐦 Cuckoo</span>
+        <button class="test-btn hidden" onclick="event.stopPropagation(); testSound('cuckoo', this)">Test</button>
+       </div>
+       <!-- Row 5 -->
+       <div class="alarm-opt-row" data-type="elise" onclick="setAlarmType('elise')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)">
+        <span>🎹 Fur Elise</span>
+        <button class="test-btn hidden" onclick="event.stopPropagation(); testSound('elise', this)">Test</button>
+       </div>
+       <!-- Slots -->
+       <div class="alarm-opt-row" data-type="slot1" onclick="setAlarmType('slot1')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)">
+        <span>💿 Slot 1</span>
+        <button class="test-btn hidden" onclick="event.stopPropagation(); testSound('slot1', this)">Test</button>
+       </div>
+       <div class="alarm-opt-row" data-type="slot2" onclick="setAlarmType('slot2')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)">
+        <span>💿 Slot 2</span>
+        <button class="test-btn hidden" onclick="event.stopPropagation(); testSound('slot2', this)">Test</button>
+       </div>
+       <div class="alarm-opt-row" data-type="slot3" onclick="setAlarmType('slot3')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)">
+        <span>💿 Slot 3</span>
+        <button class="test-btn hidden" onclick="event.stopPropagation(); testSound('slot3', this)">Test</button>
+       </div>
+       <div class="alarm-opt-row" data-type="slot4" onclick="setAlarmType('slot4')" onmouseenter="showTest(this)" onmouseleave="hideTest(this)">
+        <span>💿 Slot 4</span>
+        <button class="test-btn hidden" onclick="event.stopPropagation(); testSound('slot4', this)">Test</button>
+       </div>
+      </div>
+      <div id="bt-timer" class="bt-big-time">00:00</div>
+      <div id="bt-bank-display" class="bt-bank-text">Bank: 10m 00s</div>
+     </div>
+     <!-- 3. Controls -->
+     <div class="bt-controls">
+      <!-- Added id="btn-break1", id="btn-lunch", etc. -->
+      <button id="btn-break1" class="btn btn-sm btn-outline" style="text-align: left;" onclick="startBreak('break1', 15)"></button>
+      <button id="btn-lunch" class="btn btn-sm btn-outline" style="text-align: left;" onclick="startBreak('lunch', 60)"></button>
+      <button id="btn-break2" class="btn btn-sm btn-outline" style="text-align: left;" onclick="startBreak('break2', 15)"></button>
+      <button id="btn-personal" class="btn btn-sm btn-outline" style="text-align: left;" onclick="startBreak('personal', 10)"></button>
+     </div>
+     <button id="bt-stop-btn" class="btn btn-danger full-width hidden" onclick="stopBreak()">END BREAK</button>
+     <!-- 4. Live Status -->
+     <div style="height:1px; background:var(--border); margin: 5px 0;"></div>
+     <!-- 5. SHIFT CONFIG (Always Visible) -->
+     <div class="bt-config-grid">
+      <div class="bt-col">
+       <label>START</label>
+       <input type="time" id="bt-shift-start" class="bt-time-input" onchange="saveBreakData()">
+      </div>
+      <div class="bt-col">
+       <label>END</label>
+       <input type="time" id="bt-shift-end" class="bt-time-input" onchange="saveBreakData()">
+      </div>
+      <div class="bt-col">
+       <label>RD 1</label>
+       <select id="bt-rd-1" class="bt-time-input center-text" onchange="saveBreakData()">
+        <option value="0">Su</option>
+        <option value="1">M</option>
+        <option value="2">T</option>
+        <option value="3">W</option>
+        <option value="4">Th</option>
+        <option value="5">F</option>
+        <option value="6">S</option>
+       </select>
+      </div>
+      <!-- Rest Day 2 (Full Week) -->
+      <div class="bt-col">
+       <label>RD 2</label>
+       <select id="bt-rd-2" class="bt-time-input center-text" onchange="saveBreakData()">
+        <option value="0">Su</option>
+        <option value="1">M</option>
+        <option value="2">T</option>
+        <option value="3">W</option>
+        <option value="4">Th</option>
+        <option value="5">F</option>
+        <option value="6">S</option>
+       </select>
+      </div>
+     </div>
+     <!-- 6. LOGS (Always Visible) -->
+     <div class="bt-logs-container" style="flex:1; min-height:120px;">
+      <div class="bt-log-header">
+       <span>Start</span>
+       <span>End</span>
+       <span>Type</span>
+       <span>Exc</span>
+       <span>Stat</span>
+      </div>
+      <div id="bt-log-list" class="bt-log-list"></div>
+     </div>
+     <!-- 7. Footer Actions -->
+     <div class="bt-footer">
+      <!-- Left: Navigation (Text + Icon, No Border) -->
+      <div class="bt-footer-group">
+       <button class="btn-minimal" onclick="openAttendanceModal()" title="View Attendance Report">
+        <i data-feather="calendar"></i>
+        <span>Att. Report</span>
+       </button>
+       <button class="btn-minimal" onclick="openBreakHistoryModal()" title="View Break History">
+        <i data-feather="clock"></i>
+        <span>Break Logs</span>
+       </button>
+      </div>
+      <!-- Right: Actions (Icon Only) -->
+      <div class="bt-footer-group">
+       <button class="icon-btn-tiny" onclick="copyBtReport()" title="Copy Log Text">
+        <i data-feather="copy" style="width:14px; height:14px;"></i>
+       </button>
+       <button class="icon-btn-tiny danger-hover" onclick="resetBtLogs()" title="Reset Shift">
+        <i data-feather="trash-2" style="width:14px; height:14px;"></i>
+       </button>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <!-- End App View -->
+  <div id="break-history-modal" class="modal-overlay hidden" style="z-index: 5005;">
+   <div class="modal-box" style="max-width: 800px; width: 95%; height: 80vh; display:flex; flex-direction:column;">
+    <div class="modal-header">
+     <h3>Monthly Break Report</h3>
+     <div style="display:flex; gap:5px;">
+      <!-- Month Selector (Existing) -->
+      <input type="month" id="break-hist-month" class="mini-input" style="width:130px;" onchange="loadBreakHistory()">
+      
+      <!-- NEW EXPORT BUTTON -->
+      <button class="icon-btn" onclick="exportBreakLogsCSV()" title="Export CSV">
+       <i data-feather="download"></i>
+      </button>
+      
+      <button class="icon-btn" onclick="closeModal('break-history-modal')">
+       <i data-feather="x"></i>
+      </button>
+     </div>
+    </div>
+    <!-- The Data Table -->
+    <div class="table-responsive" style="flex:1; overflow-y:auto;">
+     <table class="report-table">
+      <thead>
+       <tr style="font-size: 10px; text-align: center;">
+        <!-- Date (14%) -->
+        <th style="width: 14%; text-align: left;">Date</th>
+        <!-- B1 Group (20%) -->
+        <th style="width: 14%;">B1</th>
+        <th style="width: 6%; color:var(--text-muted);">St</th>
+        <!-- Lunch Group (20%) -->
+        <th style="width: 14%;">Lunch</th>
+        <th style="width: 6%; color:var(--text-muted);">St</th>
+        <!-- B2 Group (20%) -->
+        <th style="width: 14%;">B2</th>
+        <th style="width: 6%; color:var(--text-muted);">St</th>
+        <!-- PB Group (20%) -->
+        <th style="width: 14%;">PB</th>
+        <th style="width: 6%; color:var(--text-muted);">St</th>
+        <!-- Action (6%) -->
+        <th style="width: 10%; text-align: center;">Act</th>
+       </tr>
+      </thead>
+      <tbody id="break-hist-body">
+       <!-- Javascript will fill this -->
+      </tbody>
+     </table>
+    </div>
+    <!-- Legend Footer -->
+    <div style="padding-top:10px; border-top:1px solid var(--border); font-size:10px; color:var(--text-muted); display:flex; justify-content:space-between;">
+     <span>
+      <span style="color:var(--danger)">●</span> Over Limit </span>
+     <span>
+      <span style="color:var(--success)">●</span> Compliant </span>
+     <span>Rest Days Excluded</span>
+    </div>
+   </div>
+  </div>
+  <div id="admin-report-modal" class="modal-overlay hidden" style="z-index: 5020;">
+    <div class="modal-box" style="max-width: 900px; width: 95%;">
+        <div class="modal-header">
+            <h3>Admin Attendance Audit</h3>
+            <button class="icon-btn" onclick="closeModal('admin-report-modal')">
+                <i data-feather="x"></i>
+            </button>
+        </div>
+
+        <div class="att-filter-box">
+            <!-- User Selector -->
+            <div class="input-group">
+                <label style="position:static; color:var(--text-muted); font-size:11px; font-weight:700;">Select User</label>
+                <select id="admin-user-select" class="mini-input" style="height:40px; font-size:14px;">
+                    <option value="">Loading users...</option>
+                </select>
+            </div>
+
+            <!-- Date Range -->
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <div style="flex:1">
+                    <label style="font-size:10px; font-weight:700; color:var(--text-muted)">FROM</label>
+                    <input type="date" id="admin-start-date" class="mini-input">
+                </div>
+                <div style="flex:1">
+                    <label style="font-size:10px; font-weight:700; color:var(--text-muted)">TO</label>
+                    <input type="date" id="admin-end-date" class="mini-input">
+                </div>
+            </div>
+
+            <button class="btn btn-primary full-width" style="margin-top:15px;" onclick="generateAdminReport()">Fetch Records</button>
+        </div>
+
+        <!-- Results Table -->
+        <div class="table-responsive" style="max-height: 50vh; overflow-y: auto;">
+            <table class="report-table">
+                <thead>
+                    <tr>
+            <th>Date</th>
+            <th>Shift</th>
+            <th>Login/Logout</th>
+            <th>Breaks</th>
+            <th>Late</th>
+            <th>Overbreak</th> <!-- NEW COLUMN -->
+            <th>Status</th>
+        </tr>
+                </thead>
+                <tbody id="admin-report-body">
+                    <tr><td colspan="6" style="text-align:center; padding:20px;">Select a user to view logs.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div id="ot-check-modal" class="modal-overlay hidden" style="z-index: 99999;">
+    <div class="modal-box" style="text-align: center; border: 2px solid var(--danger);">
+        <div style="margin-bottom: 15px; color: var(--danger);">
+            <i data-feather="clock" style="width: 40px; height: 40px;"></i>
+        </div>
+        <h2 style="margin: 0; font-size: 20px;">Shift Ended 1 Hour Ago</h2>
+        <p style="color: var(--text-muted); margin: 10px 0;">
+            Are you working Overtime?
+        </p>
+        <h1 id="ot-countdown" style="font-size: 40px; font-weight: 800; color: var(--primary); margin: 10px 0;">10</h1>
+        <p style="font-size: 11px; color: var(--text-muted);">
+            No response will force Clock Out.
+        </p>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-primary full-width" onclick="confirmOvertime()">YES, I'm Working</button>
+            <button class="btn btn-danger full-width" onclick="forceClockOut()">NO, Clock Out</button>
+        </div>
+    </div>
+</div>
+
+  <script src="script.js"></script>
+ </body>
+</html>

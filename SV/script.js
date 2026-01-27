@@ -3993,14 +3993,28 @@ function toggleBtLogin() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'});
     
-    // --- 1. CLOCK IN ---
     if (!btState.isLoggedIn) {
+        // --- CLOCK IN ---
+        const timeline = getShiftTimeline();
+        let lateMinutes = 0;
+        let status = 'Active';
+
+        // Calculate Lateness
+        if (timeline) {
+            const diffMs = now - timeline.start;
+            const diffMins = Math.floor(diffMs / 1000 / 60);
+            if (diffMins > 5) { 
+                lateMinutes = diffMins;
+                status = 'LATE';
+            }
+        }
+
         btState.isLoggedIn = true;
         
-        // Add "SHIFT" start entry (Active)
-        addLogEntry("SHIFT", "--", "OK", now, null);
+        // Add Visual Log
+        addLogEntry("SHIFT", (lateMinutes > 0 ? `+${lateMinutes}m` : "--"), status, now, null);
         
-        // Update DB (Attendance Collection)
+        // Update DB
         const dateKey = getLogicalDateKey();
         if (currentUser) {
             db.collection('users').doc(currentUser.id)
@@ -4008,22 +4022,40 @@ function toggleBtLogin() {
               .set({
                   date: dateKey,
                   actualLogin: timeStr,
-                  status: 'Active'
+                  status: 'Active',
+                  lateMinutes: lateMinutes
               }, { merge: true });
         }
 
-        // UI Updates
         updateLoginBtn(); 
         saveBreakData(btState.running ? getCurrentBreakSnapshot() : null);
-        showToast("Clocked IN");
-    } 
-    // --- 2. CLOCK OUT ---
-    else {
-        // We still use your customConfirm, but inside we call the shared helper
-        customConfirm("End shift and Clock Out? This will clear the daily logs.", async () => {
+        showToast(lateMinutes > 0 ? `Clocked IN (Late: ${lateMinutes}m)` : "Clocked IN");
+
+    } else {
+        // --- CLOCK OUT ---
+        customConfirm("End shift and Clock Out?", async () => {
             await performLogout("Manual"); 
         });
     }
+}
+
+// Helper: Calculates exact hours between two HH:MM strings (Handles Night Shift)
+function calculateShiftHours(startStr, endStr) {
+    if (!startStr || !endStr || startStr === "LEAVE") return 0;
+    
+    const s = startStr.replace('*', '');
+    const e = endStr.replace('*', '');
+    if(!s.includes(':') || !e.includes(':')) return 0;
+
+    const [h1, m1] = s.split(':').map(Number);
+    const [h2, m2] = e.split(':').map(Number);
+
+    const startMins = (h1 * 60) + m1;
+    let endMins = (h2 * 60) + m2;
+
+    if (endMins < startMins) endMins += 1440; // Night shift handling
+
+    return (endMins - startMins) / 60;
 }
 
 // Helper to toggle button states
@@ -4858,12 +4890,10 @@ async function generateAttendanceReport() {
     const startStr = document.getElementById('att-start-date').value;
     const endStr = document.getElementById('att-end-date').value;
     
-    // Config Data
     const sStart = document.getElementById('bt-shift-start').value || "00:00";
     const sEnd = document.getElementById('bt-shift-end').value || "00:00";
     const displayShift = `${tConvert(sStart)}-${tConvert(sEnd)}`;
 
-    // Rest Days
     const rd1 = parseInt(document.getElementById('bt-rd-1').value || '0');
     const rd2 = parseInt(document.getElementById('bt-rd-2').value || '6');
     const restDaysArr = [rd1, rd2]; 
@@ -4881,7 +4911,6 @@ async function generateAttendanceReport() {
         const recordMap = {};
         snap.forEach(doc => recordMap[doc.id] = doc.data());
 
-        // Date Setup
         let currentDate = new Date(startStr);
         const endDate = new Date(endStr);
         const now = new Date();
@@ -4889,7 +4918,6 @@ async function generateAttendanceReport() {
         const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayKey = formatDateKey(yesterday);
         
-        // Stats
         let daysPresent = 0, daysAbsent = 0, totalLate = 0, totalHours = 0;
         fetchedRecords = []; 
 
@@ -4899,41 +4927,70 @@ async function generateAttendanceReport() {
             const isRestDay = restDaysArr.includes(dayOfWeek);
             const record = recordMap[dateKey];
 
-            // Default
+            // Default Variables
             let status = "", shiftSched = displayShift, biologs = "NO LOGS", late = 0, hrs = 0;
 
             if (record) {
-                // --- VISUAL FIX START ---
+                // --- CASE 1: RECORD EXISTS ---
                 let logoutDisplay = '--';
-                
-                if (record.actualLogout) {
-                    logoutDisplay = tConvert(record.actualLogout);
-                    status = "Present";
-                } else if (record.actualLogin) {
-                    // Logic: Only show "Active" for Today or Yesterday
-                    if (dateKey === todayKey || dateKey === yesterdayKey) {
-                        logoutDisplay = "Active";
-                        status = "Active";
-                    } else {
-                        // Anything older is forced to look closed
-                        logoutDisplay = `${tConvert(sEnd)}*`; 
-                        status = "Auto-End";
+
+                if (record.isPaidLeave) {
+                    // --- ABBREVIATION LOGIC HERE ---
+                    const rawType = record.status || "LEAVE";
+                    let shortCode = rawType.toUpperCase();
+
+                    // Specific Mappings
+                    if (rawType === "Vacation Leave") shortCode = "VL";
+                    else if (rawType === "Sick Leave") shortCode = "SL";
+                    else if (rawType === "Emergency Leave") shortCode = "EL";
+                    // Maternity/Paternity stays as full text (Uppercased)
+
+                    biologs = shortCode; 
+                    status = "PAID";     
+                    shiftSched = "ON LEAVE"; 
+                    hrs = 9.0; 
+                    daysPresent++; 
+                } 
+                else {
+                    // WORK DAY
+                    if (record.actualLogout) {
+                        logoutDisplay = tConvert(record.actualLogout);
+                        status = "Present";
+                    } else if (record.actualLogin) {
+                        if (dateKey === todayKey || dateKey === yesterdayKey) {
+                            logoutDisplay = "Active";
+                            status = "Active";
+                        } else {
+                            logoutDisplay = `${tConvert(sEnd)}*`; 
+                            status = "Auto-End";
+                        }
+                    }
+
+                    biologs = `${tConvert(record.actualLogin)} - ${logoutDisplay}`;
+                    daysPresent++;
+                    late = record.lateMinutes || 0;
+                    totalLate += late;
+
+                    if (status === "Present") {
+                        hrs = calculateShiftHours(record.actualLogin, record.actualLogout);
+                    } else if (status === "Auto-End") {
+                        hrs = calculateShiftHours(record.actualLogin, sEnd);
                     }
                 }
-                // --- VISUAL FIX END ---
 
-                daysPresent++;
-                late = record.lateMinutes || 0;
-                totalLate += late;
-                biologs = `${tConvert(record.actualLogin)} - ${logoutDisplay}`;
-                
-                if(isRestDay) shiftSched = "REST DAY (Worked)";
-                if (status === "Present" || status === "Auto-End") hrs = 9.0;
+                if(isRestDay && !record.isPaidLeave) shiftSched = "REST DAY (Worked)";
                 totalHours += hrs;
 
             } else {
-                if (isRestDay) { status = "REST DAY"; shiftSched = "REST DAY"; } 
-                else { status = "ABSENT"; daysAbsent++; }
+                // --- CASE 2: NO RECORD ---
+                if (isRestDay) { 
+                    status = "REST DAY"; 
+                    shiftSched = "REST DAY";
+                    biologs = "REST DAY"; 
+                } else { 
+                    status = "ABSENT"; 
+                    daysAbsent++; 
+                }
             }
 
             fetchedRecords.push({
@@ -4948,7 +5005,6 @@ async function generateAttendanceReport() {
             currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        // Summary Row
         tbody.innerHTML = '';
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -5217,25 +5273,56 @@ function deleteAttendanceRecord(dateKey) {
 function getLogicalDateKey() {
     const now = new Date();
     const startInput = document.getElementById('bt-shift-start');
+    const endInput = document.getElementById('bt-shift-end');
     
-    // Default to today if input is missing
-    if (!startInput || !startInput.value) return formatDateKey(now);
+    if (!startInput || !startInput.value || !endInput.value) return formatDateKey(now);
 
-    // Parse Input (e.g., "20:00")
     const [sH, sM] = startInput.value.split(':').map(Number);
-    let shiftStart = new Date(now);
-    shiftStart.setHours(sH, sM, 0, 0);
+    const [eH, eM] = endInput.value.split(':').map(Number);
 
-    // NIGHT SHIFT CHECK:
-    // If "Shift Start" is > 12 hours in the future (e.g., Now is 4AM, Start is 8PM),
-    // it means the shift actually started YESTERDAY.
-    const diff = shiftStart - now;
-    if (diff > 12 * 60 * 60 * 1000) {
-        shiftStart.setDate(shiftStart.getDate() - 1);
+    // Is this a night shift? (Start > End)
+    const isNightShift = (sH > eH);
+
+    let logicalDate = new Date(now);
+
+    if (isNightShift) {
+        // If we are currently in the early morning (e.g., 00:00 to 05:00 + buffer)
+        // Then this shift actually belongs to YESTERDAY.
+        const currentH = now.getHours();
+        
+        // Allow up to 4 hours of overtime past shift end before flipping to "Today"
+        if (currentH < sH && currentH <= (eH + 4)) {
+            logicalDate.setDate(logicalDate.getDate() - 1);
+        }
     }
 
-    return formatDateKey(shiftStart); // Returns YYYY-MM-DD
+    return formatDateKey(logicalDate);
 }
+
+function getShiftTimeline() {
+    const dateKey = getLogicalDateKey(); // Uses the logic below
+    const startInput = document.getElementById('bt-shift-start').value; 
+    const endInput = document.getElementById('bt-shift-end').value;     
+    
+    if (!startInput || !endInput) return null;
+
+    // Create Start Date object
+    const startDate = new Date(`${dateKey}T${startInput}:00`);
+    
+    // Create End Date object
+    let endDate = new Date(`${dateKey}T${endInput}:00`);
+
+    // NIGHT SHIFT LOGIC:
+    // If End Time (05:00) is 'smaller' than Start Time (20:00), 
+    // it means the shift ends the NEXT DAY.
+    if (endDate <= startDate) {
+        endDate.setDate(endDate.getDate() + 1);
+    }
+
+    return { start: startDate, end: endDate };
+}
+
+
 
 function formatDateKey(date) {
     const year = date.getFullYear();
@@ -6275,38 +6362,17 @@ async function generateAdminReport() {
 }
 
 function checkAutoClockOut() {
-    // Only check if logged in and hasn't already said YES to overtime
     if (!btState.isLoggedIn || hasConfirmedOvertime) return;
 
-    const shiftEndVal = document.getElementById('bt-shift-end').value;
-    if (!shiftEndVal) return; // No shift end set
+    const timeline = getShiftTimeline();
+    if (!timeline) return;
 
     const now = new Date();
-    const [h, m] = shiftEndVal.split(':').map(Number);
     
-    // Create Date Object for Shift End (Today)
-    let shiftEndDate = new Date();
-    shiftEndDate.setHours(h, m, 0, 0);
+    // Trigger ONLY if we are 1 hour past the calculated Shift End
+    const overtimeThreshold = new Date(timeline.end.getTime() + (60 * 60 * 1000));
 
-    // Handle Night Shift logic (If Shift End is tomorrow morning, e.g., 5 AM)
-    // If 'now' is 6AM and shift end was 5AM, diff is 1 hour.
-    // If 'now' is 11PM and shift end is 5AM (tomorrow), shiftEndDate is in the past, need to add day.
-    // Heuristic: If shiftEndDate is > 12 hours ago, it implies it's actually tomorrow's 5AM relative to a start time.
-    // SIMPLIFIED LOGIC: We just check if NOW is > ShiftEnd + 60 mins.
-    
-    // Calculate 1 Hour Threshold
-    const oneHourAfter = new Date(shiftEndDate.getTime() + (60 * 60 * 1000));
-    
-    // Calculate 1 Hour + 1 Minute (Window to trigger)
-    const windowEnd = new Date(oneHourAfter.getTime() + (60 * 1000)); 
-
-    // Trigger ONLY if we passed the mark within the last minute 
-    // (Prevents loop if user reloads page 2 hours later, unless we want to force immediately)
-    // Let's force immediately if it's past the hour mark.
-    
-    if (now >= oneHourAfter) {
-        // Double check: Is it correct date? 
-        // We use the 'getLogicalDateKey' logic to ensure we are talking about the active shift.
+    if (now >= overtimeThreshold) {
         triggerOvertimePrompt();
     }
 }
@@ -6347,64 +6413,145 @@ function confirmOvertime() {
     hasConfirmedOvertime = true; // Permanently ignore for this session
     showToast("Overtime Confirmed. Carry on!");
 }
+// 1. OPEN MODAL (Sets default dates)
+function openLeaveModal() {
+    const today = formatDateKey(new Date());
+    document.getElementById('leave-date-from').value = today;
+    document.getElementById('leave-date-to').value = today;
+    openModal('leave-modal');
+}
+
+// 2. SUBMIT LEAVE (Handles Multiple Dates)
+async function submitLeave() {
+    const startStr = document.getElementById('leave-date-from').value;
+    const endStr = document.getElementById('leave-date-to').value;
+    const type = document.getElementById('leave-type').value;
+
+    if (!startStr || !endStr) return showToast("Select valid dates", "error");
+    if (endStr < startStr) return showToast("End date cannot be before Start date", "error");
+
+    // Grab Shift settings
+    const shiftStart = document.getElementById('bt-shift-start').value || "00:00";
+    const shiftEnd = document.getElementById('bt-shift-end').value || "00:00";
+
+    const batch = db.batch(); // Efficient bulk write
+    
+    // Create Date Objects for Loop
+    let currentDate = new Date(startStr);
+    const endDate = new Date(endStr);
+    let count = 0;
+
+    // Loop from Start to End
+    while (currentDate <= endDate) {
+        const dateKey = formatDateKey(currentDate);
+        
+        // Reference the specific document
+        const docRef = db.collection('users').doc(currentUser.id).collection('attendance').doc(dateKey);
+        
+        // Add to batch
+        batch.set(docRef, {
+            date: dateKey,
+            status: type,
+            isPaidLeave: true,
+            actualLogin: "LEAVE",
+            actualLogout: "LEAVE",
+            shiftStart: shiftStart,
+            shiftEnd: shiftEnd,
+            logoutReason: "Filed Range via Vibe Hub"
+        }, { merge: true });
+
+        // Move to next day
+        currentDate.setDate(currentDate.getDate() + 1);
+        count++;
+    }
+
+    try {
+        await batch.commit();
+        showToast(`✅ Filed ${type} for ${count} day(s)`);
+        closeModal('leave-modal');
+        
+        // Update UI if TODAY was included in the range
+        const todayKey = getLogicalDateKey();
+        if (todayKey >= startStr && todayKey <= endStr) {
+            document.getElementById('bt-status').innerText = "ON LEAVE";
+            const btn = document.getElementById('bt-login-btn');
+            if(btn) {
+                btn.innerText = "On Leave";
+                btn.classList.add('btn-disabled');
+                btn.disabled = true;
+            }
+        }
+    } catch (e) {
+        console.error(e);
+        showToast("Error filing leave", "error");
+    }
+}
+
 
 // 4. User clicked "NO" or Time ran out
 function forceClockOut() {
+    // 1. Stop the countdown/alarm
     clearInterval(otCountdownTimer);
     stopAlarm();
     document.getElementById('ot-check-modal').classList.add('hidden');
     
-    // Trigger the existing Logout function
-    // Pass a flag or handle UI immediately
-    showToast("System: Force Clock Out Initiated...", "error");
+    // 2. Calculate the "Correct" Clock Out Time (Shift End)
+    const timeline = getShiftTimeline(); // Gets { start: Date, end: Date }
+    let forceTime = null;
+
+    if (timeline) {
+        forceTime = timeline.end; // This is exactly 05:00
+    }
+
+    showToast("System: Auto-closing session...", "error");
     
-    // Simulate the logout click logic
+    // 3. Perform Logout with the 05:00 Timestamp
     if (btState.isLoggedIn) {
-        // We bypass the confirm dialog of toggleBtLogin by manually calling the inner logic
-        performLogout("System Force Out");
+        performLogout("System Auto-End (Forgot to clock out)", forceTime);
     }
 }
 // 5. Refactored Logout Logic (To allow direct calling)
-async function performLogout(reason = "Manual") {
+async function performLogout(reason = "Manual", overrideDate = null) {
     const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'});
+    
+    // DECISION: Use the Override (Shift End) if provided, otherwise use Now.
+    const logoutDate = overrideDate || now;
+    
+    // Format HH:MM for DB
+    const timeStr = logoutDate.toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'});
     const dateKey = getLogicalDateKey();
 
-    // A. Update DB first (Save Logout Time)
+    // A. Update DB
     if (currentUser) {
         await db.collection('users').doc(currentUser.id)
           .collection('attendance').doc(dateKey)
           .set({
-              actualLogout: timeStr,
+              actualLogout: timeStr, // Saves 05:00 (if forced), or Current Time (if manual)
               status: 'Completed',
-              logoutReason: reason // Added this to track if it was Forced
+              logoutReason: reason
           }, { merge: true });
     }
 
-    // B. Visually complete the row (Restored from your original code)
-    addLogEntry("SHIFT", "--", "OK", null, now);
+    // B. Visual Update (Pass logoutDate so the table shows 05:00)
+    addLogEntry("SHIFT", "--", "Completed", null, logoutDate);
 
-    // C. RESET EVERYTHING (The "Clear" Logic)
+    // C. RESET LOCAL STATE
     btState.isLoggedIn = false;
-    btState.logs = [];       // Wipe the table visuals
-    btState.usedBreaks = []; // Unlock all break buttons
-    
-    // --- PB RESET FIXED HERE ---
-    btState.bank = 600;      // Reset PB to 10m (600s) for tomorrow
-    
-    // Reset Overtime Flag (For the force timer)
+    btState.logs = [];       
+    btState.usedBreaks = []; 
+    btState.bank = 600;      
     hasConfirmedOvertime = false;
 
     // D. UI Reset
-    renderBtLogs();          // Clear the HTML table
-    updateLoginBtn();        // Button goes back to "Clock IN"
-    updateBreakButtons();    // Enable buttons
-    updateBankDisplay();     // Show fresh 10m bank
+    updateLoginBtn();        
+    updateBreakButtons();    
+    updateBankDisplay();     
+    renderBtLogs();
 
-    // E. Save the "Empty" state to User Profile
+    // E. Save Empty State
     saveBreakData(null);
     
-    showToast(`Shift Ended (${reason}). Logs Cleared.`);
+    showToast(`Shift Ended (${reason}).`);
 }
 
 async function cleanupStaleSessions() {

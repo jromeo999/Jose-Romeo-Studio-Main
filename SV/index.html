@@ -686,7 +686,18 @@
             <small>Launch App</small>
         </div>
         <i data-feather="play-circle" class="ql-arrow" style="color: #f59e0b;"></i>
+    </div><div class="panel-section">
+    <h4 class="panel-sub-title">Attendance & Leaves</h4>
+    <div style="background:var(--bg-hover); padding:10px; border-radius:8px; border:1px solid var(--border);">
+        <p style="font-size:10px; color:var(--text-muted); margin-bottom:8px;">
+            Filing a leave ensures your attendance report shows "Paid" instead of "Absent".
+        </p>
+        <button class="btn btn-sm btn-leave" onclick="openLeaveModal()">
+    <i data-feather="calendar" style="width:14px; margin-right:5px;"></i> File Leave (VL/SL)
+</button>
     </div>
+</div>
+
       </div>
      </div>
     </div>
@@ -1202,6 +1213,53 @@
         </div>
     </div>
 </div>
+<!-- LEAVE FILING MODAL (UPDATED FOR RANGES) -->
+<div id="leave-modal" class="modal-overlay hidden" style="z-index: 6000;">
+    <div class="modal-box" style="max-width:350px;">
+        <div class="modal-header">
+            <h3><i data-feather="sun" style="width:18px; margin-right:8px; color:var(--warning)"></i> File Leave</h3>
+            <button class="icon-btn" onclick="closeModal('leave-modal')"><i data-feather="x"></i></button>
+        </div>
+        
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">
+            Select date range to mark as Paid Leave (9.0 Hours Credit).
+        </p>
+        
+        <div class="input-group">
+            <label style="position:static; font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:5px;">Leave Type</label>
+            <select id="leave-type" class="mini-input" style="width:100%; height:38px; font-size:13px;">
+                <option value="Vacation Leave">Vacation Leave (VL)</option>
+                <option value="Sick Leave">Sick Leave (SL)</option>
+                <option value="Emergency Leave">Emergency Leave (EL)</option>
+                <option value="Maternity/Paternity">Maternity/Paternity</option>
+            </select>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <div class="input-group" style="flex:1;">
+                <label style="position:static; font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:5px;">From</label>
+                <input type="date" id="leave-date-from" class="mini-input" style="width:100%; height:38px; font-size:13px;">
+            </div>
+            <div class="input-group" style="flex:1;">
+                <label style="position:static; font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:5px;">To</label>
+                <input type="date" id="leave-date-to" class="mini-input" style="width:100%; height:38px; font-size:13px;">
+            </div>
+        </div>
+
+        <!-- NEW: MANAGEMENT WARNING -->
+        <div style="background:rgba(245, 158, 11, 0.1); border:1px solid var(--warning); padding:10px; border-radius:6px; margin-top:10px; display:flex; gap:8px; align-items:start;">
+            <i data-feather="alert-triangle" style="width:16px; color:var(--warning); flex-shrink:0; margin-top:2px;"></i>
+            <span style="font-size:11px; color:var(--text-muted); line-height:1.4;">
+                <strong>Important:</strong> Only file leaves that have already been <u>approved by management</u>. Unauthorized entries may be subject to review.
+            </span>
+        </div>
+
+        <button class="btn btn-primary full-width" style="margin-top:15px; background:var(--warning); border-color:var(--warning); color:white;" onclick="submitLeave()">
+            Confirm Filing
+        </button>
+    </div>
+</div>
+
 
   <script src="script.js"></script>
  </body>

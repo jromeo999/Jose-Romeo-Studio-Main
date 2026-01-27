@@ -19,6 +19,7 @@
     color-scheme: light;
     --bg-main: #eff2f7;      
     --bg-secondary: #ffffff; 
+    --warning: #f59e0b;
 }
 
 /* =========================================
@@ -51,6 +52,35 @@
     cursor: pointer;
     opacity: 0.6; /* Slight fade so it's not too harsh */
     transition: 0.2s;
+}
+.btn-leave {
+    background: transparent;
+    border: 1px solid var(--warning);
+    color: var(--warning);
+    transition: all 0.2s ease;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover State: Fills with Orange, Text turns White */
+.btn-leave:hover {
+    background: var(--warning);
+    color: white; 
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); /* Orange Glow */
+    transform: translateY(-1px);
+}
+
+/* Dark Mode Specific Tweaks (Optional, but makes it crisper) */
+[data-theme="dark"] .btn-leave {
+    /* Make the text slightly brighter in dark mode if needed */
+    color: #fbbf24; 
+    border-color: #fbbf24;
+}
+[data-theme="dark"] .btn-leave:hover {
+    background: #fbbf24;
+    color: #121212; /* Black text on bright orange looks better in dark mode */
 }
 
 /* Hover Effect */
